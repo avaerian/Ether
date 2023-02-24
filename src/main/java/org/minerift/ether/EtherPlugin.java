@@ -17,7 +17,7 @@ public class EtherPlugin extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
 
-        this.getLogger().log(Level.INFO, "Ether plugin enabled!");
+        getLogger().log(Level.INFO, "Ether plugin enabled!");
     }
 
     @Override
