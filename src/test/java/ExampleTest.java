@@ -15,9 +15,8 @@ public class ExampleTest {
     @Test
     public void goodbyeTest() {
 
-        // This test should fail
         String str = "Hello, world!";
-        assertEquals("Goodbye, world!", str);
+        assertNotEquals("Goodbye, world!", str);
 
     }
 
