@@ -26,6 +26,7 @@ public class GridAlgorithmTest {
     public void inverseTest(int inputId) {
         final Tile tile = grid.computeTile(inputId);
         final int tileId = grid.computeTileId(tile);
+        System.out.println(inputId + " -> " + tile + " -> " + tileId);
         assertEquals(tileId, inputId);
     }
 
