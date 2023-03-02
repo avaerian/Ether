@@ -2,8 +2,8 @@ plugins {
     id 'java'
 }
 
-group 'org.minerift'
-version '1.0-SNAPSHOT'
+group('org.minerift')
+version('1.0-SNAPSHOT')
 
 repositories {
     maven {
@@ -13,9 +13,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.9.2')
+    testImplementation('org.junit.jupiter:junit-jupiter-params:5.9.2')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.9.2')
 
     compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
 }
