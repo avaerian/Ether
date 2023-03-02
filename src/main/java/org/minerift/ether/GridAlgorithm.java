@@ -4,6 +4,7 @@ import org.minerift.ether.island.Tile;
 
 /**
  * Algorithm for locating a Tile
+ * @author Avaerian
  */
 public class GridAlgorithm {
 
