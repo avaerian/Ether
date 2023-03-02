@@ -72,5 +72,4 @@ public class GridAlgorithmTest {
                 () -> algorithm.computeTile(-1)
         );
     }
-
 }
