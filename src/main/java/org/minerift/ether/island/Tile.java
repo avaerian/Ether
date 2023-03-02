@@ -1,5 +1,7 @@
 package org.minerift.ether.island;
 
+import java.util.Objects;
+
 // Immutable by default
 // Use Tile.Mutable for math-related stuffs
 public class Tile {
@@ -19,6 +21,34 @@ public class Tile {
 
     public int getZ() {
         return z;
+    }
+
+    public int distanceTo(Tile tile) {
+        int distX = (x - tile.getX()) * (x - tile.getX());
+        int distZ = (z - tile.getZ()) * (z - tile.getZ());
+        return (int) Math.sqrt(distX + distZ);
+    }
+
+    public Tile.Mutable asMutable() {
+        return new Tile.Mutable(x, z);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tile tile = (Tile) o;
+        return x == tile.x && z == tile.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, z);
+    }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + z + ")";
     }
 
     public static class Mutable extends Tile {
