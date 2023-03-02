@@ -10,24 +10,24 @@ import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GridAlgorithmTest {
 
-    private GridAlgorithm grid;
+    private GridAlgorithm algorithm;
 
     @BeforeAll
     public void setup() {
-        this.grid = new GridAlgorithm();
+        this.algorithm = new GridAlgorithm();
     }
 
     // Validate by ensuring the algorithm works from and to tile coordinates and id
     @ParameterizedTest
     @MethodSource
     public void inverseTest(int inputId) {
-        final Tile tile = grid.computeTile(inputId);
-        final int tileId = grid.computeTileId(tile);
+        final Tile tile = algorithm.computeTile(inputId);
+        final int tileId = algorithm.computeTileId(tile);
         System.out.println(inputId + " -> " + tile + " -> " + tileId);
         assertEquals(tileId, inputId);
     }
@@ -46,10 +46,7 @@ public class GridAlgorithmTest {
     @ParameterizedTest
     @MethodSource
     public void random_inverseTest(int inputId) {
-        final Tile tile = grid.computeTile(inputId);
-        final int tileId = grid.computeTileId(tile);
-        System.out.println(inputId + " -> " + tile + " -> " + tileId);
-        assertEquals(tileId, inputId);
+        inverseTest(inputId);
     }
 
     // Provides random parameters for test above
@@ -58,6 +55,22 @@ public class GridAlgorithmTest {
         final int randomBound = 50000;
         Random random = new Random();
         return random.ints(randomValueCount, 0, randomBound).boxed();
+    }
+
+    @Test
+    public void nullTileTest() {
+        assertThrows(
+                NullPointerException.class,
+                () -> algorithm.computeTileId(null)
+        );
+    }
+
+    @Test
+    public void outOfRangeTileIdTest() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> algorithm.computeTile(-1)
+        );
     }
 
 }
