@@ -8,22 +8,29 @@ import java.util.Optional;
 
 public class IslandGrid {
 
-    // Active islands on the grid
+    // All islands on the grid
     private SortedList<Island> islands;
 
-    // Algorithm for calculating tile coordinates and tile IDs
+    // Algorithm for calculating tile coordinates and tile ids
+    // TODO: move this to main class for accessibility
     private GridAlgorithm algorithm;
 
     public IslandGrid() {
         this.algorithm = new GridAlgorithm();
     }
 
-    public void registerIsland() {
-        
-    }
+    public void registerIsland(Island island) {
 
-    public void deleteIsland(Island island) {
+        if(isTileOccupied(island.getTile())) {
+            if(!island.isDeleted()) {
+                throw new UnsupportedOperationException("Island already exists in IslandGrid!");
+            } else {
+                // Overwrite island with new data
+                islands.set(island.getId(), island);
+            }
+        }
 
+        islands.add(island);
     }
 
     public Optional<Island> getIslandAt(Tile tile) {
@@ -37,7 +44,7 @@ public class IslandGrid {
     }
 
     // Get a list of islands that can be reoccupied
-    public ImmutableList<Island> getPurgedIslands() {
+    public ImmutableList<Island> getPurgedIslandsView() {
         return islands.stream()
                 .filter(Island::isDeleted)
                 .collect(ImmutableList.toImmutableList());
@@ -46,6 +53,18 @@ public class IslandGrid {
     public ImmutableList<Island> getIslandsView() {
         return ImmutableList.copyOf(islands);
     }
+
+    // Returns the next available tile that can be occupied
+    public Tile getNextTile() {
+        ImmutableList<Island> purgedIslands = getPurgedIslandsView();
+        return purgedIslands.isEmpty()
+                ? getNextTileFromGridBounds()
+                : purgedIslands.get(0).getTile();
+    }
+
+    /*public GridAlgorithm getGridAlgorithm() {
+        return algorithm;
+    }*/
 
     // Returns the next island/tile id at the end of the grid
     // Does not consider purged islands
@@ -57,13 +76,5 @@ public class IslandGrid {
     // Returns the next tile at the end of the grid
     private Tile getNextTileFromGridBounds() {
         return algorithm.computeTile(getNextIdFromGridBounds());
-    }
-
-    // Returns the next tile that can be occupied
-    private Tile getNextTile() {
-        ImmutableList<Island> purgedIslands = getPurgedIslands();
-        return purgedIslands.isEmpty()
-                ? getNextTileFromGridBounds()
-                : purgedIslands.get(0).getTile();
     }
 }

@@ -1,7 +1,8 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Location;
-import org.minerift.ether.config.MainConfiguration;
+import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.utils.BukkitUtils;
 
 import java.util.Optional;
 
@@ -16,15 +17,26 @@ public class IslandManager {
     public void createIsland() {
 
         // Create island instance
-        // Locate next available tile on grid
-        // Occupy available grid tile
+        // TODO: island builder
+        Island island = null;
+
+        // Set island tile to next available tile on grid
+        Tile tile = grid.getNextTile();
+
         // Paste schematic/structure onto tile
         // Register island
+        grid.registerIsland(island);
         // Teleport player (could be a callback)
     }
 
-    public void deleteIsland() {
-        // TBD
+    public void deleteIsland(Island island) {
+
+        // Mark island as deleted
+        island.markDeleted();
+
+        // Clear all island information
+        // Scan island and clear/set to air
+        // Remove island references from players on island team
     }
 
     public Optional<Island> getIslandAt(Tile tile) {
@@ -32,15 +44,10 @@ public class IslandManager {
     }
 
     public Optional<Island> getIslandAt(Location location) {
-        return getIslandAt(getTileAt(location));
+        return getIslandAt(BukkitUtils.getTileAt(location));
     }
 
-    // TODO: move this to another class for decoupling?
-    private Tile getTileAt(Location location) {
-        final int TILE_SIZE = MainConfiguration.TILE_SIZE;
-        int tileX = (int) Math.floor(location.getX() / TILE_SIZE);
-        int tileZ = (int) Math.floor(location.getZ() / TILE_SIZE);
-        return new Tile(tileX, tileZ);
-    }
-
+    /*public GridAlgorithm getGridAlgorithm() {
+        return grid.getGridAlgorithm();
+    }*/
 }

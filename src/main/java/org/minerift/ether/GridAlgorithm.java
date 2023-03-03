@@ -145,5 +145,4 @@ public class GridAlgorithm {
     private boolean inRange(int i, int min, int max) {
         return i >= min && i <= max;
     }
-
 }

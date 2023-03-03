@@ -11,6 +11,15 @@ public class Island {
     private int id;
     private Tile tile;
 
+    // Private constructor
+    private Island(Island.Builder builder) {
+        // TODO: load all values from builder to object
+    }
+
+    public static Island.Builder builder() {
+        return new Island.Builder();
+    }
+
     private boolean isDeleted;
 
     public int getId() {
@@ -25,8 +34,28 @@ public class Island {
         return isDeleted;
     }
 
-    public void setDeleted() {
+    public void markDeleted() {
         this.isDeleted = true;
+    }
+
+    public static class Builder {
+
+        private Tile tile;
+        private int id;
+
+        public void setTile(Tile tile) {
+
+        }
+
+        public Island build() {
+            validate();
+            return new Island(this);
+        }
+
+        private void validate() {
+
+        }
+
     }
 
 }
