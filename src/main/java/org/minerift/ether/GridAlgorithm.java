@@ -9,12 +9,14 @@ import org.minerift.ether.island.Tile;
  */
 public class GridAlgorithm {
 
+    private GridAlgorithm() {}
+
     /**
      * Algorithm for calculating a tile id from tile coordinates.
      * @param tile tile coordinates
      * @return integer id of the tile
      */
-    public int computeTileId(Tile tile) {
+    public static int computeTileId(Tile tile) {
 
         Validate.notNull(tile, "Tile cannot be null!");
 
@@ -72,7 +74,7 @@ public class GridAlgorithm {
      * @param tileId id of tile on grid
      * @return Tile coordinates
      */
-    public Tile computeTile(int tileId) {
+    public static Tile computeTile(int tileId) {
 
         Validate.isTrue(tileId >= 0, "tileId needs to be a positive number!");
 
@@ -125,24 +127,24 @@ public class GridAlgorithm {
     }
 
     // Get the shell id from a tile id
-    private int getShellId(int tileId) {
+    private static int getShellId(int tileId) {
         double shellId = (Math.sqrt(tileId + 1) / 2) - 0.5;
         return (int) Math.ceil(shellId);
     }
 
     // Get diagonal id from shell id
-    private int getDiagonalId(int shellId) {
+    private static int getDiagonalId(int shellId) {
         return (4 * shellId) * (shellId + 1);
     }
 
-    private boolean isInRow(Tile tile, Tile left, Tile right) {
+    private static boolean isInRow(Tile tile, Tile left, Tile right) {
         // Left is negative (lower bound)
         // Right is positive (upper bound)
         return inRange(tile.getX(), left.getX(), right.getX()) && tile.getZ() == left.getZ();
     }
 
     // Inclusive for min and max bounds
-    private boolean inRange(int i, int min, int max) {
+    private static boolean inRange(int i, int min, int max) {
         return i >= min && i <= max;
     }
 }

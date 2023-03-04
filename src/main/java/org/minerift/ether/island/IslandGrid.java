@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.utils.SortedList;
 
+import java.util.Comparator;
 import java.util.Optional;
 
 public class IslandGrid {
@@ -11,12 +12,9 @@ public class IslandGrid {
     // All islands on the grid
     private SortedList<Island> islands;
 
-    // Algorithm for calculating tile coordinates and tile ids
-    // TODO: move this to main class for accessibility
-    private GridAlgorithm algorithm;
-
     public IslandGrid() {
-        this.algorithm = new GridAlgorithm();
+        // TODO: load islands from persistence manager
+        this.islands = new SortedList<>(Comparator.comparing(Island::getId));
     }
 
     public void registerIsland(Island island) {
@@ -27,6 +25,7 @@ public class IslandGrid {
             } else {
                 // Overwrite island with new data
                 islands.set(island.getId(), island);
+                return;
             }
         }
 
@@ -34,7 +33,7 @@ public class IslandGrid {
     }
 
     public Optional<Island> getIslandAt(Tile tile) {
-        final int id = algorithm.computeTileId(tile);
+        final int id = GridAlgorithm.computeTileId(tile);
         Island island = id >= islands.size() ? null : islands.get(id);
         return Optional.ofNullable(island);
     }
@@ -62,10 +61,6 @@ public class IslandGrid {
                 : purgedIslands.get(0).getTile();
     }
 
-    /*public GridAlgorithm getGridAlgorithm() {
-        return algorithm;
-    }*/
-
     // Returns the next island/tile id at the end of the grid
     // Does not consider purged islands
     private int getNextIdFromGridBounds() {
@@ -75,6 +70,6 @@ public class IslandGrid {
 
     // Returns the next tile at the end of the grid
     private Tile getNextTileFromGridBounds() {
-        return algorithm.computeTile(getNextIdFromGridBounds());
+        return GridAlgorithm.computeTile(getNextIdFromGridBounds());
     }
 }

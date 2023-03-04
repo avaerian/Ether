@@ -1,6 +1,4 @@
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.minerift.ether.GridAlgorithm;
@@ -10,24 +8,18 @@ import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GridAlgorithmTest {
-
-    private GridAlgorithm algorithm;
-
-    @BeforeAll
-    public void setup() {
-        this.algorithm = new GridAlgorithm();
-    }
 
     // Validate by ensuring the algorithm works from and to tile coordinates and id
     @ParameterizedTest
     @MethodSource
     public void inverseTest(int inputId) {
-        final Tile tile = algorithm.computeTile(inputId);
-        final int tileId = algorithm.computeTileId(tile);
+        final Tile tile = GridAlgorithm.computeTile(inputId);
+        final int tileId = GridAlgorithm.computeTileId(tile);
         System.out.println(inputId + " -> " + tile + " -> " + tileId);
         assertEquals(tileId, inputId);
     }
@@ -61,7 +53,7 @@ public class GridAlgorithmTest {
     public void nullTileTest() {
         assertThrows(
                 NullPointerException.class,
-                () -> algorithm.computeTileId(null)
+                () -> GridAlgorithm.computeTileId(null)
         );
     }
 
@@ -69,7 +61,7 @@ public class GridAlgorithmTest {
     public void outOfRangeTileIdTest() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> algorithm.computeTile(-1)
+                () -> GridAlgorithm.computeTile(-1)
         );
     }
 }
