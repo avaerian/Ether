@@ -13,7 +13,6 @@ repositories {
 dependencies {
 
     // TODO: review Gradle methods and dependencies for proper setup
-    implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("com.google.guava:guava:31.1-jre")
 
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.9.2')

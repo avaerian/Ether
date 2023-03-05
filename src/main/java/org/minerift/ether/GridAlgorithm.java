@@ -1,6 +1,6 @@
 package org.minerift.ether;
 
-import org.apache.commons.lang3.Validate;
+import com.google.common.base.Preconditions;
 import org.minerift.ether.island.Tile;
 
 /**
@@ -18,7 +18,7 @@ public class GridAlgorithm {
      */
     public static int computeTileId(Tile tile) {
 
-        Validate.notNull(tile, "Tile cannot be null!");
+        Preconditions.checkNotNull(tile, "Tile cannot be null!");
 
         // Check if tile is a positive diagonal tile
         if(tile.getX() >= 0 && tile.getX() == tile.getZ()) {
@@ -76,7 +76,7 @@ public class GridAlgorithm {
      */
     public static Tile computeTile(int tileId) {
 
-        Validate.isTrue(tileId >= 0, "tileId needs to be a positive number!");
+        Preconditions.checkArgument(tileId >= 0, "tileId needs to be a positive number!");
 
         if(tileId == 0) {
             return Tile.ZERO;
