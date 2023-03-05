@@ -1,5 +1,7 @@
 package org.minerift.ether.island;
 
+import org.minerift.ether.GridAlgorithm;
+
 import java.util.Objects;
 
 // Immutable by default
@@ -23,6 +25,10 @@ public class Tile {
         return z;
     }
 
+    public int getId() {
+        return GridAlgorithm.computeTileId(this);
+    }
+
     public int distanceTo(Tile tile) {
         int distX = (x - tile.getX()) * (x - tile.getX());
         int distZ = (z - tile.getZ()) * (z - tile.getZ());
@@ -30,7 +36,8 @@ public class Tile {
     }
 
     public Tile.Mutable asMutable() {
-        return new Tile.Mutable(x, z);
+        return (this instanceof Tile.Mutable) ? (Tile.Mutable) this : new Tile.Mutable(x, z);
+        //return new Tile.Mutable(x, z);
     }
 
     @Override

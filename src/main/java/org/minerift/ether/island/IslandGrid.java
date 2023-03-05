@@ -4,12 +4,13 @@ import com.google.common.collect.ImmutableList;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.utils.SortedList;
 
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class IslandGrid {
 
-    // All islands on the grid
+    // All islands on the grid, including deleted islands
     private SortedList<Island> islands;
 
     public IslandGrid() {
@@ -19,9 +20,12 @@ public class IslandGrid {
 
     public void registerIsland(Island island) {
 
+        validateGridContiguity();
+
         if(isTileOccupied(island.getTile())) {
-            if(!island.isDeleted()) {
-                throw new UnsupportedOperationException("Island already exists in IslandGrid!");
+            Island existingIsland = islands.get(island.getId());
+            if(!existingIsland.isDeleted()) {
+                throw new UnsupportedOperationException("Island " + island.getId() + " already exists in IslandGrid!");
             } else {
                 // Overwrite island with new data
                 islands.set(island.getId(), island);
@@ -61,15 +65,52 @@ public class IslandGrid {
                 : purgedIslands.get(0).getTile();
     }
 
-    // Returns the next island/tile id at the end of the grid
-    // Does not consider purged islands
+    // Returns the next island/tile id at the end of the grid.
+    // Does not consider purged islands.
+    // This exists in case the logic needs to change for any reason.
+    // EXAMPLE: If the last island has an id of 37, size will return 38.
     private int getNextIdFromGridBounds() {
-        // EXAMPLE: If the last island has an id of 37, size will return 38
         return islands.size();
     }
 
     // Returns the next tile at the end of the grid
     private Tile getNextTileFromGridBounds() {
         return GridAlgorithm.computeTile(getNextIdFromGridBounds());
+    }
+
+    /**
+     * Ensures that the grid has islands, temporary or not, that
+     * are contiguous. In other words, there are no gaps between indexes.
+     */
+    private void validateGridContiguity() {
+
+        // One or less elements is "contiguous" (can be handled later when more elements are added)
+        if(islands.size() <= 1) {
+            return;
+        }
+
+        // Largest element is last, which should be size of the list when contiguous
+        // If contiguous (last id is size - 1), don't handle
+        int lastId = islands.get(islands.size() - 1).getId();
+        if(lastId == islands.size() - 1) {
+            return;
+        }
+
+        Set<Integer> excludedIds = islands.stream()
+                .map(Island::getId)
+                .collect(Collectors.toSet());
+
+        IntStream.range(0, lastId)
+                .filter(id -> !excludedIds.contains(id))
+                .forEachOrdered(id -> {
+
+                    Tile tile = GridAlgorithm.computeTile(id);
+                    Island fillerIsland = Island.builder()
+                            .setTile(tile, true)
+                            .setDeleted(true) // tile can be overwritten
+                            .build();
+                    islands.add(fillerIsland);
+
+                });
     }
 }
