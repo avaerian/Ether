@@ -1,9 +1,7 @@
 package org.minerift.ether.island;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PermissionSet {
 
@@ -39,6 +37,32 @@ public class PermissionSet {
 
     public boolean hasPermissions(IslandRole role, EnumSet<IslandPermission> permissions) {
         return permissionSet.get(role).containsAll(permissions);
+    }
+
+    public void addPermission(IslandRole role, IslandPermission rolePermission) {
+        permissionSet.get(role).add(rolePermission);
+    }
+
+    public void addPermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
+        permissionSet.get(role).addAll(rolePermissions);
+    }
+
+    public void addPermissions(IslandRole role, IslandPermission ... rolePermissions) {
+        EnumSet<IslandPermission> set = Arrays.stream(rolePermissions).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
+        addPermissions(role, set);
+    }
+
+    public void removePermission(IslandRole role, IslandPermission rolePermission) {
+        permissionSet.get(role).remove(rolePermission);
+    }
+
+    public void removePermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
+        permissionSet.get(role).removeAll(rolePermissions);
+    }
+
+    public void removePermissions(IslandRole role, IslandPermission ... rolePermissions) {
+        EnumSet<IslandPermission> set = Arrays.stream(rolePermissions).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
+        removePermissions(role, set);
     }
 
 }

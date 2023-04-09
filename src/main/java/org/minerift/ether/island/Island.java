@@ -1,10 +1,9 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Location;
-import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public class Island {
@@ -34,6 +33,7 @@ public class Island {
         this.tile = builder.tile;
         this.id = builder.id;
         this.isDeleted = builder.isDeleted;
+        this.permissions = builder.permissions;
     }
 
 
@@ -79,6 +79,7 @@ public class Island {
         private Tile tile;
         private int id;
         private boolean isDeleted = false;
+        private PermissionSet permissions;
 
         /**
          *
@@ -94,6 +95,24 @@ public class Island {
 
         public Builder setDeleted(boolean isDeleted) {
             this.isDeleted = isDeleted;
+            return this;
+        }
+
+        public Builder setPermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
+            this.permissions = new PermissionSet();
+            permissions.setPermissions(role, rolePermissions);
+            return this;
+        }
+
+        public Builder setPermissions(IslandRole role, IslandPermission ... rolePermissions) {
+            this.permissions = new PermissionSet();
+            permissions.setPermissions(role, rolePermissions);
+            return this;
+        }
+
+        public Builder setPermission(IslandRole role, IslandPermission rolePermission) {
+            this.permissions = new PermissionSet();
+            permissions.setPermissions(role, rolePermission);
             return this;
         }
 
