@@ -102,13 +102,13 @@ public class GridAlgorithm {
         // Check if tile is in bottom row
         if(inRange(tileId, startBottomRow, endBottomRow)) {
             tile.subtract(endBottomRow - tileId, 0);
-            return tile;
+            return tile.toImmutable();
         }
 
         // Check if tile is in top row
         if(inRange(tileId, startTopRow, endTopRow)) {
             tile.subtract(endTopRow - tileId, numColumns + 1);
-            return tile;
+            return tile.toImmutable();
         }
 
         // Tile is in a column
@@ -123,7 +123,7 @@ public class GridAlgorithm {
             tile.subtract((tilesInRow - 1), 1 + ((endColumn - tileId) / 2));
         }
 
-        return tile;
+        return tile.toImmutable();
     }
 
     // Get the shell id from a tile id

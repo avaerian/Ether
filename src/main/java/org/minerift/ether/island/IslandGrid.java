@@ -15,11 +15,16 @@ public class IslandGrid {
 
     public IslandGrid() {
         // TODO: load islands from persistence manager
+        // Should be done outside of this class for decoupling
         this.islands = new SortedList<>(Comparator.comparing(Island::getId));
     }
 
     public void registerIsland(Island island) {
 
+        // TODO: if island 200 is loaded first, grid index for island 200 would be 0
+        // This would remain until another island were loaded
+        // If island 200 is loaded, there are 200 islands that will be loaded (will be sorted eventually)
+        // THIS IS NOT AN ISSUE FOR NOW; should be known for future reference
         validateGridContiguity();
 
         if(isTileOccupied(island.getTile())) {

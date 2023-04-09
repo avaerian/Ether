@@ -1,13 +1,18 @@
 package org.minerift.ether.island;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.minerift.ether.GridAlgorithm;
 
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // Immutable by default
 // Use Tile.Mutable for math-related stuffs
 public class Tile {
 
+    private final static Pattern TILE_STRING_PATTERN = Pattern.compile("[^\\d|\\-|\\,]");
     public final static Tile ZERO = new Tile(0, 0);
 
     private int x, z;
@@ -15,6 +20,30 @@ public class Tile {
     public Tile(int x, int z) {
         this.x = x;
         this.z = z;
+    }
+
+    // Attempt to read tile from string representation
+    public Tile(String string) {
+
+        Preconditions.checkNotNull(string, "Cannot leave string tile null!");
+        Preconditions.checkArgument(!string.isBlank(), "Cannot leave string tile blank!");
+
+        // Clear all additional characters + whitespaces
+        StringBuilder sb = new StringBuilder();
+        Matcher matcher = TILE_STRING_PATTERN.matcher(string);
+        while(matcher.find()) {
+            matcher.appendReplacement(sb, "");
+        }
+        matcher.appendTail(sb);
+
+        // Split into array
+        String[] nums = sb.toString().split(",");
+        Preconditions.checkArgument(nums.length == 2, "Malformed string tile; unable to parse string for tile coordinates.");
+
+        // Read into object
+        this.x = Integer.parseInt(nums[0]);
+        this.z = Integer.parseInt(nums[1]);
+
     }
 
     public int getX() {
@@ -80,6 +109,10 @@ public class Tile {
         public void subtract(int x, int z) {
             super.x -= x;
             super.z -= z;
+        }
+
+        public Tile toImmutable() {
+            return new Tile(getX(), getZ());
         }
     }
 }
