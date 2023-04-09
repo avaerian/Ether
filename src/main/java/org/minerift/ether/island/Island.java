@@ -2,6 +2,10 @@ package org.minerift.ether.island;
 
 import org.bukkit.Location;
 import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.user.EtherUser;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class Island {
 
@@ -11,6 +15,16 @@ public class Island {
     // These 2 pieces of data can be calculated from each other
     private int id;
     private Tile tile;
+
+    // Team related fields
+    private int maxTeamSize;
+
+    // NOTE: hard-referencing users could consume memory over time
+    // For lazy-loading, a proxy could solve this problem
+    // This feature is not a problem for now
+    private Set<EtherUser> members;
+
+    private PermissionSet permissions;
 
     private boolean isDeleted;
 
@@ -22,9 +36,6 @@ public class Island {
         this.isDeleted = builder.isDeleted;
     }
 
-    public static Island.Builder builder() {
-        return new Island.Builder();
-    }
 
     public int getId() {
         return id;
@@ -34,12 +45,33 @@ public class Island {
         return tile;
     }
 
+    public Set<EtherUser> getTeamMembers() {
+        return Set.copyOf(members);
+    }
+
+    public boolean isTeamMember(EtherUser user) {
+        return members.contains(user);
+    }
+
+    public PermissionSet getPermissions() {
+        return permissions;
+    }
+
+    public int getMaxTeamSize() {
+        return maxTeamSize;
+    }
+
     public boolean isDeleted() {
         return isDeleted;
     }
 
     public void markDeleted() {
         this.isDeleted = true;
+    }
+
+
+    public static Island.Builder builder() {
+        return new Island.Builder();
     }
 
     public static class Builder {

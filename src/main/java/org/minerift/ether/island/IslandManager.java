@@ -2,6 +2,7 @@ package org.minerift.ether.island;
 
 import org.bukkit.Location;
 import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.utils.BukkitUtils;
 
 import java.util.Optional;
@@ -16,16 +17,19 @@ public class IslandManager {
 
     public void createIsland() {
 
-        // Create island instance
-        // TODO: island builder
-        Island island = null;
-
-        // Set island tile to next available tile on grid
+        // Find next available tile on grid
         Tile tile = grid.getNextTile();
 
-        // Paste schematic/structure onto tile
+        // Create island instance
+        // TODO: implement builder for Island
+        Island island = Island.builder()
+                .setTile(tile, true)
+                .build();
+
         // Register island
         grid.registerIsland(island);
+
+        // Paste schematic/structure onto tile
         // Teleport player (could be a callback)
     }
 
@@ -37,6 +41,7 @@ public class IslandManager {
         // Clear all island information
         // Scan island and clear/set to air
         // Remove island references from players on island team
+        island.getTeamMembers().forEach(member -> member.setIsland(null));
     }
 
     public Optional<Island> getIslandAt(Tile tile) {
@@ -46,8 +51,4 @@ public class IslandManager {
     public Optional<Island> getIslandAt(Location location) {
         return getIslandAt(BukkitUtils.getTileAt(location));
     }
-
-    /*public GridAlgorithm getGridAlgorithm() {
-        return grid.getGridAlgorithm();
-    }*/
 }
