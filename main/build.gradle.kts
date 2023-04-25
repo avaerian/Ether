@@ -2,19 +2,10 @@ plugins {
     id("me.champeau.jmh") version("0.7.0")
 }
 
-/*sourceSets {
-    jmh {
-        //compileClasspath += sourceSets.test.runtimeClasspath
-        //runtimeClasspath += sourceSets.test.runtimeClasspath
-    }
-}*/
-
 sourceSets["jmh"].compileClasspath += sourceSets["main"].runtimeClasspath
 sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 
 dependencies {
-
-    //shadow("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
 
     compileOnly("com.google.guava:guava:31.1-jre")
     shadow("com.google.guava:guava:31.1-jre")

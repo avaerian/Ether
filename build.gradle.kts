@@ -13,21 +13,11 @@ dependencies {
     implementation(project(":main"))
 }
 
-/*shadowJar {
-    //configurations = [project.configurations.compileClasspath]
-    dependencies {
-        exclude(dependency("com.google.guava:guava:31.1-jre"))
-        //exclude(dependency("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPCHAT"))
-    }
-}*/
-
 allprojects {
 
     apply(plugin = "java")
     apply(plugin = "com.github.johnrengelman.shadow")
 
-    //group("org.minerift")
-    //version("1.0-SNAPSHOT")
     group = "org.minerift.ether"
     version = "1.0-SNAPCHAT"
 
@@ -39,10 +29,6 @@ allprojects {
     repositories {
         mavenCentral()
     }
-
-    /*shadowJar {
-        configurations = [project.configurations.runtimeClasspath]
-    }*/
 }
 
 // Paper-API dependency for submodules
@@ -61,10 +47,3 @@ subprojects {
 configure(subprojects.filter { listOf("v1_19_R2").contains(it.name) }) {
     apply(plugin = "io.papermc.paperweight.userdev")
 }
-
-
-/*configure(subprojects.findAll { ["v1_19_R2"].contains(it.name) }) {
-    //apply plugin: "io.papermc.paperweight.userdev"
-    apply(plugin = "io.papermc.paperweight.userdev")
-}*/
-
