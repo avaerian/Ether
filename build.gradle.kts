@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
 
-    implementation(project(":v1_19_R2"))
+    implementation(project(":v1_19_R2", "reobf"))
 
     implementation(project(":main"))
 }
@@ -19,7 +19,7 @@ allprojects {
     apply(plugin = "com.github.johnrengelman.shadow")
 
     group = "org.minerift.ether"
-    version = "1.0-SNAPCHAT"
+    version = "1.0-SNAPSHOT"
 
     java {
         sourceCompatibility = JavaVersion.VERSION_17
