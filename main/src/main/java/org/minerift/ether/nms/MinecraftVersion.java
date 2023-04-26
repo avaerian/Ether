@@ -95,20 +95,6 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
         return "(%d.%d.%d)".formatted(major, minor, patch);
     }
 
-
-    /*@Override
-    public int compareTo(@NotNull MinecraftVersion o) {
-        return getCompareScore() - o.getCompareScore();
-    }*/
-
-    // Score used for comparing
-    // TODO: reevaluate and remove in favor of better compare methods
-    @Deprecated
-    public int getCompareScore() {
-        long score = (major * 10000L) + (minor * 100L) + (patch * 1L) - 10000L;
-        return (int)score;
-    }
-
     @Override
     public int compareTo(@NotNull MinecraftVersion o) {
         return ComparisonChain.start()

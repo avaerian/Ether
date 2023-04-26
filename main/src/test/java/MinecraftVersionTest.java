@@ -3,7 +3,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.minerift.ether.nms.MinecraftVersion;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -97,14 +100,15 @@ public class MinecraftVersionTest {
             for (int j = 0; j < MINOR_VERSION_LIMIT; j++) {
                 MinecraftVersion version = new MinecraftVersion(1, i, j);
                 versions[(i * MAJOR_VERSION_LIMIT) + j] = version;
-                System.out.println(version + " -> " + version.getCompareScore());
+                System.out.println(version);
             }
         }
 
-        MinecraftVersion[] sortedVersions = Arrays.copyOf(versions, versions.length);
-        Arrays.sort(sortedVersions);
+        List<MinecraftVersion> sortedVersions = new ArrayList<>(Arrays.asList(versions));
+        Collections.shuffle(sortedVersions); // ensure that the versions are out of order to demonstrate compareTo()
+        Collections.sort(sortedVersions);
 
-        assertArrayEquals(versions, sortedVersions);
+        assertArrayEquals(versions, sortedVersions.toArray(MinecraftVersion[]::new));
     }
 
 }
