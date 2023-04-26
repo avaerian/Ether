@@ -7,7 +7,7 @@ sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 
 dependencies {
 
-    compileOnly("com.google.guava:guava:31.1-jre")
+    implementation("com.google.guava:guava:31.1-jre")
     shadow("com.google.guava:guava:31.1-jre")
 
     jmhImplementation("org.openjdk.jmh:jmh-core:1.36")
