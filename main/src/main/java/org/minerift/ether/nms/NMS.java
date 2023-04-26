@@ -7,15 +7,12 @@ import java.util.regex.Pattern;
 
 public class NMS {
 
-    // TODO: finish this
-    private final static Pattern BUKKIT_VERSION_PATTERN = Pattern.compile("");
-
     private ServerImplVersion serverImplVersion;
     private MinecraftVersion mcVersion;
-    private String rawVersion;
 
     public NMS() {
 
+        // TODO: reevaluate MinecraftVersion class and continue abstracting NMS
 
     }
 
@@ -26,9 +23,9 @@ public class NMS {
     // TODO: need to implement
     public MinecraftVersion getMinecraftVersion() {
         if(mcVersion == null) {
-            //this.mcVersion = new MinecraftVersion();
+            this.mcVersion = new MinecraftVersion(Bukkit.getVersion());
         }
-        return null;
+        return mcVersion;
     }
 
     /*public String getRawServerVersion() {
