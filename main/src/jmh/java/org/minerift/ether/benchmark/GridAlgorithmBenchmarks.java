@@ -43,7 +43,7 @@ public class GridAlgorithmBenchmarks {
 
     @State(Scope.Benchmark)
     public static class AltImplementationState {
-        final int TILE_COUNT = 5000;
+        final int TILE_COUNT = 300;
         final int TILE_TO_FIND = TILE_COUNT - 1; // last element in list
         List<Tile> tiles;
 
@@ -58,7 +58,7 @@ public class GridAlgorithmBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridState {
-        final int  TILE_COUNT = 5000;
+        final int  TILE_COUNT = 300;
         final int  TILE_ID_TO_FIND = TILE_COUNT - 1; // last element in list
         final Tile TILE_TO_FIND = GridAlgorithm.computeTile(TILE_ID_TO_FIND);
         IslandGrid grid;

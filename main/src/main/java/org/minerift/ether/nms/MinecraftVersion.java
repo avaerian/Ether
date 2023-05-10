@@ -20,12 +20,13 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
     public MinecraftVersion(String version) {
         Preconditions.checkNotNull(version);
         String[] splitVersion = parseVersion(version);
-        Preconditions.checkArgument(splitVersion.length == 3, "Invalid Minecraft version attempted to be parsed!");
+        // Added support for versions with only 2 digits
+        Preconditions.checkArgument(splitVersion.length == 2 || splitVersion.length == 3, "Invalid Minecraft version attempted to be parsed!");
 
         setWithValidation(
                 Integer.parseInt(splitVersion[0]),
                 Integer.parseInt(splitVersion[1]),
-                Integer.parseInt(splitVersion[2])
+                splitVersion.length == 2 ? 0 : Integer.parseInt(splitVersion[2])
         );
     }
 
@@ -92,7 +93,7 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
 
     @Override
     public String toString() {
-        return "(%d.%d.%d)".formatted(major, minor, patch);
+        return "%d.%d.%d".formatted(major, minor, patch);
     }
 
     @Override
@@ -116,6 +117,7 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
         matcher.appendTail(sb);
         return sb.toString().split("\\.");
     }
+    
     private boolean greaterThanCheckChained(int i, int other, BooleanSupplier chain) {
         // If major is greater, return true
         // If major is less than, return false

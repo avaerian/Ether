@@ -1,3 +1,5 @@
+package org.minerift.ether.test;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,7 +31,7 @@ public class MinecraftVersionTest {
     public void parseStringVersionTest(ParseStringTestState state) {
 
         MinecraftVersion version = new MinecraftVersion(state.rawVersion);
-        assertEquals(version.toString(), "(%s)".formatted(state.expectedVersion));
+        assertEquals(version.toString(), state.expectedVersion);
 
     }
 
@@ -39,14 +41,15 @@ public class MinecraftVersionTest {
                 new ParseStringTestState("(1.12.2)", "1.12.2"),
                 new ParseStringTestState("(1.5.4)", "1.5.4"),
                 new ParseStringTestState("MC (1.8.9)", "1.8.9"),
-                new ParseStringTestState("(1.19.3)", "1.19.3")
+                new ParseStringTestState("(1.19.3)", "1.19.3"),
+                new ParseStringTestState("1.9", "1.9.0")
         );
     }
 
     @Test
     public void invalidVersionTest() {
         assertThrows(IllegalArgumentException.class,
-                () -> new MinecraftVersion("69.420 HA!")
+                () -> new MinecraftVersion("10.2.5.69.420 HA!")
         );
     }
 
@@ -91,15 +94,15 @@ public class MinecraftVersionTest {
     @Test
     public void sortedComparisonTest() {
 
-        final int MAJOR_VERSION_LIMIT = 100;
         final int MINOR_VERSION_LIMIT = 100;
+        final int PATCH_VERSION_LIMIT = 100;
 
-        MinecraftVersion[] versions = new MinecraftVersion[MAJOR_VERSION_LIMIT * MINOR_VERSION_LIMIT];
+        MinecraftVersion[] versions = new MinecraftVersion[MINOR_VERSION_LIMIT * PATCH_VERSION_LIMIT];
 
-        for (int i = 0; i < MAJOR_VERSION_LIMIT; i++) {
-            for (int j = 0; j < MINOR_VERSION_LIMIT; j++) {
+        for (int i = 0; i < MINOR_VERSION_LIMIT; i++) {
+            for (int j = 0; j < PATCH_VERSION_LIMIT; j++) {
                 MinecraftVersion version = new MinecraftVersion(1, i, j);
-                versions[(i * MAJOR_VERSION_LIMIT) + j] = version;
+                versions[(i * MINOR_VERSION_LIMIT) + j] = version;
                 System.out.println(version);
             }
         }

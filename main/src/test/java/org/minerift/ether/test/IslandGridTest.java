@@ -1,3 +1,5 @@
+package org.minerift.ether.test;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import org.minerift.ether.GridAlgorithm;

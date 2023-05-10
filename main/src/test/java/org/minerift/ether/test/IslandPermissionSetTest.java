@@ -1,3 +1,5 @@
+package org.minerift.ether.test;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.minerift.ether.island.*;
