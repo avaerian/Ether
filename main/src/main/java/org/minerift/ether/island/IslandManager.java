@@ -2,7 +2,7 @@ package org.minerift.ether.island;
 
 import org.bukkit.Location;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.utils.BukkitUtils;
+import org.minerift.ether.util.BukkitUtils;
 
 import java.util.Optional;
 

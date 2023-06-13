@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("me.champeau.jmh") version("0.7.0")
 }
@@ -8,7 +10,6 @@ sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 dependencies {
 
     implementation("com.google.guava:guava:31.1-jre")
-    shadow("com.google.guava:guava:31.1-jre")
 
     jmhImplementation("org.openjdk.jmh:jmh-core:1.36")
     jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.36")

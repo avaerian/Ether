@@ -1,4 +1,4 @@
-package org.minerift.ether.utils;
+package org.minerift.ether.util;
 
 import org.bukkit.Location;
 import org.minerift.ether.config.MainConfiguration;

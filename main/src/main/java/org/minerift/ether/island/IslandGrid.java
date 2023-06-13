@@ -3,7 +3,7 @@ package org.minerift.ether.island;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.minerift.ether.GridAlgorithm;
-import org.minerift.ether.utils.SortedList;
+import org.minerift.ether.util.SortedList;
 
 import java.util.*;
 import java.util.stream.Collectors;
