@@ -8,7 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 public class NMS {
 
     private String implVersion;
-    private NMSBridge bridge;
+    private DeprecatedNMSBridge bridge;
 
     public NMS() {
         this.implVersion = getImplVersion();
@@ -26,6 +26,10 @@ public class NMS {
         bridge.fastClearChunk(chunk);
     }
 
+    public void resetChunk(Chunk chunk) {
+        bridge.fastResetChunk(chunk);
+    }
+
     private String getImplVersion() {
         if(implVersion == null) {
             String version = Bukkit.getServer().getClass().getPackageName();
@@ -34,9 +38,9 @@ public class NMS {
         return implVersion;
     }
 
-    private NMSBridge getBridge(String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private DeprecatedNMSBridge getBridge(String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> clazz = Class.forName("org.minerift.ether.nms.v" + version + ".NMSBridgeImpl");
-        return (NMSBridge) clazz.getConstructor().newInstance();
+        return (DeprecatedNMSBridge) clazz.getConstructor().newInstance();
     }
 
 }

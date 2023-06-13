@@ -8,7 +8,7 @@ public class DeprecatedNMS {
     private NMSVersion nmsVersion;
     private MinecraftVersion nativeVersion;
 
-    private NMSBridge bridge;
+    private DeprecatedNMSBridge bridge;
 
     public DeprecatedNMS() {
 

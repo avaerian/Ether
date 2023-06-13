@@ -1,15 +1,14 @@
 package org.minerift.ether.nms;
 
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
+
+import java.util.HashSet;
 
 public interface NMSBridge {
 
-    void fastClearChunk(Chunk chunk);
+    void fastClearChunks(HashSet<Chunk> chunks);
 
-    void fastClearRegion(Location p1, Location p2);
-
-    void fastSetBlock(Location loc, Block block);
+    //void fastSetBlock();
 
 }

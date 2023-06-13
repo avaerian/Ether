@@ -1,6 +1,6 @@
 package org.minerift.ether.debug;
 
-import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,8 +23,13 @@ public class NMSChunkDebugCommand implements CommandExecutor {
         }
 
         int diameter = 1;
-        if(args.length == 1) {
+        if(args.length >= 1) {
             diameter = Integer.parseInt(args[0]);
+        }
+
+        String mode = "CLEAR"; // modes: "CLEAR", "REGEN" -> default: clear
+        if(args.length >= 2) {
+            mode = args[1].toUpperCase();
         }
 
         Player plr = (Player) sender;
@@ -38,7 +43,11 @@ public class NMSChunkDebugCommand implements CommandExecutor {
 
         for(int x = 0; x < diameter; x++) {
             for(int z = 0; z < diameter; z++) {
-                nms.clearChunk(world.getChunkAt(centerX - start + x, centerZ - start + z));
+                Chunk chunk = world.getChunkAt(centerX - start + x, centerZ - start + z);
+                switch (mode) {
+                    case "CLEAR" -> nms.clearChunk(chunk);
+                    case "REGEN" -> nms.resetChunk(chunk);
+                }
             }
         }
 
@@ -46,4 +55,5 @@ public class NMSChunkDebugCommand implements CommandExecutor {
 
         return true;
     }
+
 }
