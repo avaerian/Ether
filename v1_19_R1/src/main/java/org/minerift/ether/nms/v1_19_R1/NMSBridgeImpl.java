@@ -86,7 +86,7 @@ public class NMSBridgeImpl implements NMSBridge {
         refreshChunkForClients(chunk);
 
         /*
-            TODO: IMPORTANT NOTES
+            TODO: IMPORTANT NOTES 
             The chunk lighting updates for the server seem fine (maybe see if priority of ChunkLightTask can be lowered).
             The chunk lighting persists when the chunks are initially updated, but when the client
             unloads and reloads the chunks, the chunk lighting is fixed.
