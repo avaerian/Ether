@@ -8,7 +8,8 @@ public interface NMSBridge {
 
     void fastClearChunk(Chunk chunk);
 
-    void fastSetBlock(Location loc, Block block);
+    void fastClearRegion(Location p1, Location p2);
 
+    void fastSetBlock(Location loc, Block block);
 
 }
