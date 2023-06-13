@@ -23,7 +23,7 @@ public class Benchmarks {
 
         Options options = new OptionsBuilder()
                 //.include(PermissionSetBenchmarks.class.getSimpleName())
-                .include(GridAlgorithmBenchmarks.class.getSimpleName())
+                .include(Benchmarks.class.getSimpleName())
                 .mode(Mode.AverageTime)
                 .timeUnit(TimeUnit.NANOSECONDS)
                 .warmupIterations(3)
