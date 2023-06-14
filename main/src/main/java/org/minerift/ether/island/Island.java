@@ -1,6 +1,8 @@
 package org.minerift.ether.island;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.minerift.ether.user.EtherUser;
 
 import java.util.EnumSet;
@@ -10,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class Island {
 
-    private Location topLeftBound, bottomRightBound;
+    private long topLeftBound, bottomRightBound;
 
     // These 2 pieces of data can be calculated from each other
     private int id;
@@ -58,6 +60,10 @@ public class Island {
         return members.stream().filter(member -> member.getIslandRole() == role).collect(Collectors.toSet());
     }
 
+    public EtherUser getOwner() {
+        return getTeamMembersWithRole(IslandRole.OWNER).iterator().next();
+    }
+
     public boolean isTeamMember(EtherUser user) {
         return members.contains(user);
     }
@@ -78,12 +84,20 @@ public class Island {
         this.isDeleted = true;
     }
 
-    public Location getTopLeftBound() {
+    public long getTopLeftBoundRaw() {
         return topLeftBound;
     }
 
-    public Location getBottomRightBound() {
+    public long getBottomRightBoundRaw() {
         return bottomRightBound;
+    }
+
+    public Chunk getTopLeftBound(World world) {
+        return world.getChunkAt(topLeftBound);
+    }
+
+    public Chunk getBottomRightBound(World world) {
+        return world.getChunkAt(bottomRightBound);
     }
 
     public static Island.Builder builder() {
@@ -94,7 +108,7 @@ public class Island {
 
         private Tile tile;
         private int id;
-        private Location topLeftBound, bottomRightBound;
+        private long topLeftBound, bottomRightBound;
         private boolean isDeleted = false;
         private PermissionSet permissions;
 
@@ -142,14 +156,22 @@ public class Island {
             return this;
         }
 
+        public Builder setTopLeftBound(int x, int z) {
+            return setTopLeftBound(Chunk.getChunkKey(x, z));
+        }
+
+        public Builder setBottomRightBound(int x, int z) {
+            return setBottomRightBound(Chunk.getChunkKey(x, z));
+        }
+
         // Corner 1
-        public Builder setTopLeftBound(Location topLeftBound) {
+        public Builder setTopLeftBound(long topLeftBound) {
             this.topLeftBound = topLeftBound;
             return this;
         }
 
         // Corner 2
-        public Builder setBottomRightBound(Location bottomRightBound) {
+        public Builder setBottomRightBound(long bottomRightBound) {
             this.bottomRightBound = bottomRightBound;
             return this;
         }

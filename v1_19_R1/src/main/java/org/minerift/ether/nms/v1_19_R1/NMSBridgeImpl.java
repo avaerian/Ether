@@ -1,5 +1,6 @@
 package org.minerift.ether.nms.v1_19_R1;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
@@ -12,8 +13,11 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
+import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.minerift.ether.nms.NMSBridge;
@@ -95,6 +99,43 @@ public class NMSBridgeImpl implements NMSBridge {
         fastClearChunksLogic(e1, e2, pos -> {
             e1.getWorld().getChunkAtAsync(pos.x, pos.z, true, chunk -> fastClearSingleChunk(chunk, clearEntities));
         });
+    }
+
+    @Override
+    public void fastSetBlock(Block block, Location location) {
+
+        Preconditions.checkNotNull(block, "Block cannot be null!");
+        Preconditions.checkNotNull(location, "Location cannot be null!");
+
+        final int x = location.getBlockX();
+        final int y = location.getBlockY();
+        final int z = location.getBlockZ();
+
+        //block.getWorld().setBlockData();
+        //block.getWorld().getBlockAt()
+
+        final Chunk bukkitChunk = block.getChunk();
+        final LevelChunk nmsChunk = ((CraftChunk) bukkitChunk).getHandle();
+
+        final LevelChunkSection section = nmsChunk.getSection(nmsChunk.getSectionIndexFromSectionY(location.getBlockY()));
+
+        // Update block state
+        section.setBlockState(x, y, z, ((CraftBlockState) block.getState()).getHandle(), false);
+
+        // TODO: finish
+
+    }
+
+    @Override
+    public void fastSetBlocks(Set<Block> blocks, Location location, Location origin) {
+
+        // TODO: reconsider this
+        Preconditions.checkNotNull(blocks, "Blocks cannot be null!");
+        Preconditions.checkNotNull(location, "Location cannot be null!");
+        Preconditions.checkNotNull(origin, "Origin cannot be null!");
+
+        // TODO: finish
+
     }
 
     private void fastClearChunksLogic(Chunk e1, Chunk e2, Consumer<ChunkPos> clearChunk) {

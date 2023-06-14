@@ -1,5 +1,7 @@
 package org.minerift.ether.user;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandPermission;
 import org.minerift.ether.island.IslandRole;
@@ -14,7 +16,7 @@ public class EtherUser {
     private Island island;
     private IslandRole role;
 
-    // TODO: implement (builder pattern?)
+    // TODO: implement builder pattern
     public EtherUser() {
 
     }
@@ -33,6 +35,14 @@ public class EtherUser {
 
     public void setIslandRole(IslandRole role) {
         this.role = role;
+    }
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public OfflinePlayer getOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(uuid);
     }
 
     public boolean hasPermission(Island island, IslandPermission permission) {
