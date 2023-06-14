@@ -1,36 +1,45 @@
 package org.minerift.ether.nms.v1_19_R1;
 
-import com.google.common.collect.AbstractIterator;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.shorts.ShortCollection;
-import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
+import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.minerift.ether.nms.NMSBridge;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Set;
+import java.util.function.Consumer;
 
-// TODO: implement later and figure out NMSBridge interface
-public class NMSBridgeImpl {
+public class NMSBridgeImpl implements NMSBridge {
+
+    private void fastClearSingleChunk(ChunkPos pos, World world, boolean clearEntities) {
+        fastClearSingleChunk(world.getChunkAt(pos.x, pos.z), clearEntities);
+    }
 
     // Clears a chunk of all blocks/entities
     // Does not perform lighting updates
-    private void fastClearSingleChunk(Chunk chunk) {
+    private void fastClearSingleChunk(Chunk chunk, boolean clearEntities) {
+
+        if(!chunk.isLoaded()) {
+            chunk.load();
+        }
 
         final LevelChunk nmsChunk = ((CraftChunk) chunk).getHandle();
         final LevelChunk emptyChunk = new LevelChunk(nmsChunk.getLevel(), nmsChunk.getPos());
 
-        final ChunkPos chunkPos = nmsChunk.getPos();
         final ServerLevel serverLevel = nmsChunk.level;
         final ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
 
@@ -38,46 +47,75 @@ public class NMSBridgeImpl {
         final FriendlyByteBuf emptySectionBuf = new FriendlyByteBuf(Unpooled.buffer());
         emptyChunk.getSection(0).write(emptySectionBuf);
 
+        // Remove entities from chunk
+        if(clearEntities) {
+            Arrays.stream(chunk.getEntities())
+                    .filter(entity -> entity.getType() != EntityType.PLAYER)
+                    .forEach(Entity::remove);
+        }
+
         // Update chunk and sections
-        nmsChunk.clearAllBlockEntities();
+        clearAllBlockEntities(nmsChunk);
         for(LevelChunkSection section : nmsChunk.getSections()) {
             section.read(emptySectionBuf);
             section.recalcBlockCounts();
             emptySectionBuf.resetReaderIndex();
         }
-        //System.out.println("sections: " + Arrays.toString(sections.toShortArray()));
 
-        // TODO: evaluate if this is needed
         nmsChunk.setBlockEmptinessMap(emptyChunk.getBlockEmptinessMap());
         nmsChunk.setSkyEmptinessMap(emptyChunk.getSkyEmptinessMap());
         nmsChunk.setBlockNibbles(emptyChunk.getBlockNibbles());
         nmsChunk.setSkyNibbles(emptyChunk.getSkyNibbles());
 
-        // Notify of block updates
-        for(final BlockPos blockPos : BlockPos.betweenClosed(chunkPos.getMinBlockX(), serverLevel.getMinBuildHeight(), chunkPos.getMinBlockZ(), chunkPos.getMaxBlockX(), serverLevel.getMaxBuildHeight() - 1, chunkPos.getMaxBlockZ())) {
-            serverChunkCache.blockChanged(blockPos);
-        }
+        // Resend entire chunk packet
+        ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nmsChunk, serverChunkCache.getLightEngine(), null, null, true, true);
+        nmsChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
     }
 
-    public void fastClearChunks(Chunk e1, Chunk e2) {
+    private void clearAllBlockEntities(LevelChunk chunk) {
+        Set<BlockPos> pendingBlockEntities = chunk.getBlockEntitiesPos(); // contains pending block entities
+        pendingBlockEntities.forEach(chunk::removeBlockEntity);
+        chunk.clearAllBlockEntities(); // do rest of the work
+    }
+
+    @Override
+    public void fastClearChunk(Chunk chunk, boolean clearEntities) {
+        fastClearChunks(chunk, chunk, clearEntities);
+    }
+
+    @Override
+    public void fastClearChunks(Chunk e1, Chunk e2, boolean clearEntities) {
+        fastClearChunksLogic(e1, e2, pos -> {
+            fastClearSingleChunk(pos, e1.getWorld(), clearEntities);
+        });
+    }
+
+    @Override
+    public void fastClearChunksAsync(Chunk e1, Chunk e2, boolean clearEntities) {
+        fastClearChunksLogic(e1, e2, pos -> {
+            e1.getWorld().getChunkAtAsync(pos.x, pos.z, true, chunk -> fastClearSingleChunk(chunk, clearEntities));
+        });
+    }
+
+    private void fastClearChunksLogic(Chunk e1, Chunk e2, Consumer<ChunkPos> clearChunk) {
 
         if(e1.getWorld() != e2.getWorld()) {
             throw new IllegalArgumentException("Chunks are not in the same world!");
         }
 
-        LevelChunk nmsChunk1 = ((CraftChunk) e1).getHandle();
-        LevelChunk nmsChunk2 = ((CraftChunk) e2).getHandle();
+        final LevelChunk nmsChunk1 = ((CraftChunk) e1).getHandle();
+        final LevelChunk nmsChunk2 = ((CraftChunk) e2).getHandle();
 
-        ServerLevel serverLevel = nmsChunk1.level;
-        ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
+        final ServerLevel serverLevel = nmsChunk1.level;
+        final ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
 
-        // TODO: loop and clear chunks individually
-        for(ChunkPos chunkPos : betweenChunksClosed(nmsChunk1.getPos(), nmsChunk2.getPos())) {
+        Bukkit.broadcast(Component.text("Clearing chunk contents..."));
+        ChunkPos.rangeClosed(nmsChunk1.getPos(), nmsChunk2.getPos()).forEach(clearChunk);
 
-        }
-
+        Bukkit.broadcast(Component.text("Relighting..."));
         serverChunkCache.getLightEngine().relight(getNeighboringChunks(e1, e2), a -> {}, b -> {});
 
+        Bukkit.broadcast(Component.text(String.format("Cleared %d chunk(s)", ChunkPos.rangeClosed(nmsChunk1.getPos(), nmsChunk2.getPos()).count())));
     }
 
     // Get the neighboring chunks for a single chunk
@@ -102,22 +140,5 @@ public class NMSBridgeImpl {
         }
 
         return chunks;
-    }
-
-    // TODO: figure out
-    private Iterable<ChunkPos> betweenChunksClosed(ChunkPos e1, ChunkPos e2) {
-
-        final int chunksX = e2.x - e1.x;
-        final int chunksZ = e2.z - e1.z;
-
-        return () -> new AbstractIterator<ChunkPos>() {
-            private int x, z;
-
-            @Nullable
-            @Override
-            protected ChunkPos computeNext() {
-                return null;
-            }
-        };
     }
 }

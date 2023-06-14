@@ -27,7 +27,8 @@ public class NMSChunkDebugCommand implements CommandExecutor {
             diameter = Integer.parseInt(args[0]);
         }
 
-        String mode = "CLEAR"; // modes: "CLEAR", "REGEN" -> default: clear
+        // TODO: mode doesn't matter as of right now
+        String mode = "CLEAR"; // modes: "CLEAR", "REGEN", "ASYNC" -> default: clear
         if(args.length >= 2) {
             mode = args[1].toUpperCase();
         }
@@ -39,19 +40,16 @@ public class NMSChunkDebugCommand implements CommandExecutor {
         int centerX = plr.getChunk().getX();
         int centerZ = plr.getChunk().getZ();
 
-        int start = (diameter - 1) / 2;
+        int radius = (diameter - 1) / 2;
 
-        for(int x = 0; x < diameter; x++) {
-            for(int z = 0; z < diameter; z++) {
-                Chunk chunk = world.getChunkAt(centerX - start + x, centerZ - start + z);
-                switch (mode) {
-                    case "CLEAR" -> nms.clearChunk(chunk);
-                    case "REGEN" -> nms.resetChunk(chunk);
-                }
-            }
+        Chunk e1 = world.getChunkAt(centerX - radius, centerZ - radius);
+        Chunk e2 = world.getChunkAt(centerX + radius, centerZ + radius);
+
+        // Perform action
+        switch(mode) {
+            case "ASYNC" -> nms.clearChunksAsync(e1, e2, true);
+            default -> nms.clearChunks(e1, e2, true);
         }
-
-        plr.sendMessage("Cleared chunk(s)");
 
         return true;
     }

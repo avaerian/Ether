@@ -8,7 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 public class NMS {
 
     private String implVersion;
-    private DeprecatedNMSBridge bridge;
+    private NMSBridge bridge;
 
     public NMS() {
         this.implVersion = getImplVersion();
@@ -22,12 +22,16 @@ public class NMS {
         }
     }
 
-    public void clearChunk(Chunk chunk) {
-        bridge.fastClearChunk(chunk);
+    public void clearChunk(Chunk chunk, boolean clearEntities) {
+        bridge.fastClearChunk(chunk, clearEntities);
     }
 
-    public void resetChunk(Chunk chunk) {
-        bridge.fastResetChunk(chunk);
+    public void clearChunks(Chunk e1, Chunk e2, boolean clearEntities) {
+        bridge.fastClearChunks(e1, e2, clearEntities);
+    }
+
+    public void clearChunksAsync(Chunk e1, Chunk e2, boolean clearEntities) {
+        bridge.fastClearChunksAsync(e1, e2, clearEntities);
     }
 
     private String getImplVersion() {
@@ -38,9 +42,9 @@ public class NMS {
         return implVersion;
     }
 
-    private DeprecatedNMSBridge getBridge(String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private NMSBridge getBridge(String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> clazz = Class.forName("org.minerift.ether.nms.v" + version + ".NMSBridgeImpl");
-        return (DeprecatedNMSBridge) clazz.getConstructor().newInstance();
+        return (NMSBridge) clazz.getConstructor().newInstance();
     }
 
 }

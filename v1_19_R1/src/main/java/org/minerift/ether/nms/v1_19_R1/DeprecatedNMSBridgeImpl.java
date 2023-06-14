@@ -14,21 +14,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.minerift.ether.nms.DeprecatedNMSBridge;
 
 import java.util.Arrays;
-import java.util.Map;
 
-public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
+@Deprecated
+public class DeprecatedNMSBridgeImpl {
 
 
-    @Override
     public void fastClearChunk(Chunk chunk) {
 
         // Get chunk implementation and empty instance
@@ -87,7 +84,6 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
 
     }
 
-    @Override
     public void fastResetChunk(Chunk chunk) {
         CraftWorld cWorld = ((CraftChunk) chunk).getCraftWorld();
         cWorld.regenerateChunk(chunk.getX(), chunk.getZ());
@@ -161,7 +157,6 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
 
     }
 
-    @Override
     public void fastClearRegion(Location p1, Location p2) {
         // TODO
     }
@@ -195,7 +190,6 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
         holder.broadcast(packet, false);*/
     }
 
-    @Override
     public void fastSetBlock(Location loc, Block block) {
 
         LevelChunk nmsChunk = ((CraftChunk) loc.getChunk()).getHandle();
