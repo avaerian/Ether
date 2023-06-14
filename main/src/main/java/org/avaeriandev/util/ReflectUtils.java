@@ -2,6 +2,7 @@ package org.avaeriandev.util;
 
 import java.lang.reflect.Field;
 
+@Deprecated
 public class ReflectUtils {
 
     // Bypasses final modifier
