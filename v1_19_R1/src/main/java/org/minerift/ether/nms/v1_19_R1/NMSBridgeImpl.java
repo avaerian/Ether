@@ -16,8 +16,10 @@ import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -69,6 +71,11 @@ public class NMSBridgeImpl implements NMSBridge {
             section.read(emptySectionBuf);
             section.recalcBlockCounts();
             emptySectionBuf.resetReaderIndex();
+        }
+
+        // Update heightmaps for chunk
+        for(Heightmap.Types type : ChunkStatus.FULL.heightmapsAfter()) {
+            nmsChunk.setHeightmap(type, emptyChunk.heightmaps.get(type).getRawData());
         }
 
         nmsChunk.setBlockEmptinessMap(emptyChunk.getBlockEmptinessMap());
