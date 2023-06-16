@@ -2,13 +2,20 @@ package org.minerift.ether.nms.v1_19_R1;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.shorts.ShortArraySet;
+import it.unimi.dsi.fastutil.shorts.ShortSet;
+import it.unimi.dsi.fastutil.shorts.ShortSets;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
+import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.Bukkit;
@@ -22,9 +29,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.minerift.ether.nms.NMSBridge;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class NMSBridgeImpl implements NMSBridge {
@@ -117,17 +122,22 @@ public class NMSBridgeImpl implements NMSBridge {
         final Chunk bukkitChunk = block.getChunk();
         final LevelChunk nmsChunk = ((CraftChunk) bukkitChunk).getHandle();
 
-        final LevelChunkSection section = nmsChunk.getSection(nmsChunk.getSectionIndexFromSectionY(location.getBlockY()));
+        final LevelChunkSection section = nmsChunk.getSection(nmsChunk.getSectionIndex(location.getBlockY()));
 
         // Update block state
-        section.setBlockState(x, y, z, ((CraftBlockState) block.getState()).getHandle(), false);
+        section.acquire();
+        try {
+            section.setBlockState(x, y, z, ((CraftBlockState) block.getState()).getHandle(), false); // TODO: lock would be performed ourselves for multiple set block operations
+        } finally {
+            section.release();
+        }
 
         // TODO: finish
 
     }
 
-    @Override
-    public void fastSetBlocks(Set<Block> blocks, Location location, Location origin) {
+    @Deprecated
+    public void fastSetBlocks_OLD(Set<Block> blocks, Location location, Location origin) {
 
         // TODO: reconsider this
         Preconditions.checkNotNull(blocks, "Blocks cannot be null!");
@@ -135,6 +145,141 @@ public class NMSBridgeImpl implements NMSBridge {
         Preconditions.checkNotNull(origin, "Origin cannot be null!");
 
         // TODO: finish
+
+        // Goal here is to set multiple blocks from a collection at the desired location (origin is an offset from 0,0 [supposedly])
+        // Get all affected chunk sections (for each block, get transformed position and add section to Map<LevelChunkSection, Set<Block>>)
+        // For chunk section, acquire() and loop through blocks to place, and finally release()
+        // Send Section Update Packets
+
+        // Get affected sections
+        Map<LevelChunkSection, Set<Block>> affectedSections = new HashMap<>();
+        for(Block block : blocks) {
+
+            LevelChunk chunk = ((CraftChunk) block.getChunk()).getHandle();
+            LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(location.getBlockY()));
+
+            Set<Block> sectionBlocks = affectedSections.putIfAbsent(section, new HashSet<>());
+            if(sectionBlocks == null) sectionBlocks = affectedSections.get(section);
+            sectionBlocks.add(block);
+        }
+
+        // Set blocks in world chunk sections
+        affectedSections.forEach((section, sectionBlocks) -> {
+
+            // For packet handling
+            ShortSet newPositions = new ShortArraySet();
+            BlockState[] newStates = sectionBlocks.stream()
+                    .map(block -> ((CraftBlockState) block.getState()).getHandle())
+                    .toArray(BlockState[]::new);
+
+            // Update blocks in world
+            section.acquire();
+            try {
+                // Apply blocks
+                for(Block block : sectionBlocks) {
+
+                    final int x = location.getBlockX() & 15;
+                    final int y = location.getBlockY() & 15;
+                    final int z = location.getBlockZ() & 15;
+
+                    section.setBlockState(x, y, z, ((CraftBlockState) block.getState()).getHandle(), false);
+                }
+            } finally {
+                section.release();
+            }
+
+            // Send section update packets
+            //SectionPos sectionPos = SectionPos.of();
+            //ClientboundSectionBlocksUpdatePacket packet = new ClientboundSectionBlocksUpdatePacket();
+        });
+    }
+
+    @Override
+    public void fastSetBlocks(Set<Block> blocks, Location location, Location origin) {
+
+        // TODO: switch from Set<Block> to appropriate data structure for holding block state data
+        // TODO: once schematic block state data structure is resolved, fix maths with location/origin/etc.
+
+        // Get affected sections and partition blocks
+        Map<LevelChunkSection, ChunkSectionChanges> allChanges = new HashMap<>();
+        for(Block block : blocks) {
+
+            LevelChunk chunk = ((CraftChunk) block.getChunk()).getHandle();
+            LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(block.getY()));
+
+            SectionPos pos = SectionPos.of(block.getX(), block.getY(), block.getZ());
+            ChunkSectionChanges sectionChanges = allChanges.computeIfAbsent(section, (ignore) -> new ChunkSectionChanges(pos, chunk));
+
+            sectionChanges.blocks.add(block);
+        }
+
+        // Apply changes to sections and broadcast
+        for(Map.Entry<LevelChunkSection, ChunkSectionChanges> entry : allChanges.entrySet()) {
+            final LevelChunkSection section = entry.getKey();
+            final ChunkSectionChanges sectionChanges = entry.getValue();
+
+            // Apply blocks and compute changes for packet
+            applyBlocksToSection(section, sectionChanges.blocks);
+            sectionChanges.computeSectionChanges();
+
+            // Broadcast section update packet
+            ClientboundSectionBlocksUpdatePacket packet = new ClientboundSectionBlocksUpdatePacket(sectionChanges.sectionPos, sectionChanges.positions, sectionChanges.states, false);
+            ChunkHolder chunkHolder = sectionChanges.parentChunk.getChunkHolder().vanillaChunkHolder;
+            chunkHolder.broadcast(packet, false);
+        }
+    }
+
+    private void applyBlocksToSection(LevelChunkSection section, Set<Block> blocks) {
+        section.acquire();
+        try {
+            for(Block block : blocks) {
+
+                final int x = block.getX() & 15;
+                final int y = block.getY() & 15;
+                final int z = block.getZ() & 15;
+
+                section.setBlockState(x, y, z, ((CraftBlockState) block.getState()).getHandle(), false);
+            }
+        } finally {
+            section.release();
+        }
+    }
+
+    private static class ChunkSectionChanges {
+
+        public final Set<Block> blocks; // block states to be applied in section
+        public final SectionPos sectionPos;
+        public final LevelChunk parentChunk;
+
+        // Packet data
+        public ShortSet positions;
+        public BlockState[] states;
+
+        public ChunkSectionChanges(SectionPos sectionPos, LevelChunk chunk) {
+            this.blocks = new HashSet<>();
+            this.sectionPos = sectionPos;
+            this.parentChunk = chunk;
+            this.positions = ShortSets.emptySet();
+            this.states = new BlockState[0];
+        }
+
+        // Computes data about section changes for section update packet
+        public void computeSectionChanges() {
+            short[] positions = new short[blocks.size()];
+            BlockState[] states = new BlockState[blocks.size()];
+
+            int index = 0;
+            for(Iterator<Block> it = blocks.iterator(); it.hasNext(); index++) {
+                Block block = it.next();
+                BlockPos pos = new BlockPos(block.getX(), block.getY(), block.getZ());
+
+                positions[index] = SectionPos.sectionRelativePos(pos);
+                states[index] = ((CraftBlockState) block.getState()).getHandle();
+            }
+
+            this.positions = new ShortArraySet(positions);
+            this.states = states;
+        }
 
     }
 
