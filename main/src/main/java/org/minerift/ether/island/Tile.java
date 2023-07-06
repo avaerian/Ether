@@ -65,7 +65,6 @@ public class Tile {
 
     public Tile.Mutable asMutable() {
         return (this instanceof Tile.Mutable) ? (Tile.Mutable) this : new Tile.Mutable(x, z);
-        //return new Tile.Mutable(x, z);
     }
 
     @Override
@@ -110,7 +109,7 @@ public class Tile {
             super.z -= z;
         }
 
-        public Tile toImmutable() {
+        public Tile immutable() {
             return new Tile(getX(), getZ());
         }
     }
