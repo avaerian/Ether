@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id("me.champeau.jmh") version("0.7.0")
 }
@@ -7,9 +5,16 @@ plugins {
 sourceSets["jmh"].compileClasspath += sourceSets["main"].runtimeClasspath
 sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 
+repositories {
+    mavenCentral()
+    maven { url = uri("https://maven.enginehub.org/repo/") }
+}
+
 dependencies {
 
-    implementation("com.google.guava:guava:31.1-jre")
+    compileOnly("com.google.guava:guava:31.1-jre")
+    compileOnly("it.unimi.dsi:fastutil:8.5.6")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.14")
 
     jmhImplementation("org.openjdk.jmh:jmh-core:1.36")
     jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.36")

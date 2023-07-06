@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow") version("7.1.2") apply(false)
+    id("com.github.johnrengelman.shadow") version("7.1.2") apply(true)
     id("java")
 
     // TODO: create a global constant for this plugin id
@@ -10,18 +10,9 @@ plugins {
 
 dependencies {
 
+    implementation(project(":main"))
     implementation(project(":v1_19_R1", "reobf"))
 
-    implementation(project(":main"))
-
-}
-
-tasks.withType<ShadowJar> {
-
-    dependencies {
-        exclude(dependency("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT"))
-        exclude(dependency("com.google.guava:guava:31.1-jre"))
-    }
 }
 
 allprojects {
@@ -39,6 +30,18 @@ allprojects {
 
     group = "org.minerift.ether"
     version = "1.0-SNAPSHOT"
+
+    tasks.withType<ShadowJar> {
+
+        dependencies {
+            //exclude(dependency("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT"))
+            //exclude(dependency("com.google.guava:guava:31.1-jre"))
+            //exclude(dependency("it.unimi.dsi:fastutil:8.5.6"))
+        }
+
+        //configurations = listOf(project.configurations.runtimeClasspath.get())
+
+    }
 }
 
 // Paper-API dependency for submodules
@@ -57,7 +60,7 @@ configure(subprojects.filter { listOf("v1_19_R1").contains(it.name) }) {
     apply(plugin = "io.papermc.paperweight.userdev")
 
     dependencies {
-        implementation(project(":main"))
+        shadow(project(":main"))
     }
 }
 
