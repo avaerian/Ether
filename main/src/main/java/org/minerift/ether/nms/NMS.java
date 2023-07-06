@@ -2,8 +2,12 @@ package org.minerift.ether.nms;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.world.QueuedBlock;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 
 public class NMS {
 
@@ -32,6 +36,14 @@ public class NMS {
 
     public void clearChunksAsync(Chunk e1, Chunk e2, boolean clearEntities) {
         bridge.fastClearChunksAsync(e1, e2, clearEntities);
+    }
+
+    public void setBlocks(Set<QueuedBlock> blocks, Location location) {
+        bridge.fastSetBlocks(blocks, location, new Vec3i(0, 0, 0));
+    }
+
+    public void setBlocksAsync(Set<QueuedBlock> blocks, Location location) {
+        bridge.fastSetBlocksAsync(blocks, location, new Vec3i(0, 0, 0));
     }
 
     private String getImplVersion() {

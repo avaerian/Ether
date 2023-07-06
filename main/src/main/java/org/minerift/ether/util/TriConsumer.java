@@ -2,7 +2,6 @@ package org.minerift.ether.util;
 
 import java.util.Objects;
 
-@Deprecated
 @FunctionalInterface
 public interface TriConsumer<A,B,C> {
 

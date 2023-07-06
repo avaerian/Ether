@@ -6,3 +6,5 @@ author: Avaerian
 commands:
   nmschunk:
     description: Debug command for clearing chunks via NMS
+  nmsblock:
+    description: Debug command for setting chunks via NMS
