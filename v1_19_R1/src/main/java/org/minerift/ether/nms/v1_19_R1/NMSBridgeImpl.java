@@ -27,6 +27,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
+import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -184,17 +185,23 @@ public class NMSBridgeImpl implements NMSBridge {
                 final LevelChunkSection section = entry.getKey();
                 final ChunkSectionChanges sectionChanges = entry.getValue();
 
-                applyBlocksToSection(chunk, section, sectionChanges.blocks, partition);
+                applyBlocksToSection(chunk, section, sectionChanges.blocks);
                 sectionChanges.computePacketData();
 
                 // Broadcast section update packet
                 ClientboundSectionBlocksUpdatePacket packet = new ClientboundSectionBlocksUpdatePacket(sectionChanges.sectionPos, sectionChanges.positions, sectionChanges.states, false);
                 ChunkHolder chunkHolder = sectionChanges.parentChunk.getChunkHolder().vanillaChunkHolder;
                 chunkHolder.broadcast(packet, false);
+
+                chunk.level.getChunkSource().getLightEngine().relight(partition.getChunksForRelighting(), a -> {}, b -> {});
             }
 
             chunk.setUnsaved(true);
         });
+
+        // Queue light updates
+        final ServerLevel level = ((CraftWorld) location.getWorld()).getHandle();
+        level.getChunkSource().getLightEngine().relight(partition.getChunksForRelighting(), a -> {}, b -> {});
 
     }
 
@@ -323,11 +330,9 @@ public class NMSBridgeImpl implements NMSBridge {
         }
     }
 
-    private void applyBlocksToSection(LevelChunk chunk, LevelChunkSection section, Set<QueuedBlock> blocks, BlockPartition partition) {
+    private void applyBlocksToSection(LevelChunk chunk, LevelChunkSection section, Set<QueuedBlock> blocks) {
         section.acquire();
         try {
-            final boolean hasOnlyAirBefore = section.hasOnlyAir();
-
             // Perform updates
             for(QueuedBlock block : blocks) {
 
@@ -344,12 +349,6 @@ public class NMSBridgeImpl implements NMSBridge {
                 chunk.heightmaps.get(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES).update(x, block.getY(), z, state);
                 chunk.heightmaps.get(Heightmap.Types.OCEAN_FLOOR).update(x, block.getY(), z, state);
                 chunk.heightmaps.get(Heightmap.Types.WORLD_SURFACE).update(x, block.getY(), z, state);
-            }
-
-            // Queue light updates
-            final boolean hasOnlyAirNow = section.hasOnlyAir();
-            if(hasOnlyAirBefore != hasOnlyAirNow) {
-                chunk.level.getChunkSource().getLightEngine().relight(partition.getChunksForRelighting(), a -> {}, b -> {});
             }
         } finally {
             section.release();
