@@ -1,27 +1,28 @@
 package org.minerift.ether.world;
 
+import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.minerift.ether.util.math.Vec3i;
 
 import java.util.function.Function;
 
 // Represents a single block ready for world placement
-public class QueuedBlock {
+public class BlockArchetype {
 
-    private Vec3i.Mutable pos;
-    private BlockData data;
+    protected final String id;
+    protected final Vec3i.Mutable pos;
 
-    public QueuedBlock(Vec3i pos, BlockData data) {
+    public BlockArchetype(String id, Vec3i pos) {
+        this.id = id;
         this.pos = pos.asMutable();
-        this.data = data;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public Vec3i.Mutable getPos() {
         return pos;
-    }
-
-    public BlockData getData() {
-        return data;
     }
 
     public int getX() {
@@ -44,12 +45,8 @@ public class QueuedBlock {
         return getZ() >> 4;
     }
 
-    public <R> R getState(Function<BlockData, R> dataToStateFunction) {
-        return dataToStateFunction.apply(data);
-    }
-
     @Override
     public String toString() {
-        return String.format("%s -> %s", pos, data);
+        return String.format("%s -> %s", pos, id);
     }
 }

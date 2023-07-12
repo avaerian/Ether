@@ -8,3 +8,5 @@ commands:
     description: Debug command for clearing chunks via NMS
   nmsblock:
     description: Debug command for setting chunks via NMS
+  pasteschem:
+    description: Debug command for pasting a schematic

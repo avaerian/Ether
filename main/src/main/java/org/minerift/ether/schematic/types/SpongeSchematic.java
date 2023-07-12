@@ -1,14 +1,13 @@
 package org.minerift.ether.schematic.types;
 
-import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
-import org.minerift.ether.schematic.objects.SchematicBlockEntity;
-import org.minerift.ether.schematic.objects.SchematicEntity;
-import org.minerift.ether.world.QueuedBlock;
+import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.world.BiomeArchetype;
+import org.minerift.ether.world.BlockArchetype;
+import org.minerift.ether.world.BlockEntityArchetype;
+import org.minerift.ether.world.EntityArchetype;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Queue;
+import java.util.Map;
 import java.util.Set;
 
 public class SpongeSchematic {
@@ -21,14 +20,14 @@ public class SpongeSchematic {
         protected int version;
         protected short width, height, length;
 
-        protected BlockData[][][] blocks;
+        protected Vec3i offset;
 
-        protected Set<QueuedBlock> blocksNew;
+        protected List<BlockArchetype> blocks;
 
-        protected String[][] biomes;
+        protected Map<Vec3i, BlockEntityArchetype> blockEntities;
+        protected Set<EntityArchetype> entities;
 
-        protected Set<SchematicBlockEntity> blockEntities;
-        protected Set<SchematicEntity> entities;
+        protected List<BiomeArchetype> biomes;
 
 
 
@@ -50,23 +49,23 @@ public class SpongeSchematic {
             return length;
         }
 
-        public BlockData[][][] getBlocks() {
+        public Vec3i getOffset() {
+            return offset;
+        }
+
+        public List<BlockArchetype> getBlocks() {
             return blocks;
         }
 
-        public Set<QueuedBlock> getBlocksNew() {
-            return blocksNew;
-        }
-
-        public String[][] getBiomes() {
-            return biomes;
-        }
-
-        public Set<SchematicBlockEntity> getBlockEntities() {
+        public Map<Vec3i, BlockEntityArchetype> getBlockEntities() {
             return blockEntities;
         }
 
-        public Set<SchematicEntity> getEntities() {
+        public List<BiomeArchetype> getBiomes() {
+            return biomes;
+        }
+
+        public Set<EntityArchetype> getEntities() {
             return entities;
         }
 
@@ -89,23 +88,23 @@ public class SpongeSchematic {
             this.length = length;
         }
 
-        public void setBlocks(BlockData[][][] blocks) {
+        public void setOffset(Vec3i offset) {
+            this.offset = offset;
+        }
+
+        public void setBlocks(List<BlockArchetype> blocks) {
             this.blocks = blocks;
         }
 
-        public void setBlocksNew(Set<QueuedBlock> blocksNew) {
-            this.blocksNew = blocksNew;
-        }
-
-        public void setBiomes(String[][] biomes) {
-            this.biomes = biomes;
-        }
-
-        public void setBlockEntities(Set<SchematicBlockEntity> blockEntities) {
+        public void setBlockEntities(Map<Vec3i, BlockEntityArchetype> blockEntities) {
             this.blockEntities = blockEntities;
         }
 
-        public void setEntities(Set<SchematicEntity> entities) {
+        public void setBiomes(List<BiomeArchetype> biomes) {
+            this.biomes = biomes;
+        }
+
+        public void setEntities(Set<EntityArchetype> entities) {
             this.entities = entities;
         }
     }

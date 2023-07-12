@@ -1,12 +1,10 @@
 package org.minerift.ether.nms;
 
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.minerift.ether.util.math.Vec3i;
-import org.minerift.ether.world.QueuedBlock;
+import org.bukkit.World;
+import org.minerift.ether.world.BlockArchetype;
 
-import java.util.Set;
+import java.util.List;
 
 public interface NMSBridge {
 
@@ -19,8 +17,10 @@ public interface NMSBridge {
     // Clears a range of chunks from two endpoints semi-asynchronously
     void fastClearChunksAsync(Chunk e1, Chunk e2, boolean clearEntities);
 
-    void fastSetBlocks(Set<QueuedBlock> blocks, Location location, Vec3i originOffset);
+    void fastSetBlocks(List<BlockArchetype> blocks, World world);
 
-    void fastSetBlocksAsync(Set<QueuedBlock> blocks, Location location, Vec3i originOffset);
+    void fastSetBlocksAsync(List<BlockArchetype> blocks, World world);
+
+    void fastSetBlocksAsyncLazy(List<BlockArchetype> blocks, World world);
 
 }
