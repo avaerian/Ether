@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,20 +33,20 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
+import org.minerift.ether.util.nbt.NBTTagType;
 
 /**
- * The <code>TAG_Byte_Array</code> tag.
+ * The <code>TAG_Byte</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class ByteArrayTag extends Tag {
+public final class ByteTag extends Tag {
 
     /**
      * The value.
      */
-    private final byte[] value;
+    private final byte value;
 
     /**
      * Creates the tag.
@@ -56,35 +56,32 @@ public final class ByteArrayTag extends Tag {
      * @param value
      *            The value.
      */
-    public ByteArrayTag(final String name, final byte[] value) {
+    public ByteTag(final String name, final byte value) {
 
         super(name);
         this.value = value;
     }
 
     @Override
-    public byte[] getValue() {
+    public Byte getValue() {
 
         return value;
     }
 
     @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.BYTE_TAG;
+    }
+
+    @Override
     public String toString() {
 
-        final StringBuilder hex = new StringBuilder();
-        for (final byte b : value) {
-            final String hexDigits = Integer.toHexString(b).toUpperCase();
-            if (hexDigits.length() == 1) {
-                hex.append("0");
-            }
-            hex.append(hexDigits).append(" ");
-        }
         final String name = getName();
         String append = "";
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Byte_Array" + append + ": " + hex.toString();
+        return "TAG_Byte" + append + ": " + value;
     }
 
     /*
@@ -96,7 +93,7 @@ public final class ByteArrayTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + Arrays.hashCode(value);
+        result = (prime * result) + value;
         return result;
     }
 
@@ -109,9 +106,9 @@ public final class ByteArrayTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof ByteArrayTag)) { return false; }
-        final ByteArrayTag other = (ByteArrayTag) obj;
-        if (!Arrays.equals(value, other.value)) { return false; }
+        if (!(obj instanceof ByteTag)) { return false; }
+        final ByteTag other = (ByteTag) obj;
+        if (value != other.value) { return false; }
         return true;
     }
 

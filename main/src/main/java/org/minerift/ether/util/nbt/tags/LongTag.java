@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,18 +33,20 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
- * The <code>TAG_Short</code> tag.
+ * The <code>TAG_Long</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class ShortTag extends Tag {
+public final class LongTag extends Tag {
 
     /**
      * The value.
      */
-    private final short value;
+    private final long value;
 
     /**
      * Creates the tag.
@@ -54,16 +56,21 @@ public final class ShortTag extends Tag {
      * @param value
      *            The value.
      */
-    public ShortTag(final String name, final short value) {
+    public LongTag(final String name, final long value) {
 
         super(name);
         this.value = value;
     }
 
     @Override
-    public Short getValue() {
+    public Long getValue() {
 
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.LONG_TAG;
     }
 
     @Override
@@ -74,7 +81,7 @@ public final class ShortTag extends Tag {
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Short" + append + ": " + value;
+        return "TAG_Long" + append + ": " + value;
     }
 
     /*
@@ -86,7 +93,7 @@ public final class ShortTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + value;
+        result = (prime * result) + (int) (value ^ (value >>> 32));
         return result;
     }
 
@@ -99,8 +106,8 @@ public final class ShortTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof ShortTag)) { return false; }
-        final ShortTag other = (ShortTag) obj;
+        if (!(obj instanceof LongTag)) { return false; }
+        final LongTag other = (LongTag) obj;
         if (value != other.value) { return false; }
         return true;
     }

@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,49 +33,50 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
- * The <code>TAG_String</code> tag.
+ * Represents a single NBT tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class StringTag extends Tag {
+public abstract class Tag {
 
     /**
-     * The value.
+     * The name of this tag.
      */
-    private final String value;
+    private final String name;
 
     /**
-     * Creates the tag.
+     * Creates the tag with the specified name.
      *
      * @param name
      *            The name.
-     * @param value
-     *            The value.
      */
-    public StringTag(final String name, final String value) {
+    public Tag(final String name) {
 
-        super(name);
-        this.value = value;
+        this.name = name;
     }
 
-    @Override
-    public String getValue() {
+    /**
+     * Gets the name of this tag.
+     *
+     * @return The name of this tag.
+     */
+    public final String getName() {
 
-        return value;
+        return name;
     }
 
-    @Override
-    public String toString() {
+    /**
+     * Gets the value of this tag.
+     *
+     * @return The value of this tag.
+     */
+    public abstract Object getValue();
 
-        final String name = getName();
-        String append = "";
-        if ((name != null) && !name.equals("")) {
-            append = "(\"" + getName() + "\")";
-        }
-        return "TAG_String" + append + ": " + value;
-    }
+    public abstract NBTTagType getTagType();
 
     /*
      * (non-Javadoc)
@@ -85,8 +86,8 @@ public final class StringTag extends Tag {
     public int hashCode() {
 
         final int prime = 31;
-        int result = super.hashCode();
-        result = (prime * result) + ((value == null) ? 0 : value.hashCode());
+        int result = 1;
+        result = (prime * result) + ((name == null) ? 0 : name.hashCode());
         return result;
     }
 
@@ -98,12 +99,12 @@ public final class StringTag extends Tag {
     public boolean equals(final Object obj) {
 
         if (this == obj) { return true; }
-        if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof StringTag)) { return false; }
-        final StringTag other = (StringTag) obj;
-        if (value == null) {
-            if (other.value != null) { return false; }
-        } else if (!value.equals(other.value)) { return false; }
+        if (obj == null) { return false; }
+        if (!(obj instanceof Tag)) { return false; }
+        final Tag other = (Tag) obj;
+        if (name == null) {
+            if (other.name != null) { return false; }
+        } else if (!name.equals(other.name)) { return false; }
         return true;
     }
 

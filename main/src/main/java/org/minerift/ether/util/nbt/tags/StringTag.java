@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,38 +33,55 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
- * The <code>TAG_End</code> tag.
+ * The <code>TAG_String</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class EndTag extends Tag {
+public final class StringTag extends Tag {
 
     /**
      * The value.
      */
-    private final Object value = null;
-
+    private final String value;
 
     /**
      * Creates the tag.
+     *
+     * @param name
+     *            The name.
+     * @param value
+     *            The value.
      */
-    public EndTag() {
+    public StringTag(final String name, final String value) {
 
-        super("");
+        super(name);
+        this.value = value;
     }
 
     @Override
-    public Object getValue() {
+    public String getValue() {
 
         return value;
     }
 
     @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.STRING_TAG;
+    }
+
+    @Override
     public String toString() {
 
-        return "TAG_End";
+        final String name = getName();
+        String append = "";
+        if ((name != null) && !name.equals("")) {
+            append = "(\"" + getName() + "\")";
+        }
+        return "TAG_String" + append + ": " + value;
     }
 
     /*
@@ -89,8 +106,8 @@ public final class EndTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof EndTag)) { return false; }
-        final EndTag other = (EndTag) obj;
+        if (!(obj instanceof StringTag)) { return false; }
+        final StringTag other = (StringTag) obj;
         if (value == null) {
             if (other.value != null) { return false; }
         } else if (!value.equals(other.value)) { return false; }

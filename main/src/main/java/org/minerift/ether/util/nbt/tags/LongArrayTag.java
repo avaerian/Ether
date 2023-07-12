@@ -1,4 +1,6 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
+
+import org.minerift.ether.util.nbt.NBTTagType;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -24,6 +26,11 @@ public class LongArrayTag extends Tag {
     @Override
     public long[] getValue() {
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.LONG_ARRAY_TAG;
     }
 
     @Override

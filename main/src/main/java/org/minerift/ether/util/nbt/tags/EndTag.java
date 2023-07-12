@@ -1,6 +1,4 @@
-package org.jnbt;
-
-import java.util.Arrays;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -35,52 +33,45 @@ import java.util.Arrays;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
- * The <code>TAG_Byte_Array</code> tag.
+ * The <code>TAG_End</code> tag.
  *
- * @author Jocopa3
+ * @author Graham Edgecombe
  *
  */
-public final class IntArrayTag extends Tag {
+public final class EndTag extends Tag {
 
     /**
      * The value.
      */
-    private final int[] value;
+    private final Object value = null;
+
 
     /**
      * Creates the tag.
-     *
-     * @param name
-     *            The name.
-     * @param value
-     *            The value.
      */
-    public IntArrayTag(final String name, final int[] value) {
+    public EndTag() {
 
-        super(name);
-        this.value = value;
+        super("");
     }
 
     @Override
-    public int[] getValue() {
+    public Object getValue() {
 
         return value;
     }
 
     @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.END_TAG;
+    }
+
+    @Override
     public String toString() {
 
-        final StringBuilder integers = new StringBuilder();
-        for (final int b : value) {
-            integers.append(b).append(" ");
-        }
-        final String name = getName();
-        String append = "";
-        if ((name != null) && !name.equals("")) {
-            append = "(\"" + getName() + "\")";
-        }
-        return "TAG_Int_Array" + append + ": " + integers.toString();
+        return "TAG_End";
     }
 
     /*
@@ -92,7 +83,7 @@ public final class IntArrayTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + Arrays.hashCode(value);
+        result = (prime * result) + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -105,9 +96,11 @@ public final class IntArrayTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof IntArrayTag)) { return false; }
-        final IntArrayTag other = (IntArrayTag) obj;
-        if (!Arrays.equals(value, other.value)) { return false; }
+        if (!(obj instanceof EndTag)) { return false; }
+        final EndTag other = (EndTag) obj;
+        if (value == null) {
+            if (other.value != null) { return false; }
+        } else if (!value.equals(other.value)) { return false; }
         return true;
     }
 

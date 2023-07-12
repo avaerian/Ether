@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,46 +33,66 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
+import java.util.Arrays;
+
 /**
- * Represents a single NBT tag.
+ * The <code>TAG_Byte_Array</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public abstract class Tag {
+public final class ByteArrayTag extends Tag {
 
     /**
-     * The name of this tag.
+     * The value.
      */
-    private final String name;
+    private final byte[] value;
 
     /**
-     * Creates the tag with the specified name.
+     * Creates the tag.
      *
      * @param name
      *            The name.
+     * @param value
+     *            The value.
      */
-    public Tag(final String name) {
+    public ByteArrayTag(final String name, final byte[] value) {
 
-        this.name = name;
+        super(name);
+        this.value = value;
     }
 
-    /**
-     * Gets the name of this tag.
-     *
-     * @return The name of this tag.
-     */
-    public final String getName() {
+    @Override
+    public byte[] getValue() {
 
-        return name;
+        return value;
     }
 
-    /**
-     * Gets the value of this tag.
-     *
-     * @return The value of this tag.
-     */
-    public abstract Object getValue();
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.BYTE_ARRAY_TAG;
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder hex = new StringBuilder();
+        for (final byte b : value) {
+            final String hexDigits = Integer.toHexString(b).toUpperCase();
+            if (hexDigits.length() == 1) {
+                hex.append("0");
+            }
+            hex.append(hexDigits).append(" ");
+        }
+        final String name = getName();
+        String append = "";
+        if ((name != null) && !name.equals("")) {
+            append = "(\"" + getName() + "\")";
+        }
+        return "TAG_Byte_Array" + append + ": " + hex.toString();
+    }
 
     /*
      * (non-Javadoc)
@@ -82,8 +102,8 @@ public abstract class Tag {
     public int hashCode() {
 
         final int prime = 31;
-        int result = 1;
-        result = (prime * result) + ((name == null) ? 0 : name.hashCode());
+        int result = super.hashCode();
+        result = (prime * result) + Arrays.hashCode(value);
         return result;
     }
 
@@ -95,12 +115,10 @@ public abstract class Tag {
     public boolean equals(final Object obj) {
 
         if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (!(obj instanceof Tag)) { return false; }
-        final Tag other = (Tag) obj;
-        if (name == null) {
-            if (other.name != null) { return false; }
-        } else if (!name.equals(other.name)) { return false; }
+        if (!super.equals(obj)) { return false; }
+        if (!(obj instanceof ByteArrayTag)) { return false; }
+        final ByteArrayTag other = (ByteArrayTag) obj;
+        if (!Arrays.equals(value, other.value)) { return false; }
         return true;
     }
 

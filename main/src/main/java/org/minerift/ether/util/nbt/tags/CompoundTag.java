@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,18 +33,23 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
+import java.util.Collections;
+import java.util.Map;
+
 /**
- * The <code>TAG_Double</code> tag.
+ * The <code>TAG_Compound</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class DoubleTag extends Tag {
+public final class CompoundTag extends Tag {
 
     /**
      * The value.
      */
-    private final double value;
+    private final Map<String, Tag> value;
 
     /**
      * Creates the tag.
@@ -54,16 +59,19 @@ public final class DoubleTag extends Tag {
      * @param value
      *            The value.
      */
-    public DoubleTag(final String name, final double value) {
-
+    public CompoundTag(final String name, final Map<String, Tag> value) {
         super(name);
-        this.value = value;
+        this.value = Collections.unmodifiableMap(value);
     }
 
     @Override
-    public Double getValue() {
-
+    public Map<String, Tag> getValue() {
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.COMPOUND_TAG;
     }
 
     @Override
@@ -74,7 +82,16 @@ public final class DoubleTag extends Tag {
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Double" + append + ": " + value;
+        final StringBuilder bldr = new StringBuilder();
+        bldr.append("TAG_Compound" + append + ": " + value.size()
+                + " entries\r\n{\r\n");
+        for (final Map.Entry<String, Tag> entry : value.entrySet()) {
+            bldr.append("   "
+                    + entry.getValue().toString().replaceAll("\r\n", "\r\n   ")
+                    + "\r\n");
+        }
+        bldr.append("}");
+        return bldr.toString();
     }
 
     /*
@@ -86,9 +103,7 @@ public final class DoubleTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        long temp;
-        temp = Double.doubleToLongBits(value);
-        result = (prime * result) + (int) (temp ^ (temp >>> 32));
+        result = (prime * result) + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -101,10 +116,11 @@ public final class DoubleTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof DoubleTag)) { return false; }
-        final DoubleTag other = (DoubleTag) obj;
-        if (Double.doubleToLongBits(value) != Double
-                .doubleToLongBits(other.value)) { return false; }
+        if (!(obj instanceof CompoundTag)) { return false; }
+        final CompoundTag other = (CompoundTag) obj;
+        if (value == null) {
+            if (other.value != null) { return false; }
+        } else if (!value.equals(other.value)) { return false; }
         return true;
     }
 

@@ -1,4 +1,8 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
+
+import org.minerift.ether.util.nbt.NBTTagType;
+
+import java.util.Arrays;
 
 /*
  * JNBT License
@@ -34,17 +38,17 @@ package org.jnbt;
  */
 
 /**
- * The <code>TAG_Long</code> tag.
+ * The <code>TAG_Byte_Array</code> tag.
  *
- * @author Graham Edgecombe
+ * @author Jocopa3
  *
  */
-public final class LongTag extends Tag {
+public final class IntArrayTag extends Tag {
 
     /**
      * The value.
      */
-    private final long value;
+    private final int[] value;
 
     /**
      * Creates the tag.
@@ -54,27 +58,36 @@ public final class LongTag extends Tag {
      * @param value
      *            The value.
      */
-    public LongTag(final String name, final long value) {
+    public IntArrayTag(final String name, final int[] value) {
 
         super(name);
         this.value = value;
     }
 
     @Override
-    public Long getValue() {
+    public int[] getValue() {
 
         return value;
     }
 
     @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.INT_ARRAY_TAG;
+    }
+
+    @Override
     public String toString() {
 
+        final StringBuilder integers = new StringBuilder();
+        for (final int b : value) {
+            integers.append(b).append(" ");
+        }
         final String name = getName();
         String append = "";
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Long" + append + ": " + value;
+        return "TAG_Int_Array" + append + ": " + integers.toString();
     }
 
     /*
@@ -86,7 +99,7 @@ public final class LongTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + (int) (value ^ (value >>> 32));
+        result = (prime * result) + Arrays.hashCode(value);
         return result;
     }
 
@@ -99,9 +112,9 @@ public final class LongTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof LongTag)) { return false; }
-        final LongTag other = (LongTag) obj;
-        if (value != other.value) { return false; }
+        if (!(obj instanceof IntArrayTag)) { return false; }
+        final IntArrayTag other = (IntArrayTag) obj;
+        if (!Arrays.equals(value, other.value)) { return false; }
         return true;
     }
 

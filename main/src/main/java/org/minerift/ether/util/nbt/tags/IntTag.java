@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,6 +33,8 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
  * The <code>TAG_Int</code> tag.
  *
@@ -64,6 +66,11 @@ public final class IntTag extends Tag {
     public Integer getValue() {
 
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.INT_TAG;
     }
 
     @Override

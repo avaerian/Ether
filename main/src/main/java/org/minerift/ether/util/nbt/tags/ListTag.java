@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,37 +33,62 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
+import java.util.Collections;
+import java.util.List;
+
 /**
- * The <code>TAG_Float</code> tag.
+ * The <code>TAG_List</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class FloatTag extends Tag {
+public final class ListTag extends Tag {
+
+    /**
+     * The type.
+     */
+    private final NBTTagType childType;
 
     /**
      * The value.
      */
-    private final float value;
+    private final List<Tag> value;
 
     /**
      * Creates the tag.
      *
      * @param name
      *            The name.
+     * @param childType
+     *            The type of item in the list.
      * @param value
      *            The value.
      */
-    public FloatTag(final String name, final float value) {
-
+    public ListTag(final String name, final NBTTagType childType, final List<Tag> value) {
         super(name);
-        this.value = value;
+        this.childType = childType;
+        this.value = Collections.unmodifiableList(value);
+    }
+
+    /**
+     * Gets the type of item in this list.
+     *
+     * @return The type of item in this list.
+     */
+    public NBTTagType getChildType() {
+        return childType;
     }
 
     @Override
-    public Float getValue() {
-
+    public List<Tag> getValue() {
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.LIST_TAG;
     }
 
     @Override
@@ -74,7 +99,16 @@ public final class FloatTag extends Tag {
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Float" + append + ": " + value;
+        final StringBuilder bldr = new StringBuilder();
+        bldr.append("TAG_List" + append + ": " + value.size()
+                + " entries of type " + childType.getName()
+                + "\r\n{\r\n");
+        for (final Tag t : value) {
+            bldr.append("   " + t.toString().replaceAll("\r\n", "\r\n   ")
+                    + "\r\n");
+        }
+        bldr.append("}");
+        return bldr.toString();
     }
 
     /*
@@ -86,7 +120,7 @@ public final class FloatTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + Float.floatToIntBits(value);
+        result = (prime * result) + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -99,9 +133,11 @@ public final class FloatTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof FloatTag)) { return false; }
-        final FloatTag other = (FloatTag) obj;
-        if (Float.floatToIntBits(value) != Float.floatToIntBits(other.value)) { return false; }
+        if (!(obj instanceof ListTag)) { return false; }
+        final ListTag other = (ListTag) obj;
+        if (value == null) {
+            if (other.value != null) { return false; }
+        } else if (!value.equals(other.value)) { return false; }
         return true;
     }
 

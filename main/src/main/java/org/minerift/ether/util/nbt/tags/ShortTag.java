@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,18 +33,20 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.minerift.ether.util.nbt.NBTTagType;
+
 /**
- * The <code>TAG_Byte</code> tag.
+ * The <code>TAG_Short</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class ByteTag extends Tag {
+public final class ShortTag extends Tag {
 
     /**
      * The value.
      */
-    private final byte value;
+    private final short value;
 
     /**
      * Creates the tag.
@@ -54,16 +56,21 @@ public final class ByteTag extends Tag {
      * @param value
      *            The value.
      */
-    public ByteTag(final String name, final byte value) {
+    public ShortTag(final String name, final short value) {
 
         super(name);
         this.value = value;
     }
 
     @Override
-    public Byte getValue() {
+    public Short getValue() {
 
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.SHORT_TAG;
     }
 
     @Override
@@ -74,7 +81,7 @@ public final class ByteTag extends Tag {
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        return "TAG_Byte" + append + ": " + value;
+        return "TAG_Short" + append + ": " + value;
     }
 
     /*
@@ -99,8 +106,8 @@ public final class ByteTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof ByteTag)) { return false; }
-        final ByteTag other = (ByteTag) obj;
+        if (!(obj instanceof ShortTag)) { return false; }
+        final ShortTag other = (ShortTag) obj;
         if (value != other.value) { return false; }
         return true;
     }

@@ -1,4 +1,4 @@
-package org.jnbt;
+package org.minerift.ether.util.nbt.tags;
 
 /*
  * JNBT License
@@ -33,58 +33,44 @@ package org.jnbt;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
-import java.util.List;
+import org.minerift.ether.util.nbt.NBTTagType;
 
 /**
- * The <code>TAG_List</code> tag.
+ * The <code>TAG_Double</code> tag.
  *
  * @author Graham Edgecombe
  *
  */
-public final class ListTag extends Tag {
-
-    /**
-     * The type.
-     */
-    private final Class<? extends Tag> type;
+public final class DoubleTag extends Tag {
 
     /**
      * The value.
      */
-    private final List<Tag> value;
+    private final double value;
 
     /**
      * Creates the tag.
      *
      * @param name
      *            The name.
-     * @param type
-     *            The type of item in the list.
      * @param value
      *            The value.
      */
-    public ListTag(final String name, final Class<? extends Tag> type, final List<Tag> value) {
+    public DoubleTag(final String name, final double value) {
 
         super(name);
-        this.type = type;
-        this.value = Collections.unmodifiableList(value);
-    }
-
-    /**
-     * Gets the type of item in this list.
-     *
-     * @return The type of item in this list.
-     */
-    public Class<? extends Tag> getType() {
-
-        return type;
+        this.value = value;
     }
 
     @Override
-    public List<Tag> getValue() {
+    public Double getValue() {
 
         return value;
+    }
+
+    @Override
+    public NBTTagType getTagType() {
+        return NBTTagType.DOUBLE_TAG;
     }
 
     @Override
@@ -95,16 +81,7 @@ public final class ListTag extends Tag {
         if ((name != null) && !name.equals("")) {
             append = "(\"" + getName() + "\")";
         }
-        final StringBuilder bldr = new StringBuilder();
-        bldr.append("TAG_List" + append + ": " + value.size()
-                + " entries of type " + NBTUtils.getTypeName(type)
-                + "\r\n{\r\n");
-        for (final Tag t : value) {
-            bldr.append("   " + t.toString().replaceAll("\r\n", "\r\n   ")
-                    + "\r\n");
-        }
-        bldr.append("}");
-        return bldr.toString();
+        return "TAG_Double" + append + ": " + value;
     }
 
     /*
@@ -116,7 +93,9 @@ public final class ListTag extends Tag {
 
         final int prime = 31;
         int result = super.hashCode();
-        result = (prime * result) + ((value == null) ? 0 : value.hashCode());
+        long temp;
+        temp = Double.doubleToLongBits(value);
+        result = (prime * result) + (int) (temp ^ (temp >>> 32));
         return result;
     }
 
@@ -129,11 +108,10 @@ public final class ListTag extends Tag {
 
         if (this == obj) { return true; }
         if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof ListTag)) { return false; }
-        final ListTag other = (ListTag) obj;
-        if (value == null) {
-            if (other.value != null) { return false; }
-        } else if (!value.equals(other.value)) { return false; }
+        if (!(obj instanceof DoubleTag)) { return false; }
+        final DoubleTag other = (DoubleTag) obj;
+        if (Double.doubleToLongBits(value) != Double
+                .doubleToLongBits(other.value)) { return false; }
         return true;
     }
 
