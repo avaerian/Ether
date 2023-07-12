@@ -1,5 +1,6 @@
 package org.minerift.ether.util.math;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.function.IntUnaryOperator;
@@ -39,6 +40,19 @@ public class Vec3i {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vec3i vec3i = (Vec3i) o;
+        return x == vec3i.x && y == vec3i.y && z == vec3i.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(x, y, z);
+    }
+
+    @Override
     public String toString() {
         return String.format("(%d, %d, %d)", x, y, z);
     }
@@ -51,6 +65,10 @@ public class Vec3i {
         // Use asMutable() instead
         private Mutable(Vec3i original) {
             this(original.x, original.y, original.z);
+        }
+
+        public Mutable(int[] xyz) {
+            super(xyz);
         }
 
         public void setX(int x) {
@@ -71,6 +89,20 @@ public class Vec3i {
             this.z = z.applyAsInt(this.z);
         }
 
+        public void set(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public void add(Vec3i addend) {
+            add(addend.x, addend.y, addend.z);
+        }
+
+        public void subtract(Vec3i subtrahend) {
+            subtract(subtrahend.x, subtrahend.y, subtrahend.z);
+        }
+
         public void add(int x1, int y1, int z1) {
             transform(
                     x -> x + x1,
@@ -87,9 +119,8 @@ public class Vec3i {
             );
         }
 
-        public Vec3i immutable() {
+        public Vec3i newImmutable() {
             return new Vec3i(x, y, z);
         }
-
     }
 }
