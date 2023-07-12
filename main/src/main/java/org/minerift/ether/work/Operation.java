@@ -2,7 +2,6 @@ package org.minerift.ether.work;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -32,10 +31,16 @@ public class Operation {
         this.callback = callback;
     }
 
+    private void runCallback(boolean finished, FailReason failReason) {
+        if(callback != null) {
+            callback.accept(finished, failReason);
+        }
+    }
+
     // Fail the operation
     public void fail(FailReason reason) {
         Preconditions.checkNotNull(reason, "Fail reason cannot be null!");
-        callback.accept(false, reason);
+        runCallback(false, reason);
     }
 
     // Append all tasks from other operation to this operation
@@ -56,14 +61,14 @@ public class Operation {
     protected boolean completeNextTask() {
         BooleanSupplier task;
         if((task = tasks.poll()) == null) {
-            callback.accept(true, null);
+            runCallback(true, null);
             return true;
         }
 
         // If task failed, end operation
         boolean failed = !task.getAsBoolean();
         if(failed) {
-            callback.accept(false, FailReason.TASK_FAILED);
+            runCallback(false, FailReason.TASK_FAILED);
         }
         return failed;
     }
