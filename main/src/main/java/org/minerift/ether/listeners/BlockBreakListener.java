@@ -1,5 +1,6 @@
 package org.minerift.ether.listeners;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,19 +23,17 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
 
-        Player plr = e.getPlayer();
+        final Player plr = e.getPlayer();
+        final Location location = e.getBlock().getLocation();
 
-        Optional<Island> possibleIsland = islandManager.getIslandAt(e.getBlock().getLocation());
-        if(possibleIsland.isEmpty()) {
-            plr.sendMessage("Island doesn't exist at this tile!");
-            return;
-        }
+        islandManager.getIslandAt(location).ifPresentOrElse((island) -> {
 
-        Island island = possibleIsland.get();
-        Tile tile = island.getTile();
+            final Tile tile = island.getTile();
+            // TODO
 
-
-
+        },
+        // Else
+        () -> plr.sendMessage("Island doesn't exist at this tile!"));
 
     }
 

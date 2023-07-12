@@ -12,11 +12,10 @@ import java.util.stream.IntStream;
 public class IslandGrid {
 
     // All islands on the grid, including deleted islands
+    // TODO: consider switching to Int2ObjectOpenHashMap for performance/safety -> use JMH to microbenchmark to see if it's worth
     private SortedList<Island> islands;
 
     public IslandGrid() {
-        // TODO: load islands from persistence manager
-        // Should be done outside of this class for decoupling
         this.islands = new SortedList<>(Comparator.comparing(Island::getId));
     }
 

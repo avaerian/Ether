@@ -1,5 +1,8 @@
 package org.minerift.ether.benchmark;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.island.*;
 import org.openjdk.jmh.annotations.*;
@@ -102,6 +105,27 @@ public class IslandGridSearchBenchmarks {
         }
     }
 
+    @State(Scope.Benchmark)
+    public static class FastUtilMapState {
+
+        Int2ObjectMap<Island> grid;
+
+        @Setup
+        public void setup() {
+            this.grid = new Int2ObjectOpenHashMap<>();
+            for(int i = 0; i < TILE_COUNT; i++) {
+                Tile tile = GridAlgorithm.computeTile(i);
+                Island island = Island.builder()
+                        .setTile(tile, true)
+                        .setDeleted(false)
+                        .definePermissions(IslandRole.VISITOR)
+                        .build();
+                grid.put(i, island);
+            }
+        }
+
+    }
+
     @Benchmark
     public Optional<Island> arrayListLinear_findIslandBenchmark(ArrayListImplState state) {
         for(Island island : state.islands) {
@@ -126,5 +150,10 @@ public class IslandGridSearchBenchmarks {
     @Benchmark
     public Optional<Island> hashMap_findIslandBenchmark(HashMapImplState state) {
         return Optional.ofNullable(state.islands.get(TILE_TO_FIND));
+    }
+
+    @Benchmark
+    public Optional<Island> fastUtilMap_findIslandBenchmark(FastUtilMapState state) {
+        return Optional.ofNullable(state.grid.get(TILE_ID_TO_FIND));
     }
 }

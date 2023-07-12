@@ -1,7 +1,6 @@
 package org.minerift.ether.debug;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
@@ -11,13 +10,12 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.nms.NMS;
+import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.util.math.Vec3i;
-import org.minerift.ether.world.QueuedBlock;
+import org.minerift.ether.world.BlockArchetype;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class NMSSetBlocksDebugCommand implements CommandExecutor {
 
@@ -34,29 +32,36 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
         int height = 4;
         int length = 5;
 
-        String mode = "SYNC"; // "SYNC", "ASYNC" -> default: "SYNC"
+        String mode = "SYNC"; // "SYNC", "ASYNC", "DIST" -> default: "SYNC"
         if(args.length >= 1) {
             mode = args[0].toUpperCase();
         }
 
-        if(args.length == 4) {
+        if(args.length >= 4) {
             width = Integer.parseInt(args[1]);
             height = Integer.parseInt(args[2]);
             length = Integer.parseInt(args[3]);
         }
 
         plr.sendMessage("Setting blocks...");
-        NMS nmsAccess = EtherPlugin.getInstance().getNMS();
+        NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+
+        // Get cuboid and translate to player pos
+        List<BlockArchetype> cuboid = getTestCuboid(width, height, length);
+        cuboid.forEach(block -> block.getPos().add(BukkitUtils.getPosAsVec3i(plr.getLocation())));
+
+        // Set blocks based on mode
         switch (mode) {
-            case "SYNC" -> nmsAccess.setBlocks(getTestCuboid(width, height, length), plr.getLocation());
-            case "ASYNC" -> nmsAccess.setBlocksAsync(getTestCuboid(width, height, length), plr.getLocation());
+            case "SYNC" -> nmsAccess.setBlocks(cuboid, plr.getWorld());
+            case "ASYNC" -> nmsAccess.setBlocksAsync(cuboid, plr.getWorld());
+            case "DIST" -> nmsAccess.setBlocksAsyncLazy(cuboid, plr.getWorld());
         }
         plr.sendMessage("Blocks updated");
 
         return true;
     }
 
-    private static Set<QueuedBlock> getTestCuboid(int width, int height, int length) {
+    private static List<BlockArchetype> getTestCuboid(int width, int height, int length) {
 
         // Block data info
         final BlockData[] BLOCK_DATA = {
@@ -65,15 +70,26 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
                 Bukkit.createBlockData(Material.AIR),
                 Bukkit.createBlockData(Material.OAK_LOG)
         };
+
+        /*
+        // Block data info
+        final BlockData[] BLOCK_DATA = {
+                Bukkit.createBlockData(Material.CHEST),
+                Bukkit.createBlockData(Material.STONE),
+                Bukkit.createBlockData(Material.SEA_LANTERN),
+                Bukkit.createBlockData(Material.LIME_STAINED_GLASS),
+                Bukkit.createBlockData(Material.FURNACE),
+                Bukkit.createBlockData(Material.AIR)
+        };*/
         final Random random = new Random();
 
         // Generate cuboid
-        Set<QueuedBlock> blocks = new HashSet<>(width * height * length);
+        List<BlockArchetype> blocks = new ArrayList<>(width * height * length);
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
                 for(int z = 0; z < length; z++) {
                     final BlockData randomBlockData = BLOCK_DATA[random.nextInt(BLOCK_DATA.length)];
-                    blocks.add(new QueuedBlock(new Vec3i(x,y,z), randomBlockData));
+                    blocks.add(new BlockArchetype(randomBlockData.getAsString(true), new Vec3i(x,y,z)));
                 }
             }
         }

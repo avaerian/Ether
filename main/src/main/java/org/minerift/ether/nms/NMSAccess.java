@@ -2,19 +2,17 @@ package org.minerift.ether.nms;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.minerift.ether.util.math.Vec3i;
-import org.minerift.ether.world.QueuedBlock;
+import org.bukkit.World;
+import org.minerift.ether.world.BlockArchetype;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Set;
+import java.util.List;
 
-public class NMS {
+public class NMSAccess {
 
     private String implVersion;
-    private NMSBridge bridge;
-
-    public NMS() {
+    private final NMSBridge bridge;
+    public NMSAccess() {
         this.implVersion = getImplVersion();
 
         // Attempt to load bridge
@@ -38,12 +36,16 @@ public class NMS {
         bridge.fastClearChunksAsync(e1, e2, clearEntities);
     }
 
-    public void setBlocks(Set<QueuedBlock> blocks, Location location) {
-        bridge.fastSetBlocks(blocks, location, new Vec3i(0, 0, 0));
+    public void setBlocks(List<BlockArchetype> blocks, World world) {
+        bridge.fastSetBlocks(blocks, world);
     }
 
-    public void setBlocksAsync(Set<QueuedBlock> blocks, Location location) {
-        bridge.fastSetBlocksAsync(blocks, location, new Vec3i(0, 0, 0));
+    public void setBlocksAsync(List<BlockArchetype> blocks, World world) {
+        bridge.fastSetBlocksAsync(blocks, world);
+    }
+
+    public void setBlocksAsyncLazy(List<BlockArchetype> blocks, World world) {
+        bridge.fastSetBlocksAsyncLazy(blocks, world);
     }
 
     private String getImplVersion() {

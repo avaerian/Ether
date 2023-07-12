@@ -12,8 +12,9 @@ repositories {
 
 dependencies {
 
-    compileOnly("com.google.guava:guava:31.1-jre")
-    compileOnly("it.unimi.dsi:fastutil:8.5.6")
+    implementation("com.google.guava:guava:31.1-jre")
+    implementation("it.unimi.dsi:fastutil:8.5.6")
+
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.14")
 
     jmhImplementation("org.openjdk.jmh:jmh-core:1.36")
