@@ -18,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 public class IslandGridSearchBenchmarks {
 
     private static final int TILE_COUNT = 365875;
-
-    // Last tile is selected as a possible worst-case scenario (think iterating an array)
     private static final int TILE_ID_TO_FIND = 200384;
     private static final Tile TILE_TO_FIND = GridAlgorithm.computeTile(TILE_ID_TO_FIND);
 

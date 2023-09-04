@@ -81,4 +81,17 @@ public class GridAlgorithmBenchmarks {
         return new Tile(state.tile);
     }
 
+    /*
+    private int[] getRandomNumbers(int count, int minInclusive, int maxExclusive) {
+        return RANDOM.ints(count, minInclusive, maxExclusive).toArray();
+    }
+
+    private Tile[] getRandomTiles(int count, int minInclusive, int maxExclusive) {
+        int[] ids = getRandomNumbers(count, minInclusive, maxExclusive);
+        return Arrays.stream(ids)
+                .mapToObj(GridAlgorithm::computeTile)
+                .toArray(Tile[]::new);
+    }
+    */
+
 }
