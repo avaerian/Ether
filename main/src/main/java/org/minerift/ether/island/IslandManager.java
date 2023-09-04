@@ -15,26 +15,7 @@ public class IslandManager {
     }
 
     public Island createIsland(EtherUser user) {
-
-        // Find next available tile on grid
-        Tile tile = grid.getNextTile();
-
-        // Create island instance
-        // TODO: implement builder for Island
-        Island island = Island.builder()
-                .setTile(tile, true)
-                .setDeleted(false)
-                .addTeamMember(user, IslandRole.OWNER)
-                .build();
-
-        // Register island
-        grid.registerIsland(island);
-
-        // Paste schematic/structure onto tile
-        // Teleport player
-
-
-        return island;
+        return IslandCreationRoutine.run(grid, user);
     }
 
     public void deleteIsland(Island island) {
