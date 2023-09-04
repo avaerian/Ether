@@ -14,6 +14,8 @@ import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
@@ -26,21 +28,21 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.minerift.ether.util.nbt.tags.*;
 import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.nms.NMSBridge;
 import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.util.nbt.tags.*;
 import org.minerift.ether.work.Operation;
 import org.minerift.ether.work.WorkQueue;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
+import org.minerift.ether.world.EntityArchetype;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -57,7 +59,9 @@ public class NMSBridgeImpl implements NMSBridge {
     // Does not perform lighting updates
     private void fastClearSingleChunk(Chunk chunk, boolean clearEntities) {
 
-        if(!chunk.isLoaded()) {
+        // Load chunk if not already loaded
+        boolean chunkInitiallyLoaded = chunk.isLoaded();
+        if(!chunkInitiallyLoaded) {
             chunk.load();
         }
 
@@ -74,8 +78,8 @@ public class NMSBridgeImpl implements NMSBridge {
         // Remove entities from chunk
         if(clearEntities) {
             Arrays.stream(chunk.getEntities())
-                    .filter(entity -> entity.getType() != EntityType.PLAYER)
-                    .forEach(Entity::remove);
+                    .filter(entity -> entity.getType() != org.bukkit.entity.EntityType.PLAYER)
+                    .forEach(org.bukkit.entity.Entity::remove);
         }
 
         // Update chunk and sections
@@ -101,6 +105,11 @@ public class NMSBridgeImpl implements NMSBridge {
         // Resend entire chunk packet
         ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nmsChunk, serverChunkCache.getLightEngine(), null, null, true, true);
         nmsChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
+
+        // Clean up
+        if(!chunkInitiallyLoaded) { // if the chunk was not initially loaded, we had to load it
+            chunk.unload(true);
+        }
     }
 
     private void clearAllBlockEntities(LevelChunk chunk) {
@@ -244,7 +253,7 @@ public class NMSBridgeImpl implements NMSBridge {
         private final Map<LevelChunk, Map<LevelChunkSection, ChunkSectionChanges>> partition;
         private final World world;
         private final GetChunkFunction chunkGetter;
-        private final int totalBlockCount;
+        private int totalBlockCount;
 
         private ChunkPos bottomLeft, topRight;
 
@@ -260,38 +269,47 @@ public class NMSBridgeImpl implements NMSBridge {
             this.partition = new HashMap<>();
             this.world = world;
             this.chunkGetter = chunkGetter;
-            this.totalBlockCount = blocks.size();
+            this.totalBlockCount = 0;
             addAll(blocks);
             findRegionBounds();
         }
 
         private void findRegionBounds() {
 
+            final Set<LevelChunk> chunks = getChunks();
+
+            // TODO: handle this better for cases of no blocks
+            if(partition.isEmpty()) {
+                this.bottomLeft = null;
+                this.topRight = null;
+                return;
+            }
+
             // Handle for single chunk
-            if(getChunks().size() == 1) {
-                ChunkPos pos = getChunks().iterator().next().getPos();
+            if(chunks.size() == 1) {
+                ChunkPos pos = chunks.iterator().next().getPos();
                 this.bottomLeft = new ChunkPos(pos.x, pos.z);
                 this.topRight = bottomLeft;
                 return;
             }
 
             // Sort chunks by coordinates
-            List<ChunkPos> sortedX = getChunks().stream()
+            List<ChunkPos> positions = new ArrayList<>(chunks.stream()
                     .map(ChunkAccess::getPos)
                     .sorted(Comparator.comparing(pos -> pos.x))
-                    .toList();
-
-            List<ChunkPos> sortedZ = new ArrayList<>(sortedX);
-            sortedZ.sort(Comparator.comparing(pos -> pos.z));
+                    .toList());
 
             // Get region bounds
             final int SMALLEST = 0;
-            final int LARGEST = sortedX.size() - 1;
+            final int LARGEST = positions.size() - 1;
 
-            int left = sortedX.get(SMALLEST).x;
-            int bottom = sortedZ.get(SMALLEST).z;
-            int right = sortedX.get(LARGEST).x;
-            int top = sortedZ.get(LARGEST).z;
+            int left = positions.get(SMALLEST).x;
+            int right = positions.get(LARGEST).x;
+
+            positions.sort(Comparator.comparing(pos -> pos.z));
+
+            int bottom = positions.get(SMALLEST).z;
+            int top = positions.get(LARGEST).z;
 
             // Read values
             this.bottomLeft = new ChunkPos(left, bottom);
@@ -320,19 +338,18 @@ public class NMSBridgeImpl implements NMSBridge {
 
         public void add(BlockArchetype block) {
             chunkGetter.accept(world, block.getPos(), (chunk) -> partitionSingleBlock(block, chunk));
+            totalBlockCount++;
         }
 
         public void addAll(Collection<BlockArchetype> blocks) {
-            for(BlockArchetype block : blocks) {
-                add(block);
-            }
+            blocks.forEach(this::add);
         }
 
         public int getTotalBlockChanges() {
             return totalBlockCount;
         }
 
-        // Cached data for partition method
+        // Simple cache for partition method
         private LevelChunkSection lastSection = null;
         private ChunkSectionChanges lastSectionChanges = null;
 
@@ -341,7 +358,7 @@ public class NMSBridgeImpl implements NMSBridge {
             final LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(block.getY()));
             final SectionPos pos = SectionPos.of(block.getX() >> 4, block.getY() >> 4, block.getZ() >> 4);
 
-            // Check cache and update if needed
+            // Check if cached and update if needed
             ChunkSectionChanges sectionChanges;
             if(section != lastSection) {
                 // Prepare partition
@@ -476,6 +493,110 @@ public class NMSBridgeImpl implements NMSBridge {
         Bukkit.broadcast(Component.text(String.format("Cleared %d chunk(s)", ChunkPos.rangeClosed(nmsChunk1.getPos(), nmsChunk2.getPos()).count())));
     }
 
+
+    // This method assumes that the entity archetype position has already been translated (no normalized coordinates)
+    @Override
+    public org.bukkit.entity.Entity spawnEntity(EntityArchetype entityArchetype, World world) {
+
+        final ServerLevel level = ((CraftWorld)world).getHandle();
+
+        // Attempt to spawn entity
+        //EntityType.loadEntityRecursive() // this spawns the entities that can be spawned and logs failed entities
+        EntityType.byString(entityArchetype.getType()).ifPresent(type -> {
+            final net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) toNativeTag(entityArchetype.getNbtData());
+            final Entity entity = type.create(level);
+            if(entity != null) {
+                entity.load(nbt);
+            }
+        });
+
+        // TODO
+        //return success.get();
+
+        return null;
+    }
+
+    // Single chunk section
+    @Override
+    public void testIslandScanIdea(Location location) {
+
+        // Hacky way of trying to store int by reference
+        final Map<BlockState, int[]> stateCounts = new HashMap<>();
+
+        final LevelChunkSection section = getChunkSectionAt(location);
+        section.getStates().forEachLocation((state, loc) -> {
+            int[] count = stateCounts.computeIfAbsent(state, (ignore) -> new int[1]);
+            count[0]++;
+        });
+
+        stateCounts.forEach((key, value) -> System.out.println(key + " : " + value[0]));
+    }
+
+    // Full chunk
+    @Override
+    public void testIslandScanIdeaFullChunk(Location location) {
+
+        final Map<BlockState, int[]> stateCounts = new HashMap<>();
+
+        final LevelChunk chunk = ((CraftChunk)location.getChunk()).getHandle();
+        for(LevelChunkSection section : chunk.getSections()) {
+            section.getStates().forEachLocation((state, loc) -> {
+                int[] count = stateCounts.computeIfAbsent(state, (ignore) -> new int[1]);
+                count[0]++;
+            });
+        }
+
+        stateCounts.forEach((key, value) -> System.out.println(key + " : " + value[0]));
+    }
+
+    // Multiple chunks
+    // Scanning blocks to calculate island value
+    @Override
+    public void testIslandScanIdeaMultiChunk(Location location, int diameter) {
+
+        final Map<BlockState, int[]> stateCounts = new HashMap<>();
+        //final Object2IntMap<BlockState> stateCounts_ = new Object2IntOpenHashMap<>();
+        // TODO: switch to Object2IntMap for performance/better code quality
+
+        final World world = location.getWorld();
+        final ServerLevel level = ((CraftWorld)world).getHandle();
+
+        final int centerX = location.getChunk().getX();
+        final int centerZ = location.getChunk().getZ();
+
+        int radius = (diameter - 1) / 2;
+
+        final Chunk e1 = world.getChunkAt(centerX - radius, centerZ - radius);
+        final Chunk e2 = world.getChunkAt(centerX + radius, centerZ + radius);
+
+        final ChunkPos p1 = ((CraftChunk)e1).getHandle().getPos();
+        final ChunkPos p2 = ((CraftChunk)e2).getHandle().getPos();
+
+        ChunkPos.rangeClosed(p1, p2).forEach(pos -> {
+            final LevelChunk chunk = level.getChunk(pos.x, pos.z);
+            for(LevelChunkSection section : chunk.getSections()) {
+                // TODO: include cache for performance boost
+                section.getStates().forEachLocation((state, loc) -> {
+                    int[] count = stateCounts.computeIfAbsent(state, (ignore) -> new int[1]);
+                    count[0]++;
+                });
+            }
+        });
+
+        stateCounts.forEach((key, value) -> System.out.println(key + " : " + value[0]));
+    }
+
+    private static LevelChunkSection getChunkSectionAt(Location loc) {
+        return getChunkSectionAt(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getWorld());
+    }
+
+    private static LevelChunkSection getChunkSectionAt(int x, int y, int z, World world) {
+        final Chunk bukkitChunk = world.getChunkAt(x >> 4, z >> 4);
+        final LevelChunk chunk = ((CraftChunk)bukkitChunk).getHandle();
+        return chunk.getSection(chunk.getSectionIndex(y));
+    }
+
+
     // Get the neighboring chunks for a single chunk
     private static Set<ChunkPos> getNeighboringChunks(Chunk chunk) {
         return getNeighboringChunks(chunk, chunk);
@@ -517,17 +638,17 @@ public class NMSBridgeImpl implements NMSBridge {
             case END_TAG -> net.minecraft.nbt.EndTag.INSTANCE;
 
             // Primitives
-            case BYTE_TAG -> net.minecraft.nbt.ByteTag.valueOf(((ByteTag)tag).getValue());
-            case SHORT_TAG -> net.minecraft.nbt.ShortTag.valueOf(((ShortTag)tag).getValue());
-            case INT_TAG -> net.minecraft.nbt.IntTag.valueOf(((IntTag)tag).getValue());
-            case FLOAT_TAG -> net.minecraft.nbt.FloatTag.valueOf(((FloatTag)tag).getValue());
+            case BYTE_TAG   -> net.minecraft.nbt.ByteTag.valueOf(((ByteTag)tag).getValue());
+            case SHORT_TAG  -> net.minecraft.nbt.ShortTag.valueOf(((ShortTag)tag).getValue());
+            case INT_TAG    -> net.minecraft.nbt.IntTag.valueOf(((IntTag)tag).getValue());
+            case LONG_TAG   -> net.minecraft.nbt.LongTag.valueOf(((LongTag)tag).getValue());
+            case FLOAT_TAG  -> net.minecraft.nbt.FloatTag.valueOf(((FloatTag)tag).getValue());
             case DOUBLE_TAG -> net.minecraft.nbt.DoubleTag.valueOf(((DoubleTag)tag).getValue());
-            case LONG_TAG -> net.minecraft.nbt.LongTag.valueOf(((LongTag)tag).getValue());
             case STRING_TAG -> net.minecraft.nbt.StringTag.valueOf(((StringTag)tag).getValue());
 
             // Arrays
             case BYTE_ARRAY_TAG -> new net.minecraft.nbt.ByteArrayTag(((ByteArrayTag)tag).getValue());
-            case INT_ARRAY_TAG -> new net.minecraft.nbt.IntArrayTag(((IntArrayTag)tag).getValue());
+            case INT_ARRAY_TAG  -> new net.minecraft.nbt.IntArrayTag(((IntArrayTag)tag).getValue());
             case LONG_ARRAY_TAG -> new net.minecraft.nbt.LongArrayTag(((LongArrayTag)tag).getValue());
 
             // Collections
