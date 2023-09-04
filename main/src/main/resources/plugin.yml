@@ -10,3 +10,8 @@ commands:
     description: Debug command for setting chunks via NMS
   pasteschem:
     description: Debug command for pasting a schematic
+  blockscan:
+    description: Debug command for scanning islands for blocks/levels
+  #nmsentity:
+  #  description: Debug command for spawning an entity via NMS
+softdepend: [WorldEdit]

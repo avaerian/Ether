@@ -1,9 +1,7 @@
 package org.minerift.ether;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.minerift.ether.debug.NMSChunkDebugCommand;
-import org.minerift.ether.debug.NMSSetBlocksDebugCommand;
-import org.minerift.ether.debug.SchematicDebugCommand;
+import org.minerift.ether.debug.*;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.work.WorkQueue;
@@ -19,31 +17,29 @@ public class EtherPlugin extends JavaPlugin {
 
     private NMSAccess nmsAccess;
     private WorkQueue workQueue;
-
     private IslandManager islandManager;
 
     @Override
     public void onLoad() {
-        // TODO: look into when this method is called vs. onEnable()
+
     }
 
     @Override
     public void onEnable() {
         INSTANCE = this;
 
+        this.isUsingWorldEdit = false; // TODO
         this.nmsAccess = new NMSAccess();
         this.workQueue = new WorkQueue();
         workQueue.start();
 
         this.islandManager = new IslandManager();
-        this.isUsingWorldEdit = false;
-
 
         // Register debug command
         getCommand("nmschunk").setExecutor(new NMSChunkDebugCommand());
         getCommand("nmsblock").setExecutor(new NMSSetBlocksDebugCommand());
+        getCommand("blockscan").setExecutor(new NMSBlockScanDebugCommand());
         getCommand("pasteschem").setExecutor(new SchematicDebugCommand());
-
 
         getLogger().log(Level.INFO, "Ether plugin enabled!");
     }
