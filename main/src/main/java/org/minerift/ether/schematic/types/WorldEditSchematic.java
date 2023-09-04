@@ -1,23 +1,29 @@
 package org.minerift.ether.schematic.types;
 
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
-import org.minerift.ether.schematic.Schematic;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import org.minerift.ether.schematic.pasters.WESchematicPaster;
+import org.minerift.ether.util.math.Vec3i;
 
 public class WorldEditSchematic implements Schematic {
 
-    private Clipboard clipboard;
+    private final Clipboard clipboard;
 
-    public WorldEditSchematic(File file) throws IOException {
-        this.clipboard = ClipboardFormats.findByFile(file).getReader(new FileInputStream(file)).read();
+    public WorldEditSchematic(Clipboard clipboard) {
+        this.clipboard = clipboard;
     }
 
     public Clipboard getClipboard() {
         return clipboard;
+    }
+
+    @Override
+    public SchematicType getType() {
+        return SchematicType.WORLDEDIT;
+    }
+
+    @Override
+    public void paste(Vec3i pos, String worldName) {
+        getType().getPaster(WESchematicPaster.class).paste(this, pos, worldName);
     }
 
     @Override
