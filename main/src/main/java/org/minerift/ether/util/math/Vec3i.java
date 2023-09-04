@@ -8,6 +8,8 @@ import java.util.function.IntUnaryOperator;
 // Immutable (by default) Vec3 of ints
 public class Vec3i {
 
+    public static final Vec3i ZERO = new Vec3i(0, 0, 0);
+
     protected int x, y, z;
 
     public Vec3i(int x, int y, int z) {

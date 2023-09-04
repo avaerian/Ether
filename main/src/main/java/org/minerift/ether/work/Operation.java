@@ -59,8 +59,8 @@ public class Operation {
     // Completes a single task
     // Returns whether the operation has finished
     protected boolean completeNextTask() {
-        BooleanSupplier task;
-        if((task = tasks.poll()) == null) {
+        BooleanSupplier task = tasks.poll();
+        if(task == null) {
             runCallback(true, null);
             return true;
         }

@@ -5,7 +5,7 @@ package org.minerift.ether.config;
  * @author Avaerian
  */
 @ConfigurationFile(name = "config.yml")
-public class MainConfiguration { // TODO: rename to something more appropriate
+public class MainConfiguration {
 
     @YamlPath(path = "island.tile.size")
     public final static int TILE_SIZE = 200; // default value for now

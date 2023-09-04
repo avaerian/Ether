@@ -6,6 +6,7 @@ import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.util.SortedList;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,6 +53,13 @@ public class IslandGrid {
     // Returns whether a tile has an island, deleted or not, present
     public boolean isTileOccupied(Tile tile) {
         return getIslandAt(tile).isPresent();
+    }
+
+    // Returns whether a tile has an active island (not deleted)
+    public boolean hasActiveIslandAtTile(Tile tile) {
+        AtomicBoolean isActive = new AtomicBoolean(false);
+        getIslandAt(tile).ifPresent((island) -> isActive.set(!island.isDeleted()));
+        return isActive.get();
     }
 
     // Get a list of islands that can be reoccupied
