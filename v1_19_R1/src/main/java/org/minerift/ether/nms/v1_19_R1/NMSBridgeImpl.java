@@ -271,19 +271,18 @@ public class NMSBridgeImpl implements NMSBridge {
             this.chunkGetter = chunkGetter;
             this.totalBlockCount = 0;
             addAll(blocks);
-            findRegionBounds();
+
+            // TODO: handle this better for cases of no blocks
+            this.bottomLeft = null;
+            this.topRight = null;
+            if(!partition.isEmpty()) {
+                findRegionBounds();
+            }
         }
 
         private void findRegionBounds() {
 
             final Set<LevelChunk> chunks = getChunks();
-
-            // TODO: handle this better for cases of no blocks
-            if(partition.isEmpty()) {
-                this.bottomLeft = null;
-                this.topRight = null;
-                return;
-            }
 
             // Handle for single chunk
             if(chunks.size() == 1) {
@@ -333,7 +332,9 @@ public class NMSBridgeImpl implements NMSBridge {
         }
 
         public Set<ChunkPos> getChunksForRelighting() {
-            return getNeighboringChunks(bottomLeft, topRight);
+            return partition.isEmpty()
+                    ? Collections.emptySet()
+                    : getNeighboringChunks(bottomLeft, topRight);
         }
 
         public void add(BlockArchetype block) {
