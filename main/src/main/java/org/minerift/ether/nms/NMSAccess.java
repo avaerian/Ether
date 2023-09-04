@@ -2,8 +2,11 @@ package org.minerift.ether.nms;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.minerift.ether.util.math.Vec3i;
 import org.minerift.ether.world.BlockArchetype;
+import org.minerift.ether.world.EntityArchetype;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -46,6 +49,22 @@ public class NMSAccess {
 
     public void setBlocksAsyncLazy(List<BlockArchetype> blocks, World world) {
         bridge.fastSetBlocksAsyncLazy(blocks, world);
+    }
+
+    public void testIslandScanIdea(Location location) {
+        bridge.testIslandScanIdea(location);
+    }
+
+    public void testIslandScanIdeaFullChunk(Location location) {
+        bridge.testIslandScanIdeaFullChunk(location);
+    }
+
+    public void testIslandScanIdeaMultiChunk(Location location, int diameter) {
+        bridge.testIslandScanIdeaMultiChunk(location, diameter);
+    }
+
+    public void spawnEntity(EntityArchetype entityArchetype, World world) {
+        bridge.spawnEntity(entityArchetype, world);
     }
 
     private String getImplVersion() {
