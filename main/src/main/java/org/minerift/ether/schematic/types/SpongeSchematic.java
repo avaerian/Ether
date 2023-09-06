@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.types;
 
+import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
 import org.minerift.ether.util.math.Vec3i;
 import org.minerift.ether.world.BiomeArchetype;
@@ -40,22 +41,26 @@ public class SpongeSchematic implements Schematic {
     }
 
     @Override
-    public void paste(Vec3i pos, String worldName) {
-        getType().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName);
+    public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
+        getType().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
     }
 
+    @Override
     public int getWidth() {
         return width;
     }
 
+    @Override
     public int getHeight() {
         return height;
     }
 
+    @Override
     public int getLength() {
         return length;
     }
 
+    @Override
     public Vec3i getOffset() {
         return offset;
     }

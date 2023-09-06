@@ -7,16 +7,14 @@ import org.minerift.ether.util.Result;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> {
 
     @Override
     public Result<SpongeSchematic, SchematicFileReadException> read(File file) {
 
-        AtomicReference<Result<SpongeSchematic, SchematicFileReadException>> result = new AtomicReference<>(new Result<>());
+        Result<SpongeSchematic, SchematicFileReadException> result = new Result<>();
         ReaderContext.from(file).handle((ctx) -> {
-            boolean success = true;
             try {
                 ReadStages.INIT.read(ctx);
                 ReadStages.METADATA.read(ctx);
@@ -24,26 +22,21 @@ public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> 
                 ReadStages.BLOCK_STATES.read(ctx);
                 ReadStages.BIOMES.read(ctx);
                 ReadStages.ENTITIES.read(ctx);
-            } catch (SchematicFileReadException e) {
-                // Delegate exception to result
-                result.get().err(e);
-                success = false;
-            }
 
-            // Set result to new SpongeSchematic
-            if(success) {
-                result.get().ok(ctx.builder.build());
-            }
+                result.ok(ctx.builder.build());
 
-            try {
                 ctx.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (SchematicFileReadException ex) {
+                // Delegate exception to result
+                result.err(ex);
+            } catch (IOException ex) {
+                // Failed to close context; this should be notified
+                throw new RuntimeException(ex);
             }
         },
-        // Handle context error
-        (ex) -> result.get().err(ex));
+        // Delegate context error to result
+        result::err);
 
-        return result.get();
+        return result;
     }
 }

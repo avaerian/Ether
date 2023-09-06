@@ -1,22 +1,23 @@
 package org.minerift.ether.util.nbt;
 
+import com.google.common.base.Preconditions;
 import org.minerift.ether.util.nbt.tags.*;
 
 public enum NBTTagType {
 
-    END_TAG         (0, "TAG_End", EndTag.class),
-    BYTE_TAG        (1, "TAG_Byte", ByteTag.class),
-    SHORT_TAG       (2, "TAG_Short", ShortTag.class),
-    INT_TAG         (3, "TAG_Int", IntTag.class),
-    LONG_TAG        (4, "TAG_Long", LongTag.class),
-    FLOAT_TAG       (5, "TAG_Float", FloatTag.class),
-    DOUBLE_TAG      (6, "TAG_Double", DoubleTag.class),
-    BYTE_ARRAY_TAG  (7, "TAG_Byte_Array", ByteArrayTag.class),
-    STRING_TAG      (8, "TAG_String", StringTag.class),
-    LIST_TAG        (9, "TAG_List", ListTag.class),
-    COMPOUND_TAG    (10, "TAG_Compound", CompoundTag.class),
-    INT_ARRAY_TAG   (11, "TAG_Int_Array", IntArrayTag.class),
-    LONG_ARRAY_TAG  (12, "TAG_Long_Array", LongArrayTag.class);
+    END_TAG         ("TAG_End", EndTag.class),
+    BYTE_TAG        ("TAG_Byte", ByteTag.class),
+    SHORT_TAG       ("TAG_Short", ShortTag.class),
+    INT_TAG         ("TAG_Int", IntTag.class),
+    LONG_TAG        ("TAG_Long", LongTag.class),
+    FLOAT_TAG       ("TAG_Float", FloatTag.class),
+    DOUBLE_TAG      ("TAG_Double", DoubleTag.class),
+    BYTE_ARRAY_TAG  ("TAG_Byte_Array", ByteArrayTag.class),
+    STRING_TAG      ("TAG_String", StringTag.class),
+    LIST_TAG        ("TAG_List", ListTag.class),
+    COMPOUND_TAG    ("TAG_Compound", CompoundTag.class),
+    INT_ARRAY_TAG   ("TAG_Int_Array", IntArrayTag.class),
+    LONG_ARRAY_TAG  ("TAG_Long_Array", LongArrayTag.class);
 
     public static NBTTagType getTagType(Class<? extends Tag> clazz) {
         for(NBTTagType type : values()) {
@@ -28,25 +29,20 @@ public enum NBTTagType {
     }
 
     public static NBTTagType getTagType(int id) {
-        for(NBTTagType type : values()) {
-            if(id == type.getId()) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Invalid tag id (%d)", id));
+        final NBTTagType[] types = NBTTagType.values();
+        Preconditions.checkArgument(id < types.length, String.format("Invalid tag id (%d)", id));
+        return types[id];
     }
 
-    private int id;
-    private String name;
-    private Class<? extends Tag> clazz;
-    NBTTagType(int id, String name, Class<? extends Tag> clazz) {
-        this.id = id;
+    private final String name;
+    private final Class<? extends Tag> clazz;
+    NBTTagType(String name, Class<? extends Tag> clazz) {
         this.name = name;
         this.clazz = clazz;
     }
 
     public int getId() {
-        return id;
+        return ordinal();
     }
 
     public String getName() {

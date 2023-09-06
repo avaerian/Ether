@@ -8,9 +8,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.Schematic;
 import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.util.math.Vec3i;
@@ -28,7 +27,6 @@ public class SchematicDebugCommand implements CommandExecutor {
             return false;
         }
 
-        final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
         final Player plr = (Player) sender;
         final Vec3i pos = BukkitUtils.getPosAsVec3i(plr.getLocation());
         final String worldName = plr.getWorld().getName();
@@ -43,7 +41,7 @@ public class SchematicDebugCommand implements CommandExecutor {
 
         // Attempt to paste
         Schematic.fromFile(file).handle((schem) -> {
-            schem.paste(pos, worldName);
+            schem.paste(pos, worldName, SchematicPasteOptions.DEFAULT);
             plr.sendMessage("Schematic pasted successfully!");
         }, this::schemFail);
 

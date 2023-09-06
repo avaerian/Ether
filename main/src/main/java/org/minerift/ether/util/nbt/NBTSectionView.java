@@ -65,6 +65,7 @@ public class NBTSectionView {
             for(int i = 0; i < tagList.size(); i++) {
                 elements[i] = tagToValue.apply(tagList.get(i));
             }
+
             optional.set(Optional.of(elements));
         });
         return optional.get();

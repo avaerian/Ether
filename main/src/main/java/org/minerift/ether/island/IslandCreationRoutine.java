@@ -2,6 +2,7 @@ package org.minerift.ether.island;
 
 import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
+import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.Schematic;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.math.Vec3i;
@@ -27,7 +28,9 @@ public class IslandCreationRoutine {
         // TODO: Paste schematic/structure onto tile
         File file = null;
         Vec3i pos = Vec3i.ZERO;
-        Schematic.fromFile(file).handle((schem) -> schem.paste(pos, plr.getWorld().getName()), (ex) -> { throw new RuntimeException(ex); });
+        Schematic.fromFile(file).handle((schem) -> {
+            schem.paste(pos, plr.getWorld().getName(), SchematicPasteOptions.builder().copyBiomes(true).build());
+        }, (ex) -> { throw new RuntimeException(ex); });
 
         // Teleport player
 

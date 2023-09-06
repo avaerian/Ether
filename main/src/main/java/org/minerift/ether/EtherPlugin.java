@@ -4,6 +4,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.minerift.ether.debug.*;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
+import org.minerift.ether.schematic.types.SchematicType;
 import org.minerift.ether.work.WorkQueue;
 
 import java.util.logging.Level;

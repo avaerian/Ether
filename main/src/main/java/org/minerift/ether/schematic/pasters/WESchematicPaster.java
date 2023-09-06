@@ -8,29 +8,37 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.WorldEditSchematic;
 import org.minerift.ether.util.math.Vec3i;
 
 public class WESchematicPaster implements ISchematicPaster<WorldEditSchematic> {
 
     @Override
-    public void paste(WorldEditSchematic schem, Vec3i pos, String worldName) {
+    public void paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
 
         final World world = Bukkit.getWorld(worldName);
         Preconditions.checkNotNull(world, String.format("World %s could not be found!", worldName));
 
         try(EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
 
-            Clipboard clipboard = schem.getClipboard();
-            ClipboardHolder holder = new ClipboardHolder(clipboard);
+            final Clipboard clipboard = schem.getClipboard();
+            final ClipboardHolder holder = new ClipboardHolder(clipboard);
+
+            final Vec3i.Mutable vecTo = options.offset.asMutable();
+            vecTo.add(pos);
+
+            final BlockVector3 to = BlockVector3.at(vecTo.getX(), vecTo.getY(), vecTo.getZ());
+
             Operation operation = holder.createPaste(editSession)
-                    .to(clipboard.getOrigin().add(pos.getX(), pos.getY(), pos.getZ()))
-                    .copyBiomes(false)
-                    .copyEntities(true)
-                    .ignoreAirBlocks(true)
+                    .to(to)
+                    .copyBiomes(options.copyBiomes)
+                    .copyEntities(options.copyEntities)
+                    .ignoreAirBlocks(options.ignoreAirBlocks)
                     .build();
 
             Operations.completeLegacy(operation);

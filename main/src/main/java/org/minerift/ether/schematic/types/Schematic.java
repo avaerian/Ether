@@ -3,6 +3,7 @@ package org.minerift.ether.schematic.types;
 import com.google.common.base.Preconditions;
 import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.util.Result;
 import org.minerift.ether.util.math.Vec3i;
 
@@ -27,10 +28,12 @@ public interface Schematic {
 
     SchematicType getType();
 
-    void paste(Vec3i pos, String worldName);
+    void paste(Vec3i pos, String worldName, SchematicPasteOptions options);
 
     int getWidth();
     int getHeight();
     int getLength();
+
+    Vec3i getOffset();
 
 }
