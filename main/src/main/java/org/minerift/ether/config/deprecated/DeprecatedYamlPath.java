@@ -1,4 +1,4 @@
-package org.minerift.ether.config;
+package org.minerift.ether.config.deprecated;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface YamlPath {
+@Deprecated
+public @interface DeprecatedYamlPath {
     String path();
 }
