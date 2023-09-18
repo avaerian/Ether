@@ -1,10 +1,10 @@
 package org.minerift.ether.benchmark;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.island.*;
+import org.minerift.ether.util.math.Vec2i;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -19,7 +19,7 @@ public class IslandGridSearchBenchmarks {
 
     private static final int TILE_COUNT = 365875;
     private static final int TILE_ID_TO_FIND = 200384;
-    private static final Tile TILE_TO_FIND = GridAlgorithm.computeTile(TILE_ID_TO_FIND);
+    private static final Vec2i TILE_TO_FIND = GridAlgorithm.computeTile(TILE_ID_TO_FIND);
 
     public static void main(String[] args) throws RunnerException {
 
@@ -67,13 +67,13 @@ public class IslandGridSearchBenchmarks {
     @State(Scope.Benchmark)
     public static class HashMapImplState {
 
-        Map<Tile, Island> islands;
+        Map<Vec2i, Island> islands;
 
         @Setup
         public void setup() {
             this.islands = new HashMap<>();
             for(int i = 0; i < TILE_COUNT; i++) {
-                Tile tile = GridAlgorithm.computeTile(i);
+                Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
                         .setDeleted(false)
@@ -112,7 +112,7 @@ public class IslandGridSearchBenchmarks {
         public void setup() {
             this.grid = new Int2ObjectOpenHashMap<>();
             for(int i = 0; i < TILE_COUNT; i++) {
-                Tile tile = GridAlgorithm.computeTile(i);
+                Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
                         .setDeleted(false)

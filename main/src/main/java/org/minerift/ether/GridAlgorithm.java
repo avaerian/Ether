@@ -1,7 +1,7 @@
 package org.minerift.ether;
 
 import com.google.common.base.Preconditions;
-import org.minerift.ether.island.Tile;
+import org.minerift.ether.util.math.Vec2i;
 
 /**
  * Algorithm for calculating tile coordinates and tile ids.
@@ -16,7 +16,7 @@ public class GridAlgorithm {
      * @param tile tile coordinates
      * @return integer id of the tile
      */
-    public static int computeTileId(Tile tile) {
+    public static int computeTileId(Vec2i tile) {
 
         Preconditions.checkNotNull(tile, "Tile cannot be null!");
 
@@ -29,10 +29,10 @@ public class GridAlgorithm {
         int diagonalId = getDiagonalId(shellId);
         int previousDiagonalId = getDiagonalId(shellId - 1);
 
-        Tile topLeft     = new Tile(-shellId, -shellId);
-        Tile topRight    = new Tile( shellId, -shellId);
-        Tile bottomLeft  = new Tile(-shellId,  shellId);
-        Tile bottomRight = new Tile( shellId,  shellId);
+        Vec2i topLeft     = new Vec2i(-shellId, -shellId);
+        Vec2i topRight    = new Vec2i( shellId, -shellId);
+        Vec2i bottomLeft  = new Vec2i(-shellId,  shellId);
+        Vec2i bottomRight = new Vec2i( shellId,  shellId);
 
         // int numColumns = topRight.getZ() - bottomRight.getZ();
 
@@ -74,12 +74,12 @@ public class GridAlgorithm {
      * @param tileId id of tile on grid
      * @return Tile coordinates
      */
-    public static Tile computeTile(int tileId) {
+    public static Vec2i computeTile(int tileId) {
 
         Preconditions.checkArgument(tileId >= 0, "tileId needs to be a positive number!");
 
         if(tileId == 0) {
-            return Tile.ZERO;
+            return Vec2i.ZERO;
         }
 
         int shellId = getShellId(tileId);
@@ -92,7 +92,7 @@ public class GridAlgorithm {
         int numColumns = tilesInColumn / 2;
 
         // Start at end of shell; will work back from there
-        Tile.Mutable tile = new Tile.Mutable(shellId, shellId);
+        Vec2i.Mutable tile = new Vec2i.Mutable(shellId, shellId);
 
         int startTopRow = previousDiagonalId + 1;
         int endTopRow = startTopRow + (tilesInRow - 1);
@@ -137,7 +137,7 @@ public class GridAlgorithm {
         return (4 * shellId) * (shellId + 1);
     }
 
-    private static boolean isInRow(Tile tile, Tile left, Tile right) {
+    private static boolean isInRow(Vec2i tile, Vec2i left, Vec2i right) {
         // Left is negative (lower bound)
         // Right is positive (upper bound)
         return inRange(tile.getX(), left.getX(), right.getX()) && tile.getZ() == left.getZ();

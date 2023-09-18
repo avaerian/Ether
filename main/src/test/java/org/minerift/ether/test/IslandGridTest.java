@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandGrid;
-import org.minerift.ether.island.Tile;
+import org.minerift.ether.util.math.Vec2i;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +29,7 @@ public class IslandGridTest {
 
         // Add islands to test grid
         for (int id : ids) {
-            Tile tile = GridAlgorithm.computeTile(id);
+            Vec2i tile = GridAlgorithm.computeTile(id);
             Island island = Island.builder()
                     .setTile(tile, true)
                     .build();
@@ -45,7 +45,7 @@ public class IslandGridTest {
 
     @ParameterizedTest
     @MethodSource
-    public void getIslandAtTest(Tile tile) {
+    public void getIslandAtTest(Vec2i tile) {
 
         final int ISLAND_COUNT = 300;
 
@@ -64,7 +64,7 @@ public class IslandGridTest {
         assertDoesNotThrow(() -> grid.getIslandAt(tile).get());
     }
 
-    private static Stream<Tile> getIslandAtTest() {
+    private static Stream<Vec2i> getIslandAtTest() {
         return Stream.of(
                 GridAlgorithm.computeTile(229),
                 GridAlgorithm.computeTile(23),

@@ -3,6 +3,7 @@ package org.minerift.ether.island;
 import org.bukkit.Location;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
+import org.minerift.ether.util.math.Vec2i;
 
 import java.util.Optional;
 
@@ -30,7 +31,7 @@ public class IslandManager {
         island.getTeamMembers().forEach(member -> member.setIsland(null));
     }
 
-    public Optional<Island> getIslandAt(Tile tile) {
+    public Optional<Island> getIslandAt(Vec2i tile) {
         return grid.getIslandAt(tile);
     }
 

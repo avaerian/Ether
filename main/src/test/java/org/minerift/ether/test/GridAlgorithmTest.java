@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.minerift.ether.GridAlgorithm;
-import org.minerift.ether.island.Tile;
+import org.minerift.ether.util.math.Maths;
+import org.minerift.ether.util.math.Vec2i;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -23,7 +24,7 @@ public class GridAlgorithmTest {
     @ParameterizedTest
     @MethodSource
     public void inverseTest(int inputId) {
-        final Tile tile = GridAlgorithm.computeTile(inputId);
+        final Vec2i tile = GridAlgorithm.computeTile(inputId);
         final int tileId = GridAlgorithm.computeTileId(tile);
         //System.out.println(inputId + " -> " + tile + " -> " + tileId);
         assertEquals(tileId, inputId);
@@ -41,11 +42,11 @@ public class GridAlgorithmTest {
     @ParameterizedTest
     @MethodSource
     public void tileFromStringTest(int id) {
-        Tile tileFromId = GridAlgorithm.computeTile(id);
+        Vec2i tileFromId = GridAlgorithm.computeTile(id);
         String str = tileFromId.toString();
-        Tile tileFromStr = new Tile(str);
+        Vec2i tileFromStr = Maths.strToVec2i(str).getValueOrDefault(() -> null);
         assertEquals(tileFromStr, tileFromId);
-        assertEquals(tileFromStr.getId(), tileFromId.getId());
+        assertEquals(tileFromStr.getTileId(), tileFromId.getTileId());
     }
 
     @ParameterizedTest

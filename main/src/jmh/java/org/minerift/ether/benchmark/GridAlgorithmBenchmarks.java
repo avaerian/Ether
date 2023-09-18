@@ -1,7 +1,8 @@
 package org.minerift.ether.benchmark;
 
 import org.minerift.ether.GridAlgorithm;
-import org.minerift.ether.island.Tile;
+import org.minerift.ether.util.math.Maths;
+import org.minerift.ether.util.math.Vec2i;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -62,23 +63,23 @@ public class GridAlgorithmBenchmarks {
     }
 
     @Benchmark
-    public Tile computeTileBenchmark(ComputeTileIdState state) {
+    public Vec2i computeTileBenchmark(ComputeTileIdState state) {
         return GridAlgorithm.computeTile(state.id);
     }
 
     @Benchmark
     public int computeTileIdBenchmark(ComputeTileState state) {
-        return GridAlgorithm.computeTileId(new Tile(state.tile));
+        return GridAlgorithm.computeTileId(Maths.strToVec2i(state.tile).getValueOrDefault(() -> null));
     }
 
     @Benchmark
     public int computeTileIdBenchmark_PREDETERMINED() {
-        return GridAlgorithm.computeTileId(new Tile(-43,1235));
+        return GridAlgorithm.computeTileId(new Vec2i(-43,1235));
     }
 
     @Benchmark
-    public Tile tile_parseFromStringBenchmark(ComputeTileState state) {
-        return new Tile(state.tile);
+    public Vec2i tile_parseFromStringBenchmark(ComputeTileState state) {
+        return Maths.strToVec2i(state.tile).getValueOrDefault(() -> null);
     }
 
     /*
