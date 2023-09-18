@@ -80,13 +80,13 @@ public class SpongeSchematic implements Schematic {
     public static class Builder {
 
         // sponge schematic version (differs from DataVersion; refers to Minecraft version)
-        protected int version;
-        protected short width, height, length;
-        protected Vec3i offset;
-        protected List<BlockArchetype> blocks;
-        protected Map<Vec3i, BlockEntityArchetype> blockEntities;
-        protected Set<EntityArchetype> entities;
-        protected List<BiomeArchetype> biomes;
+        private int version;
+        private short width, height, length;
+        private Vec3i offset;
+        private List<BlockArchetype> blocks;
+        private Map<Vec3i, BlockEntityArchetype> blockEntities;
+        private Set<EntityArchetype> entities;
+        private List<BiomeArchetype> biomes;
 
         private Builder() {
             this.version = 0;

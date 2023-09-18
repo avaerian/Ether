@@ -6,11 +6,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandManager;
-import org.minerift.ether.island.Tile;
-
-import java.util.Optional;
+import org.minerift.ether.util.math.Vec2i;
 
 public class BlockBreakListener implements Listener {
 
@@ -28,7 +25,7 @@ public class BlockBreakListener implements Listener {
 
         islandManager.getIslandAt(location).ifPresentOrElse((island) -> {
 
-            final Tile tile = island.getTile();
+            final Vec2i tile = island.getTile();
             // TODO
 
         },
