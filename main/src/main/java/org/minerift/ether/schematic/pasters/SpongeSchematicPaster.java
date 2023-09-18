@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
-import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.SpongeSchematic;
@@ -26,7 +26,8 @@ public class SpongeSchematicPaster implements ISchematicPaster<SpongeSchematic> 
 
         // Lazily set blocks
         schem.getBlocks().forEach(block -> block.getPos().add(worldPasteLoc)); // translate to proper pos
-        final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        //final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        final NMSAccess nmsAccess = Ether.getNMS();
         nmsAccess.setBlocksAsyncLazy(schem.getBlocks(), world);
 
         // Set biomes

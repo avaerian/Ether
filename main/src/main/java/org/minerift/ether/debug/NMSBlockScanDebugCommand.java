@@ -6,7 +6,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.config.types.ConfigType;
 import org.minerift.ether.nms.NMSAccess;
 
 public class NMSBlockScanDebugCommand implements CommandExecutor {
@@ -27,7 +29,8 @@ public class NMSBlockScanDebugCommand implements CommandExecutor {
             mode = args[0].toUpperCase();
         }
 
-        final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        //final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        final NMSAccess nmsAccess = Ether.getNMS();
 
         switch (mode) {
             case "SEC" -> nmsAccess.testIslandScanIdea(plr.getLocation());

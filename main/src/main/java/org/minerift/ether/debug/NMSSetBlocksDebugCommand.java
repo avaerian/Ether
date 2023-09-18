@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.util.BukkitUtils;
@@ -44,11 +45,12 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
         }
 
         plr.sendMessage("Setting blocks...");
-        NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        //NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
+        final NMSAccess nmsAccess = Ether.getNMS();
 
         // Get cuboid and translate to player pos
         List<BlockArchetype> cuboid = getTestCuboid(width, height, length);
-        cuboid.forEach(block -> block.getPos().add(BukkitUtils.getPosAsVec3i(plr.getLocation())));
+        cuboid.forEach(block -> block.getPos().add(BukkitUtils.asVec3i(plr.getLocation())));
 
         // Set blocks based on mode
         switch (mode) {
