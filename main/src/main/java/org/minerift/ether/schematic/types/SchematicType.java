@@ -30,15 +30,19 @@ public class SchematicType {
         this.paster = paster;
     }
 
+    public boolean isSupported() {
+        return this != UNSUPPORTED;
+    }
+
     public ISchematicReader<? extends Schematic> getReader() {
-        if(this == UNSUPPORTED) {
+        if(!isSupported()) {
             throw new UnsupportedOperationException("Reader unavailable because schematic type was unable to load!");
         }
         return reader;
     }
 
     public ISchematicPaster<? extends Schematic> getPaster() {
-        if(this == UNSUPPORTED) {
+        if(!isSupported()) {
             throw new UnsupportedOperationException("Paster unavailable because schematic type was unable to load!");
         }
         return paster;

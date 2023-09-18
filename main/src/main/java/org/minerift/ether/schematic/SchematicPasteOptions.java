@@ -8,7 +8,7 @@ public class SchematicPasteOptions {
      * Default SchematicPasteOptions with no changes.
      * Everything is defaulted to false or 0.
      */
-    public static final SchematicPasteOptions EMPTY_DEFAULT;
+    public static final SchematicPasteOptions IDENTITY;
 
     /**
      * Preferred default SchematicPasteOptions.
@@ -17,7 +17,7 @@ public class SchematicPasteOptions {
     public static final SchematicPasteOptions DEFAULT;
 
     static {
-        EMPTY_DEFAULT = SchematicPasteOptions.builder().build();
+        IDENTITY = SchematicPasteOptions.builder().build();
         DEFAULT = SchematicPasteOptions.builder()
                 .copyBiomes(true)
                 .copyEntities(true)

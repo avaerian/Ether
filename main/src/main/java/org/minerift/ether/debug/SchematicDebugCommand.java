@@ -28,7 +28,7 @@ public class SchematicDebugCommand implements CommandExecutor {
         }
 
         final Player plr = (Player) sender;
-        final Vec3i pos = BukkitUtils.getPosAsVec3i(plr.getLocation());
+        final Vec3i pos = BukkitUtils.asVec3i(plr.getLocation());
         final String worldName = plr.getWorld().getName();
 
         final String[] filePaths = {

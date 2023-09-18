@@ -1,9 +1,9 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.minerift.ether.user.EtherUser;
+import org.minerift.ether.util.math.Vec2i;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ public class Island {
 
     // These 2 pieces of data can be calculated from each other
     private int id;
-    private Tile tile;
+    private Vec2i tile;
 
     // Team related fields
     private int maxTeamSize;
@@ -48,7 +48,7 @@ public class Island {
         return id;
     }
 
-    public Tile getTile() {
+    public Vec2i getTile() {
         return tile;
     }
 
@@ -106,7 +106,7 @@ public class Island {
 
     public static class Builder {
 
-        private Tile tile;
+        private Vec2i tile;
         private int id;
         private long topLeftBound, bottomRightBound;
         private boolean isDeleted = false;
@@ -121,9 +121,9 @@ public class Island {
          * @param withId Whether the builder should also set the id from tile
          * @return
          */
-        public Builder setTile(Tile tile, boolean withId) {
+        public Builder setTile(Vec2i tile, boolean withId) {
             this.tile = tile;
-            if(withId) this.id = tile.getId();
+            if(withId) this.id = tile.getTileId();
             return this;
         }
 
@@ -134,19 +134,19 @@ public class Island {
 
         public Builder definePermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
             this.permissions = new PermissionSet();
-            permissions.setPermissions(role, rolePermissions);
+            permissions.set(role, rolePermissions);
             return this;
         }
 
         public Builder definePermissions(IslandRole role, IslandPermission ... rolePermissions) {
             this.permissions = new PermissionSet();
-            permissions.setPermissions(role, rolePermissions);
+            permissions.set(role, rolePermissions);
             return this;
         }
 
         public Builder setPermission(IslandRole role, IslandPermission rolePermission) {
             this.permissions = new PermissionSet();
-            permissions.setPermissions(role, rolePermission);
+            permissions.set(role, rolePermission);
             return this;
         }
 

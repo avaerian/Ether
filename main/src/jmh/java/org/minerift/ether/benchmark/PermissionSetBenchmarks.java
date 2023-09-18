@@ -36,19 +36,19 @@ public class PermissionSetBenchmarks {
 
     @State(Scope.Benchmark)
     public static class BenchmarkState {
-        PermissionSet set;
+        PermissionSet permissions;
 
         @Setup
         public void setup() {
-            this.set = new PermissionSet();
-            set.setPermissions(IslandRole.OWNER, EnumSet.allOf(IslandPermission.class));
-            set.setPermissions(IslandRole.MEMBER, EnumSet.range(IslandPermission.BLOCK_BREAK, IslandPermission.ENTITY_INTERACT));
-            set.setPermissions(IslandRole.VISITOR, EnumSet.noneOf(IslandPermission.class));
+            this.permissions = new PermissionSet();
+            permissions.set(IslandRole.OWNER, EnumSet.allOf(IslandPermission.class));
+            permissions.set(IslandRole.MEMBER, EnumSet.range(IslandPermission.BLOCK_BREAK, IslandPermission.ENTITY_INTERACT));
+            permissions.set(IslandRole.VISITOR, EnumSet.noneOf(IslandPermission.class));
         }
     }
 
     @Benchmark
     public boolean hasPermissionBenchmark(BenchmarkState state) {
-        return state.set.hasPermission(IslandRole.MEMBER, IslandPermission.ENTITY_DAMAGE); // not included in range; expect false
+        return state.permissions.has(IslandRole.MEMBER, IslandPermission.ENTITY_DAMAGE); // not included in range; expect false
     }
 }

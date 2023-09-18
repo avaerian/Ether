@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.minerift.ether.GridAlgorithm;
 import org.minerift.ether.util.SortedList;
+import org.minerift.ether.util.math.Vec2i;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,19 +45,33 @@ public class IslandGrid {
         islands.add(island);
     }
 
-    public Optional<Island> getIslandAt(Tile tile) {
+    // Returns an island at a given tile, deleted or not
+    public Optional<Island> getIslandAt(Vec2i tile) {
+        return getIslandAt(tile, false);
+    }
+
+    // Returns an island at a given tile.
+    // If activeOnly, return the island only if active.
+    public Optional<Island> getIslandAt(Vec2i tile, boolean activeOnly) {
+
+        // Get island at tile location
         final int id = GridAlgorithm.computeTileId(tile);
         Island island = id >= islands.size() ? null : islands.get(id);
+
+        // Handle activeOnly
+        if(activeOnly) {
+            island = island != null && !island.isDeleted() ? island : null;
+        }
         return Optional.ofNullable(island);
     }
 
     // Returns whether a tile has an island, deleted or not, present
-    public boolean isTileOccupied(Tile tile) {
+    public boolean isTileOccupied(Vec2i tile) {
         return getIslandAt(tile).isPresent();
     }
 
     // Returns whether a tile has an active island (not deleted)
-    public boolean hasActiveIslandAtTile(Tile tile) {
+    public boolean hasActiveIslandAtTile(Vec2i tile) {
         AtomicBoolean isActive = new AtomicBoolean(false);
         getIslandAt(tile).ifPresent((island) -> isActive.set(!island.isDeleted()));
         return isActive.get();
@@ -74,7 +89,7 @@ public class IslandGrid {
     }
 
     // Returns the next available tile that can be occupied
-    public Tile getNextTile() {
+    public Vec2i getNextTile() {
         ImmutableList<Island> purgedIslands = getPurgedIslandsView();
         return purgedIslands.isEmpty()
                 ? getNextTileFromGridBounds()
@@ -90,7 +105,7 @@ public class IslandGrid {
     }
 
     // Returns the next tile at the end of the grid
-    private Tile getNextTileFromGridBounds() {
+    private Vec2i getNextTileFromGridBounds() {
         return GridAlgorithm.computeTile(getNextIdFromGridBounds());
     }
 
@@ -120,7 +135,7 @@ public class IslandGrid {
                 .filter(id -> !excludedIds.contains(id))
                 .forEachOrdered(id -> {
 
-                    Tile tile = GridAlgorithm.computeTile(id);
+                    Vec2i tile = GridAlgorithm.computeTile(id);
                     Island fillerIsland = Island.builder()
                             .setTile(tile, true)
                             .setDeleted(true) // tile can be overwritten

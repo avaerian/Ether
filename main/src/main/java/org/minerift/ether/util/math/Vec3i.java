@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 
 import java.util.function.IntUnaryOperator;
 
+// TODO: ensure serialization works for both mutable and immutable types
 // Immutable (by default) Vec3 of ints
 public class Vec3i {
 

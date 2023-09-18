@@ -11,58 +11,58 @@ public class PermissionSet {
         this.permissionSet = new EnumMap<>(IslandRole.class);
     }
 
-    public void setPermissions(IslandRole role, IslandPermission ... permissionsArr) {
+    public void set(IslandRole role, IslandPermission ... permissionsArr) {
         EnumSet<IslandPermission> permissions = EnumSet.noneOf(IslandPermission.class);
         Collections.addAll(permissions, permissionsArr);
-        setPermissions(role, permissions);
+        set(role, permissions);
     }
 
-    public void setPermissions(IslandRole role, EnumSet<IslandPermission> permissions) {
+    public void set(IslandRole role, EnumSet<IslandPermission> permissions) {
         permissionSet.put(role, permissions);
     }
 
-    public EnumSet<IslandPermission> getPermissions(IslandRole role) {
+    public EnumSet<IslandPermission> get(IslandRole role) {
         return permissionSet.get(role);
     }
 
-    public boolean hasPermission(IslandRole role, IslandPermission permission) {
+    public boolean has(IslandRole role, IslandPermission permission) {
         return permissionSet.get(role).contains(permission);
     }
 
-    public boolean hasPermissions(IslandRole role, IslandPermission ... permissionsArr) {
+    public boolean has(IslandRole role, IslandPermission ... permissionsArr) {
         EnumSet<IslandPermission> permissions = EnumSet.noneOf(IslandPermission.class);
         Collections.addAll(permissions, permissionsArr);
-        return hasPermissions(role, permissions);
+        return has(role, permissions);
     }
 
-    public boolean hasPermissions(IslandRole role, EnumSet<IslandPermission> permissions) {
+    public boolean has(IslandRole role, EnumSet<IslandPermission> permissions) {
         return permissionSet.get(role).containsAll(permissions);
     }
 
-    public void addPermission(IslandRole role, IslandPermission rolePermission) {
+    public void add(IslandRole role, IslandPermission rolePermission) {
         permissionSet.get(role).add(rolePermission);
     }
 
-    public void addPermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
+    public void add(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
         permissionSet.get(role).addAll(rolePermissions);
     }
 
-    public void addPermissions(IslandRole role, IslandPermission ... rolePermissions) {
+    public void add(IslandRole role, IslandPermission ... rolePermissions) {
         EnumSet<IslandPermission> set = Arrays.stream(rolePermissions).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
-        addPermissions(role, set);
+        add(role, set);
     }
 
-    public void removePermission(IslandRole role, IslandPermission rolePermission) {
+    public void remove(IslandRole role, IslandPermission rolePermission) {
         permissionSet.get(role).remove(rolePermission);
     }
 
-    public void removePermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
+    public void remove(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
         permissionSet.get(role).removeAll(rolePermissions);
     }
 
-    public void removePermissions(IslandRole role, IslandPermission ... rolePermissions) {
+    public void remove(IslandRole role, IslandPermission ... rolePermissions) {
         EnumSet<IslandPermission> set = Arrays.stream(rolePermissions).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
-        removePermissions(role, set);
+        remove(role, set);
     }
 
 }
