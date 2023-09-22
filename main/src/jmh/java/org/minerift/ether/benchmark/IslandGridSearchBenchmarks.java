@@ -2,9 +2,9 @@ package org.minerift.ether.benchmark;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.island.*;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.Vec2i;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;

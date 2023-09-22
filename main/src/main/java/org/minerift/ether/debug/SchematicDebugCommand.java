@@ -12,7 +12,7 @@ import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.Schematic;
 import org.minerift.ether.util.BukkitUtils;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 import java.io.File;
 

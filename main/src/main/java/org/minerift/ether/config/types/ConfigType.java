@@ -17,7 +17,7 @@ public class ConfigType<T extends Config<T>> {
 
     static {
         MAIN       = new ConfigType<>("MainConfig (config.yml)", MainConfig.class, new MainConfigReader(), null, MainConfig::new, null);
-        SCHEM_LIST = new ConfigType<>("Schematic List (schems.yml)", SchematicConfig.class, new SchematicConfigReader(), new SchematicConfigWriter(), SchematicConfig::new, null);
+        SCHEM_LIST = new ConfigType<>("Schematic List (schem_list.yml)", SchematicConfig.class, new SchematicConfigReader(), new SchematicConfigWriter(), SchematicConfig::new, null);
     }
 
     private final String name;
@@ -63,5 +63,6 @@ public class ConfigType<T extends Config<T>> {
     public <P extends IConfigReader<T>> P getReader(Class<P> clazz) {
         final IConfigReader<T> reader = getReader();
         return reader == null ? null : clazz.cast(reader);
+        //return (P) reader;
     }
 }

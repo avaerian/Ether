@@ -1,9 +1,8 @@
-package org.minerift.ether.util.math;
+package org.minerift.ether.math;
 
 import com.google.common.base.Preconditions;
 
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.IntUnaryOperator;
 
 // Immutable (by default) Vec3 of doubles
 public class Vec3d {

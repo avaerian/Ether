@@ -3,9 +3,9 @@ package org.minerift.ether.test;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.minerift.ether.GridAlgorithm;
-import org.minerift.ether.util.math.Maths;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.GridAlgorithm;
+import org.minerift.ether.math.Maths;
+import org.minerift.ether.math.Vec2i;
 
 import java.util.Arrays;
 import java.util.Random;

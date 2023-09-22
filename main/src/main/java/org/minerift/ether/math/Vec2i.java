@@ -1,6 +1,4 @@
-package org.minerift.ether.util.math;
-
-import org.minerift.ether.GridAlgorithm;
+package org.minerift.ether.math;
 
 import java.util.Objects;
 

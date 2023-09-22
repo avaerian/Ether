@@ -1,20 +1,24 @@
 package org.minerift.ether.config.readers;
 
-import org.minerift.ether.config.ConfigFileView;
+import org.minerift.ether.config.ConfigSectionView;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.types.ConfigType;
 import org.minerift.ether.config.types.MainConfig;
 import org.minerift.ether.util.Result;
 
-public class MainConfigReader implements IConfigReader<MainConfig> {
+import java.io.FileNotFoundException;
+
+public class MainConfigReader extends IConfigReader<MainConfig> {
 
     @Override
-    public MainConfig read(ConfigType<MainConfig> type) throws ConfigFileReadException {
+    public MainConfig read(ConfigType<MainConfig> type) throws ConfigFileReadException, FileNotFoundException {
+
+        ensureFileExists(type);
 
         final Result<MainConfig, ConfigFileReadException> result = new Result<>();
 
         // TODO
-        ConfigFileView.from(type.getFile()).handle((view) -> {
+        ConfigSectionView.from(type.getFile()).handle((view) -> {
 
             // Read islands as an example
             view.getSectionView("user.islands").ifPresent((section) -> {
@@ -22,7 +26,7 @@ public class MainConfigReader implements IConfigReader<MainConfig> {
             });
 
         },
-        // Delegate ConfigFileView error to result
+        // Delegate ConfigSectionView error to result
         (ex) -> result.err((ConfigFileReadException) ex));
 
         if(result.isErr()) {

@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.minerift.ether.util.math.Vec3i;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.EntityArchetype;
 

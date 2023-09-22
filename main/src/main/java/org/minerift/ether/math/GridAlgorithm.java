@@ -1,7 +1,6 @@
-package org.minerift.ether;
+package org.minerift.ether.math;
 
 import com.google.common.base.Preconditions;
-import org.minerift.ether.util.math.Vec2i;
 
 /**
  * Algorithm for calculating tile coordinates and tile ids.

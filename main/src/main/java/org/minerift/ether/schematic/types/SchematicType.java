@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.types;
 
+import org.minerift.ether.Ether;
 import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.schematic.pasters.ISchematicPaster;
 import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
@@ -18,7 +19,7 @@ public class SchematicType {
         UNSUPPORTED = new SchematicType(null, null);
         SPONGE = new SchematicType(new SpongeSchematicReader(), new SpongeSchematicPaster());
         // Initialize only if WorldEdit is supported
-        WORLDEDIT = EtherPlugin.getInstance().isUsingWorldEdit()
+        WORLDEDIT = Ether.isUsingWorldEdit()
                 ? new SchematicType(new WESchematicReader(), new WESchematicPaster())
                 : UNSUPPORTED;
     }

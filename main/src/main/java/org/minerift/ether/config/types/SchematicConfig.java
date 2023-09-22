@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SchematicConfig extends Config<SchematicConfig> {
 
-    private final List<File> schemFiles;
+    private List<File> schemFiles;
 
     public SchematicConfig() {
         this.schemFiles = new ArrayList<>();
@@ -20,7 +20,7 @@ public class SchematicConfig extends Config<SchematicConfig> {
 
     @Override
     protected void copyFrom(SchematicConfig other) {
-
+        this.schemFiles = other.schemFiles;
     }
 
     @Override

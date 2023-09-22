@@ -2,9 +2,9 @@ package org.minerift.ether.island;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.util.SortedList;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.Vec2i;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -1,4 +1,4 @@
-package org.minerift.ether.util.math;
+package org.minerift.ether.math;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

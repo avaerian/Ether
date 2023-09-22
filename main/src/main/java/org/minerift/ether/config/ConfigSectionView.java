@@ -10,19 +10,19 @@ import java.io.IOException;
 import java.util.Optional;
 
 // Wrapper class for the YamlConfiguration Bukkit API
-public class ConfigFileView {
+public class ConfigSectionView {
 
     private final ConfigurationSection head;
 
-    public static Result<ConfigFileView, IOException> from(File file) {
+    public static Result<ConfigSectionView, IOException> from(File file) {
 
-        final Result<ConfigFileView, IOException> result = new Result<>();
+        final Result<ConfigSectionView, IOException> result = new Result<>();
 
         // Attempt to load config file
         final YamlConfiguration bukkitView = new YamlConfiguration();
         try {
             bukkitView.load(file);
-            result.ok(new ConfigFileView(bukkitView));
+            result.ok(new ConfigSectionView(bukkitView));
         } catch (IOException ex) {
             result.err(ex);
         } catch (InvalidConfigurationException ex) {
@@ -32,7 +32,7 @@ public class ConfigFileView {
         return result;
     }
 
-    private ConfigFileView(ConfigurationSection head) {
+    private ConfigSectionView(ConfigurationSection head) {
         this.head = head;
     }
 
@@ -40,9 +40,9 @@ public class ConfigFileView {
         return Optional.ofNullable(head.get(path, null));
     }
 
-    public Optional<ConfigFileView> getSectionView(String path) {
+    public Optional<ConfigSectionView> getSectionView(String path) {
         final ConfigurationSection section = head.getConfigurationSection(path);
-        return Optional.ofNullable(section == null ? null : new ConfigFileView(section));
+        return Optional.ofNullable(section == null ? null : new ConfigSectionView(section));
     }
 
     // TODO: create get() method with an adapter parameter

@@ -10,10 +10,9 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
-import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.util.BukkitUtils;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.world.BlockArchetype;
 
 import java.util.*;

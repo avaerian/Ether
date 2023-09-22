@@ -4,7 +4,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.pasters.WESchematicPaster;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 public class WorldEditSchematic implements Schematic {
 
