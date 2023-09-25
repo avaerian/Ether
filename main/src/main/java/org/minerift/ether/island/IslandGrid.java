@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 public class IslandGrid {
 
     // All islands on the grid, including deleted islands
-    // TODO: consider switching to Int2ObjectOpenHashMap for performance/safety -> use JMH to microbenchmark to see if it's worth
     private SortedList<Island> islands;
 
     public IslandGrid() {

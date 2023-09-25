@@ -2,8 +2,10 @@ package org.minerift.ether.island;
 
 import org.bukkit.entity.Player;
 import org.minerift.ether.Ether;
-import org.minerift.ether.config.types.ConfigType;
-import org.minerift.ether.config.types.MainConfig;
+import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.config.schems.SchematicConfig;
+import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.Schematic;
 import org.minerift.ether.user.EtherUser;
@@ -19,9 +21,8 @@ public class IslandCreationRoutine {
 
         final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island!"));
 
-        final MainConfig mainConfig = Ether.getConfig(ConfigType.MAIN);
-        final int tileSize = mainConfig.getTileSize();
-        final int tileAccessibleArea = mainConfig.getTileAccessibleArea();
+        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final SchematicConfig schemConfig = Ether.getConfig(ConfigType.SCHEM_LIST);
 
         // Register island on grid
         final Vec2i tile = grid.getNextTile();
@@ -39,11 +40,11 @@ public class IslandCreationRoutine {
 
         // Get schematic paste position
         Vec3i.Mutable bottomLeftPos = BukkitUtils.getVec3iAt(tile).asMutable(); // TODO
-        final int bottomLeftOffset = (tileSize / 2) - (tileAccessibleArea / 2);
+        final int bottomLeftOffset = (config.getTileSize() / 2) - (config.getTileAccessibleArea() / 2);
         bottomLeftPos.add(bottomLeftOffset, 0, bottomLeftOffset);
 
-        Schematic.fromFile(file).handle((schem) -> {
-
+        try {
+            final Schematic schem = Schematic.fromFile(file);
             final SchematicPasteOptions options = SchematicPasteOptions.builder()
                     .setOffset(bottomLeftPos)
                     .copyBiomes(true)
@@ -52,8 +53,9 @@ public class IslandCreationRoutine {
                     .build();
 
             schem.paste(bottomLeftPos, plr.getWorld().getName(), options);
-
-        }, (ex) -> { throw new RuntimeException(ex); });
+        } catch (SchematicFileReadException ex) {
+            throw new RuntimeException(ex);
+        }
 
         // Teleport player
         // TODO: find sign and spawn player in front

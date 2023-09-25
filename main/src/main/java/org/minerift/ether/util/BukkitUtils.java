@@ -2,8 +2,8 @@ package org.minerift.ether.util;
 
 import org.bukkit.Location;
 import org.minerift.ether.Ether;
-import org.minerift.ether.config.types.ConfigType;
-import org.minerift.ether.config.types.MainConfig;
+import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.math.Vec3i;

@@ -7,8 +7,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
-import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.config.types.ConfigType;
 import org.minerift.ether.nms.NMSAccess;
 
 public class NMSBlockScanDebugCommand implements CommandExecutor {
