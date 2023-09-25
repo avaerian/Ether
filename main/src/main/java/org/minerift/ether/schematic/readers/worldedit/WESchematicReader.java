@@ -14,18 +14,13 @@ import java.io.IOException;
 public class WESchematicReader implements ISchematicReader<WorldEditSchematic> {
 
     @Override
-    public Result<WorldEditSchematic, SchematicFileReadException> read(File file) {
-
-        final Result<WorldEditSchematic, SchematicFileReadException> result = new Result<>();
-
+    public WorldEditSchematic read(File file) throws SchematicFileReadException {
         try {
             Clipboard clipboard = ClipboardFormats.findByFile(file).getReader(new FileInputStream(file)).read();
-            result.ok(new WorldEditSchematic(clipboard));
+            return new WorldEditSchematic(clipboard);
         } catch (IOException ex) {
-            result.err((SchematicFileReadException) ex);
+            throw (SchematicFileReadException) ex;
         }
-
-        return result;
     }
 
 }

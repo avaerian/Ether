@@ -40,16 +40,15 @@ public class SchematicDebugCommand implements CommandExecutor {
         final File file = new File(filePaths[Integer.parseInt(args[0])]);
 
         // Attempt to paste
-        Schematic.fromFile(file).handle((schem) -> {
+        try {
+            Schematic schem = Schematic.fromFile(file);
             schem.paste(pos, worldName, SchematicPasteOptions.DEFAULT);
             plr.sendMessage("Schematic pasted successfully!");
-        }, this::schemFail);
+        } catch (SchematicFileReadException ex) {
+            plr.sendMessage("Schematic failed to read! Check console for details");
+            ex.printStackTrace();
+        }
 
         return true;
-    }
-
-    private void schemFail(SchematicFileReadException ex) {
-        ex.printStackTrace();
-        Bukkit.broadcast(Component.text("Schematic failed to paste! Check console for details"));
     }
 }

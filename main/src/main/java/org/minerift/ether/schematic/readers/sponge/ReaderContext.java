@@ -20,14 +20,12 @@ public class ReaderContext {
     public final NBTSectionView rootView;
     public final SpongeSchematic.Builder builder;
 
-    public static Result<ReaderContext, SchematicFileReadException> from(File file) {
-        final Result<ReaderContext, SchematicFileReadException> result = new Result<>();
+    public static ReaderContext from(File file) throws SchematicFileReadException {
         try {
-            result.ok(new ReaderContext(file));
+            return new ReaderContext(file);
         } catch (IOException ex) {
-            result.err((SchematicFileReadException) ex);
+            throw (SchematicFileReadException) ex;
         }
-        return result;
     }
 
     private ReaderContext(File file) throws IOException {
