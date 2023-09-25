@@ -44,7 +44,7 @@ public class GridAlgorithmTest {
     public void tileFromStringTest(int id) {
         Vec2i tileFromId = GridAlgorithm.computeTile(id);
         String str = tileFromId.toString();
-        Vec2i tileFromStr = Maths.strToVec2i(str).getValueOrDefault(() -> null);
+        Vec2i tileFromStr = Vec2i.fromString(str);
         assertEquals(tileFromStr, tileFromId);
         assertEquals(tileFromStr.getTileId(), tileFromId.getTileId());
     }

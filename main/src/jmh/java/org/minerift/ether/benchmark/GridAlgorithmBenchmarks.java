@@ -69,7 +69,7 @@ public class GridAlgorithmBenchmarks {
 
     @Benchmark
     public int computeTileIdBenchmark(ComputeTileState state) {
-        return GridAlgorithm.computeTileId(Maths.strToVec2i(state.tile).getValueOrDefault(() -> null));
+        return GridAlgorithm.computeTileId(Vec2i.fromString(state.tile));
     }
 
     @Benchmark
@@ -79,7 +79,7 @@ public class GridAlgorithmBenchmarks {
 
     @Benchmark
     public Vec2i tile_parseFromStringBenchmark(ComputeTileState state) {
-        return Maths.strToVec2i(state.tile).getValueOrDefault(() -> null);
+        return Vec2i.fromString(state.tile);
     }
 
     /*

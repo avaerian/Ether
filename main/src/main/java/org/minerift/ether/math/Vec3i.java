@@ -2,7 +2,9 @@ package org.minerift.ether.math;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.minerift.ether.nms.MinecraftVersion;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;
 
 // TODO: ensure serialization works for both mutable and immutable types
@@ -12,6 +14,10 @@ public class Vec3i {
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
 
     protected int x, y, z;
+
+    public static Vec3i fromString(String str) {
+        return Maths.strToVec3i(str);
+    }
 
     public Vec3i(int x, int y, int z) {
         this.x = x;
@@ -38,8 +44,52 @@ public class Vec3i {
         return z;
     }
 
+    public Vec3i copy() {
+        return new Vec3i(x, y, z);
+    }
+
     public Mutable asMutable() {
         return this instanceof Mutable ? (Mutable) this : new Mutable(this);
+    }
+
+    public boolean isGreaterThan(Vec3i other, boolean orEqualTo) {
+
+        if(equals(other)) return orEqualTo;
+
+        return greaterThanCheckChained(x, other.x,
+                () -> greaterThanCheckChained(y, other.y,
+                        () -> greaterThanCheckChained(z, other.z, null)
+                )
+        );
+    }
+
+    public boolean isLessThan(Vec3i other, boolean orEqualTo) {
+
+        if(equals(other)) return orEqualTo;
+
+        return lessThanCheckChained(x, other.x,
+                () -> lessThanCheckChained(y, other.y,
+                        () -> lessThanCheckChained(z, other.z, null)
+                )
+        );
+    }
+
+    private boolean greaterThanCheckChained(int i, int other, BooleanSupplier chain) {
+        // If major is greater, return true
+        // If major is less than, return false
+        // Else, majors are equal -> continue down chain
+        if(i > other) return true;
+        if(i < other) return false;
+        return chain == null ? false : chain.getAsBoolean();
+    }
+
+    private boolean lessThanCheckChained(int i, int other, BooleanSupplier chain) {
+        // If major is less than, return true
+        // If major is greater, return false
+        // Else, majors are equal -> continue down chain
+        if(i < other) return true;
+        if(i > other) return false;
+        return chain == null ? false : chain.getAsBoolean();
     }
 
     @Override
@@ -74,48 +124,53 @@ public class Vec3i {
             super(xyz);
         }
 
-        public void setX(int x) {
+        public Vec3i.Mutable setX(int x) {
             this.x = x;
+            return this;
         }
 
-        public void setY(int y) {
+        public Vec3i.Mutable setY(int y) {
             this.y = y;
+            return this;
         }
 
-        public void setZ(int z) {
+        public Vec3i.Mutable setZ(int z) {
             this.z = z;
+            return this;
         }
 
-        public void transform(IntUnaryOperator x, IntUnaryOperator y, IntUnaryOperator z) {
+        public Vec3i.Mutable transform(IntUnaryOperator x, IntUnaryOperator y, IntUnaryOperator z) {
             this.x = x.applyAsInt(this.x);
             this.y = y.applyAsInt(this.y);
             this.z = z.applyAsInt(this.z);
+            return this;
         }
 
-        public void set(int x, int y, int z) {
+        public Vec3i.Mutable set(int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
+            return this;
         }
 
-        public void add(Vec3i addend) {
-            add(addend.x, addend.y, addend.z);
+        public Vec3i.Mutable add(Vec3i addend) {
+            return add(addend.x, addend.y, addend.z);
         }
 
-        public void subtract(Vec3i subtrahend) {
-            subtract(subtrahend.x, subtrahend.y, subtrahend.z);
+        public Vec3i.Mutable subtract(Vec3i subtrahend) {
+            return subtract(subtrahend.x, subtrahend.y, subtrahend.z);
         }
 
-        public void add(int x1, int y1, int z1) {
-            transform(
+        public Vec3i.Mutable add(int x1, int y1, int z1) {
+            return transform(
                     x -> x + x1,
                     y -> y + y1,
                     z -> z + z1
             );
         }
 
-        public void subtract(int x1, int y1, int z1) {
-            transform(
+        public Vec3i.Mutable subtract(int x1, int y1, int z1) {
+            return transform(
                     x -> x - x1,
                     y -> y - y1,
                     z -> z - z1

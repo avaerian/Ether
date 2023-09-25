@@ -9,6 +9,9 @@ public class Vec3d {
 
     protected double x, y, z;
 
+    public static Vec3d fromString(String str) {
+        return Maths.strToVec3d(str);
+    }
     public Vec3d(double x, double y, double z) {
         this.x = x;
         this.y = y;

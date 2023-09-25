@@ -1,18 +1,28 @@
 package org.minerift.ether.island;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.math.Maths;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.util.BukkitUtils;
 
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.minerift.ether.util.BukkitUtils.asVec3i;
+
 public class Island {
 
-    private long topLeftBound, bottomRightBound;
+    private long bottomLeftBound, topRightBound;
 
     // These 2 pieces of data can be calculated from each other
     private int id;
@@ -39,8 +49,8 @@ public class Island {
         this.permissions = builder.permissions;
         this.members = builder.members;
 
-        this.topLeftBound = builder.topLeftBound;
-        this.bottomRightBound = builder.bottomRightBound;
+        this.bottomLeftBound = builder.bottomLeftBound;
+        this.topRightBound = builder.topRightBound;
     }
 
 
@@ -50,6 +60,20 @@ public class Island {
 
     public Vec2i getTile() {
         return tile;
+    }
+
+    public boolean isInAccessibleRegion(Location loc) {
+        return isInAccessibleRegion(asVec3i(loc));
+    }
+
+    public boolean isInAccessibleRegion(Vec3i loc) {
+        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final int offset = (config.getTileSize() / 2) - (config.getTileAccessibleArea() / 2);
+
+        Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
+        Vec3i.Mutable trBlock = getTopRightBlock().asMutable().subtract(offset, 0, offset);
+
+        return Maths.inRangeInclusive(blBlock, trBlock, loc);
     }
 
     public Set<EtherUser> getTeamMembers() {
@@ -84,20 +108,41 @@ public class Island {
         this.isDeleted = true;
     }
 
-    public long getTopLeftBoundRaw() {
-        return topLeftBound;
+    public long getBottomLeftChunkKey() {
+        return bottomLeftBound;
     }
 
-    public long getBottomRightBoundRaw() {
-        return bottomRightBound;
+    public long getTopRightChunkKey() {
+        return topRightBound;
     }
 
-    public Chunk getTopLeftBound(World world) {
-        return world.getChunkAt(topLeftBound);
+    public Vec2i getBottomLeftTile() {
+        return new Vec2i((int) bottomLeftBound, (int) (bottomLeftBound >> 32));
     }
 
-    public Chunk getBottomRightBound(World world) {
-        return world.getChunkAt(bottomRightBound);
+    public Vec2i getTopRightTile() {
+        return new Vec2i((int) topRightBound, (int) (topRightBound >> 32));
+    }
+
+    public Vec3i getBottomLeftBlock() {
+        // TODO
+        return BukkitUtils.getVec3iAt(getBottomLeftTile()).asMutable().setY(0);
+    }
+
+    public Vec3i getTopRightBlock() {
+        final Vec2i.Mutable trBound = getTopRightTile().asMutable();
+        trBound.add(1, 1);
+        final Vec3i.Mutable trBlock = BukkitUtils.getVec3iAt(trBound).asMutable();
+        trBlock.subtract(1, 0, 1);
+        return trBlock;
+    }
+
+    public Chunk getBottomLeftChunk(World world) {
+        return world.getChunkAt(bottomLeftBound);
+    }
+
+    public Chunk getTopRightChunk(World world) {
+        return world.getChunkAt(topRightBound);
     }
 
     public static Island.Builder builder() {
@@ -108,7 +153,7 @@ public class Island {
 
         private Vec2i tile;
         private int id;
-        private long topLeftBound, bottomRightBound;
+        private long bottomLeftBound, topRightBound;
         private boolean isDeleted = false;
         private PermissionSet permissions;
 
@@ -156,23 +201,23 @@ public class Island {
             return this;
         }
 
-        public Builder setTopLeftBound(int x, int z) {
-            return setTopLeftBound(Chunk.getChunkKey(x, z));
+        public Builder setBottomLeftBound(int x, int z) {
+            return setBottomLeftBound(Chunk.getChunkKey(x, z));
         }
 
-        public Builder setBottomRightBound(int x, int z) {
-            return setBottomRightBound(Chunk.getChunkKey(x, z));
+        public Builder setTopRightBound(int x, int z) {
+            return setTopRightBound(Chunk.getChunkKey(x, z));
         }
 
         // Corner 1
-        public Builder setTopLeftBound(long topLeftBound) {
-            this.topLeftBound = topLeftBound;
+        public Builder setBottomLeftBound(long bottomLeftBound) {
+            this.bottomLeftBound = bottomLeftBound;
             return this;
         }
 
         // Corner 2
-        public Builder setBottomRightBound(long bottomRightBound) {
-            this.bottomRightBound = bottomRightBound;
+        public Builder setTopRightBound(long topRightBound) {
+            this.topRightBound = topRightBound;
             return this;
         }
 

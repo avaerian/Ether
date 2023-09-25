@@ -9,6 +9,10 @@ public class Vec2i {
 
     private int x, z;
 
+    public static Vec2i fromString(String str) {
+        return Maths.strToVec2i(str);
+    }
+
     public Vec2i(int x, int z) {
         this.x = x;
         this.z = z;
