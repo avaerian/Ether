@@ -1,15 +1,20 @@
 package org.minerift.ether;
 
+import com.google.common.base.Stopwatch;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigRegistry;
+import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
-import org.minerift.ether.config.types.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.debug.*;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.work.WorkQueue;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // Provides static access to plugin components
@@ -17,10 +22,7 @@ import java.util.logging.Logger;
 // TODO: add loadNoPlugin() method to load an instance without a plugin
 public class Ether {
 
-    /**
-     * TODO: figure out what should be included in onLoad() vs. onEnable()
-     */
-
+    private static boolean isLoaded;
     private static EtherPlugin plugin;
     private static ConfigRegistry configRegistry;
     private static Logger logger;
@@ -32,25 +34,45 @@ public class Ether {
     private static IslandManager islandManager;
     private static boolean isUsingWorldEdit;
 
+    // For JavaPlugin
     protected static void onLoad(EtherPlugin inst) {
+        isLoaded = false;
         plugin = inst;
         pluginDir = plugin.getDataFolder();
         logger = plugin.getLogger();
+        // TODO: debug logger?
     }
 
+    // For JavaPlugin
     protected static void onEnable() {
+
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+
         // Load configs
         configRegistry = new ConfigRegistry();
         try {
             configRegistry.register(ConfigType.MAIN);
-            configRegistry.register(ConfigType.SCHEM_LIST);
+            //configRegistry.register(ConfigType.SCHEM_LIST);
         } catch (ConfigFileReadException ex) {
-            throw new RuntimeException(ex);
+            // If failed, log error and abort plugin loading
+            logger.log(Level.SEVERE, "Failed to register configs when enabling Ether: ", ex);
+            plugin.disable();
+            return;
         }
 
         // For configs that don't exist, this will create a new file
         configRegistry.getAll().forEach(Config::save);
 
+        stopwatch.stop();
+        logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
+        stopwatch.reset();
+
+        MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        getLogger().info("tileSize: " + config.getTileSize());
+        getLogger().info("tileHeight: " + config.getTileHeight());
+        getLogger().info("tileAccessibleArea: " + config.getTileAccessibleArea());
+
+        stopwatch.start();
 
         isUsingWorldEdit = false;
 
@@ -63,16 +85,40 @@ public class Ether {
 
         // Load managers
         islandManager = new IslandManager();
+
+        stopwatch.stop();
+
+        // Register debug commands
+        plugin.getCommand("nmschunk").setExecutor(new NMSChunkDebugCommand());
+        plugin.getCommand("nmsblock").setExecutor(new NMSSetBlocksDebugCommand());
+        plugin.getCommand("blockscan").setExecutor(new NMSBlockScanDebugCommand());
+        plugin.getCommand("pasteschem").setExecutor(new SchematicDebugCommand());
+        plugin.getCommand("cfgreload").setExecutor(new ConfigReloadDebugCommand());
+
+        //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
+        isLoaded = true;
+        getLogger().info("Ether plugin enabled!");
     }
 
+    // For JavaPlugin
     protected static void onDisable() {
-        // Close work queue
-        workQueue.close();
-        workQueue = null;
+        if(isLoaded) {
+            configRegistry.getAll().forEach(Config::saveIfChanged);
+            configRegistry = null;
 
-        nmsAccess = null;
+            // Close work queue
+            workQueue.close();
+            workQueue = null;
 
+            nmsAccess = null;
+        }
+
+        logger = null;
+        pluginDir = null;
         plugin = null;
+
+        isLoaded = false;
     }
 
     private Ether() {}
