@@ -1,6 +1,7 @@
-package org.minerift.ether.config.types;
+package org.minerift.ether.config.schems;
 
 import org.minerift.ether.config.Config;
+import org.minerift.ether.config.ConfigType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,8 +15,12 @@ public class SchematicConfig extends Config<SchematicConfig> {
         this.schemFiles = new ArrayList<>();
     }
 
-    public List<File> getSchematicFiles() {
+    public List<File> getSchemFiles() {
         return schemFiles;
+    }
+
+    public void setSchemFiles(List<File> schemFiles) {
+        this.schemFiles = schemFiles;
     }
 
     @Override
