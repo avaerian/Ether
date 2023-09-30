@@ -1,7 +1,6 @@
 package org.minerift.ether.math;
 
 import com.google.common.base.Function;
-import org.minerift.ether.util.Result;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;

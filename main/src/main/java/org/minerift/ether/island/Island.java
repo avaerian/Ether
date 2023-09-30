@@ -1,6 +1,5 @@
 package org.minerift.ether.island;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -8,9 +7,9 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.math.Maths;
+import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.util.BukkitUtils;
 
 import java.util.EnumSet;

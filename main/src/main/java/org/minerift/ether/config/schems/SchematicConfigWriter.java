@@ -8,6 +8,6 @@ import java.io.File;
 public class SchematicConfigWriter extends IConfigWriter<SchematicConfig> {
     @Override
     protected void writeIt(SchematicConfig config, File file) throws ConfigFileWriteException {
-
+        // TODO: resolve
     }
 }

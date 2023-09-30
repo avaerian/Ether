@@ -2,7 +2,6 @@ package org.minerift.ether.math;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import org.minerift.ether.nms.MinecraftVersion;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;

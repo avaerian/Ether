@@ -68,9 +68,9 @@ public class Ether {
         stopwatch.reset();
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
-        getLogger().info("tileSize: " + config.getTileSize());
-        getLogger().info("tileHeight: " + config.getTileHeight());
-        getLogger().info("tileAccessibleArea: " + config.getTileAccessibleArea());
+        logger.info("tileSize: " + config.getTileSize());
+        logger.info("tileHeight: " + config.getTileHeight());
+        logger.info("tileAccessibleArea: " + config.getTileAccessibleArea());
 
         stopwatch.start();
 
@@ -98,7 +98,7 @@ public class Ether {
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
         isLoaded = true;
-        getLogger().info("Ether plugin enabled!");
+        logger.info("Ether plugin enabled!");
     }
 
     // For JavaPlugin
