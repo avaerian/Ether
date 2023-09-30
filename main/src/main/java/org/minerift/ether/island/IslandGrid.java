@@ -2,9 +2,9 @@ package org.minerift.ether.island;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.util.SortedList;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.Vec2i;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 public class IslandGrid {
 
     // All islands on the grid, including deleted islands
-    // TODO: consider switching to Int2ObjectOpenHashMap for performance/safety -> use JMH to microbenchmark to see if it's worth
     private SortedList<Island> islands;
 
     public IslandGrid() {

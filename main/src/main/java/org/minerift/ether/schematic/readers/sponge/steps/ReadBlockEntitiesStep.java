@@ -3,7 +3,7 @@ package org.minerift.ether.schematic.readers.sponge.steps;
 import com.google.common.collect.Maps;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.readers.sponge.ReaderContext;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
 import org.minerift.ether.util.nbt.tags.IntTag;

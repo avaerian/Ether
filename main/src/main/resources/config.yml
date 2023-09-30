@@ -1,0 +1,12 @@
+# Ether
+# Example config.yml file for testing purposes
+island:
+  tile:
+    # Adjusts the height at which the island is created.
+    height: 90
+
+    # Adjusts the size of each tile (approximate length of one side; will round to chunks)
+    size: 200
+
+    # Adjusts the size of the interactable area on each island
+    accessible_area: 150

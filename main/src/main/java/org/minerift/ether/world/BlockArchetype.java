@@ -1,10 +1,6 @@
 package org.minerift.ether.world;
 
-import org.bukkit.Bukkit;
-import org.bukkit.block.data.BlockData;
-import org.minerift.ether.util.math.Vec3i;
-
-import java.util.function.Function;
+import org.minerift.ether.math.Vec3i;
 
 // Represents a single block ready for world placement
 public class BlockArchetype {

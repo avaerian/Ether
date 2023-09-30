@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.types;
 
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.world.BiomeArchetype;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;

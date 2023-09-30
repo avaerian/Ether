@@ -5,28 +5,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.Ether;
 import org.minerift.ether.island.IslandManager;
-import org.minerift.ether.util.math.Vec2i;
 
 public class BlockBreakListener implements Listener {
-
-    private IslandManager islandManager;
-
-    public BlockBreakListener() {
-        this.islandManager = EtherPlugin.getInstance().getIslandManager();
-    }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
 
+        final IslandManager islandManager = Ether.getIslandManager();
         final Player plr = e.getPlayer();
-        final Location location = e.getBlock().getLocation();
+        final Location loc = e.getBlock().getLocation();
 
-        islandManager.getIslandAt(location).ifPresentOrElse((island) -> {
+        islandManager.getIslandAt(loc).ifPresentOrElse((island) -> {
 
-            final Vec2i tile = island.getTile();
             // TODO
+            if(island.isInAccessibleRegion(loc)) {
+                plr.sendMessage("Broke block in accessible region!");
+            } else {
+                plr.sendMessage("Not in accessible region!");
+            }
 
         },
         // Else

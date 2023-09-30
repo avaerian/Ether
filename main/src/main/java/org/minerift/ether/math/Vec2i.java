@@ -1,6 +1,4 @@
-package org.minerift.ether.util.math;
-
-import org.minerift.ether.GridAlgorithm;
+package org.minerift.ether.math;
 
 import java.util.Objects;
 
@@ -10,6 +8,10 @@ public class Vec2i {
     public final static Vec2i ZERO = new Vec2i(0, 0);
 
     private int x, z;
+
+    public static Vec2i fromString(String str) {
+        return Maths.strToVec2i(str);
+    }
 
     public Vec2i(int x, int z) {
         this.x = x;

@@ -34,12 +34,11 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
-import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSBridge;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.tags.*;
 import org.minerift.ether.work.Operation;
-import org.minerift.ether.work.WorkQueue;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.EntityArchetype;
@@ -47,6 +46,8 @@ import org.minerift.ether.world.EntityArchetype;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class NMSBridgeImpl implements NMSBridge {
@@ -181,7 +182,8 @@ public class NMSBridgeImpl implements NMSBridge {
     public void fastSetBlocksAsyncLazy(List<BlockArchetype> blocks, World world) {
 
         final BlockPartition partition = new BlockPartition(blocks, world, GetChunkFunction.ASYNC);
-        final WorkQueue workQueue = EtherPlugin.getInstance().getWorkQueue();
+        //final WorkQueue workQueue = EtherPlugin.getInstance().getWorkQueue();
+        final Logger logger = Ether.getLogger();
         final Operation operation = new Operation();
 
         // Perform actions on chunks
@@ -215,9 +217,8 @@ public class NMSBridgeImpl implements NMSBridge {
         // Queue light updates after operation
         operation.whenComplete((success, failReason) -> {
             if(failReason == Operation.FailReason.QUEUE_SHUTDOWN) {
-                // TODO: replace with proper logger
-                System.out.println("Queue shutdown, so lazy block-setting operation failed.");
-                System.out.println(String.format("Failed to execute %d tasks for operation.", operation.getRemainingTaskCount()));
+                logger.log(Level.WARNING, "Queue shutdown, so lazy block-setting operation failed.");
+                logger.log(Level.WARNING, String.format("Failed to execute %d tasks for operation.", operation.getRemainingTaskCount()));
             }
 
             if(success) {
@@ -233,7 +234,7 @@ public class NMSBridgeImpl implements NMSBridge {
         });
 
         // Queue work for execution
-        workQueue.enqueue(operation);
+        Ether.getWorkQueue().enqueue(operation);
     }
 
     private interface GetChunkFunction {

@@ -3,8 +3,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("com.github.johnrengelman.shadow") version("7.1.2") apply(false)
     id("java")
-
-    // TODO: create a global constant for this plugin id
     id("io.papermc.paperweight.userdev") version("1.5.4") apply(false)
 }
 

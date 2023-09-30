@@ -2,7 +2,7 @@ package org.minerift.ether.work;
 
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
-import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.Ether;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -25,7 +25,7 @@ public class WorkQueue {
         if(bukkitTask != null) {
             throw new UnsupportedOperationException("WorkQueue has already been started");
         }
-        this.bukkitTask = Bukkit.getScheduler().runTaskTimer(EtherPlugin.getInstance(), this::tick, 1L, 1L);
+        this.bukkitTask = Bukkit.getScheduler().runTaskTimer(Ether.getPlugin(), this::tick, 1L, 1L);
     }
 
     // Stops the work queue from completing work

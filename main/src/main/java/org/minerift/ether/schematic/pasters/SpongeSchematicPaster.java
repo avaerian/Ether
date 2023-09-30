@@ -8,7 +8,7 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.SpongeSchematic;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 public class SpongeSchematicPaster implements ISchematicPaster<SpongeSchematic> {
 

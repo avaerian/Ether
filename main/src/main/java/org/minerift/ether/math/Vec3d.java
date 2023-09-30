@@ -1,15 +1,17 @@
-package org.minerift.ether.util.math;
+package org.minerift.ether.math;
 
 import com.google.common.base.Preconditions;
 
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.IntUnaryOperator;
 
 // Immutable (by default) Vec3 of doubles
 public class Vec3d {
 
     protected double x, y, z;
 
+    public static Vec3d fromString(String str) {
+        return Maths.strToVec3d(str);
+    }
     public Vec3d(double x, double y, double z) {
         this.x = x;
         this.y = y;

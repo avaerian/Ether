@@ -1,12 +1,12 @@
 package org.minerift.ether.util;
 
 import org.bukkit.Location;
-import org.minerift.ether.util.math.Vec2i;
-import org.minerift.ether.util.math.Vec3d;
-import org.minerift.ether.util.math.Vec3i;
-
-import static org.minerift.ether.config.deprecated.MainConfig.TILE_HEIGHT;
-import static org.minerift.ether.config.deprecated.MainConfig.TILE_SIZE;
+import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.math.Vec3d;
+import org.minerift.ether.math.Vec3i;
 
 /**
  * Utility class for interfacing with the Bukkit API.
@@ -16,14 +16,17 @@ public class BukkitUtils {
 
     // Get a tile from a Bukkit location
     public static Vec2i getTileAt(Location loc) {
-        int tileX = (int) Math.floor(loc.getX() / TILE_SIZE);
-        int tileZ = (int) Math.floor(loc.getZ() / TILE_SIZE);
+        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        int tileX = (int) Math.floor(loc.getX() / config.getTileSize());
+        int tileZ = (int) Math.floor(loc.getZ() / config.getTileSize());
         return new Vec2i(tileX, tileZ);
     }
 
     // Get the top right corner Vec3i location from a tile (world coordinates)
+    // TODO: move to Maths.class
     public static Vec3i getVec3iAt(Vec2i tile) {
-        return new Vec3i(tile.getX() * TILE_SIZE, TILE_HEIGHT, tile.getZ() * TILE_SIZE);
+        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        return new Vec3i(tile.getX() * config.getTileSize(), config.getTileHeight(), tile.getZ() * config.getTileSize());
     }
 
     // Get the top right corner Bukkit location from a tile (world coordinates)

@@ -12,6 +12,8 @@ commands:
     description: Debug command for pasting a schematic
   blockscan:
     description: Debug command for scanning islands for blocks/levels
+  cfgreload:
+    description: Debug command for reloading the main config
   #nmsentity:
   #  description: Debug command for spawning an entity via NMS
 softdepend: [WorldEdit]
