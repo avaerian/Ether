@@ -4,9 +4,9 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.config.main.MainConfigReader;
 import org.minerift.ether.config.main.MainConfigWriter;
-import org.minerift.ether.config.schems.SchematicConfig;
-import org.minerift.ether.config.schems.SchematicConfigReader;
-import org.minerift.ether.config.schems.SchematicConfigWriter;
+import org.minerift.ether.config.schems.SchematicsConfig;
+import org.minerift.ether.config.schems.SchematicsConfigReader;
+import org.minerift.ether.config.schems.SchematicsConfigWriter;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -14,11 +14,11 @@ import java.util.function.Supplier;
 public class ConfigType<T extends Config<T>> {
 
     public static final ConfigType<MainConfig> MAIN;
-    public static final ConfigType<SchematicConfig> SCHEM_LIST;
+    public static final ConfigType<SchematicsConfig> SCHEM_LIST;
 
     static {
         MAIN       = new ConfigType<>("MainConfig (config.yml)", MainConfig.class, new MainConfigReader(), new MainConfigWriter(), MainConfig::new, new File(Ether.getPluginDir(), "config.yml"));
-        SCHEM_LIST = new ConfigType<>("Schematic List (schem_list.yml)", SchematicConfig.class, new SchematicConfigReader(), new SchematicConfigWriter(), SchematicConfig::new, null);
+        SCHEM_LIST = new ConfigType<>("Schematic List (schem_list.yml)", SchematicsConfig.class, new SchematicsConfigReader(), new SchematicsConfigWriter(), SchematicsConfig::new, null);
     }
 
     private final String name;

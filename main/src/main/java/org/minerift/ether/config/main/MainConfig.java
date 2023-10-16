@@ -3,6 +3,8 @@ package org.minerift.ether.config.main;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigType;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class MainConfig extends Config<MainConfig> {
@@ -16,10 +18,14 @@ public class MainConfig extends Config<MainConfig> {
     // I plan on adding permissions to this and allowing for different tiers
     private int tileAccessibleArea;
 
+    // This will be in milliseconds
+    private long inviteInvalidateAfter;
+
     public MainConfig() {
         setTileSize(200); // default value for now
         setTileHeight(90);
         setTileAccessibleArea(180); // default value for now; this is subject to change
+        setInviteInvalidateAfter(TimeUnit.MINUTES.toMillis(2));
         setChanged(false);
     }
 
@@ -37,10 +43,18 @@ public class MainConfig extends Config<MainConfig> {
         return tileAccessibleArea;
     }
 
+    public long getInviteInvalidateAfter() {
+        return inviteInvalidateAfter;
+    }
+
     // Setters
 
+    public void setInviteInvalidateAfter(long ms) {
+        this.inviteInvalidateAfter = ms;
+    }
+
     public void setTileSize(int tileSize) {
-        // Round the tile size to chunks
+        // Round the tile size down to chunks (multiples of 16)
         final int tileSizeActual = tileSize - (tileSize % CHUNK_SIZE);
         checkArgument(tileSizeActual >= MIN_TILE_SIZE, String.format("Tile size (%d -> %d) cannot be below min size %d!", tileSize, tileSizeActual, MIN_TILE_SIZE));
 

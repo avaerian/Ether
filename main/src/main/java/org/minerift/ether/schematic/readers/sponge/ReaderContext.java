@@ -3,7 +3,6 @@ package org.minerift.ether.schematic.readers.sponge;
 import com.google.common.base.Preconditions;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.types.SpongeSchematic;
-import org.minerift.ether.util.Result;
 import org.minerift.ether.util.nbt.NBTInputStream;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;

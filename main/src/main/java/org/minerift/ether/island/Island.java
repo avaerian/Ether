@@ -21,6 +21,10 @@ import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
 public class Island {
 
+    // TODO: when loading islands/players from database, load EtherUser's first (null island),
+    //       then load Island's (set island for users and attach as island members here)
+    //       This may require a DatabaseReaderContext or something similar for handling data loading
+
     private long bottomLeftBound, topRightBound;
 
     // These 2 pieces of data can be calculated from each other
@@ -46,7 +50,9 @@ public class Island {
         this.id = builder.id;
         this.isDeleted = builder.isDeleted;
         this.permissions = builder.permissions;
-        this.members = builder.members;
+
+        this.members = new HashSet<>();
+        addTeamMember(builder.owner, IslandRole.OWNER);
 
         this.bottomLeftBound = builder.bottomLeftBound;
         this.topRightBound = builder.topRightBound;
@@ -89,6 +95,20 @@ public class Island {
 
     public boolean isTeamMember(EtherUser user) {
         return members.contains(user);
+    }
+
+    public void addTeamMember(EtherUser user, IslandRole role) {
+        members.add(user);
+        user.setIsland(this);
+        user.setIslandRole(role);
+    }
+
+    public void removeTeamMember(EtherUser user) {
+        if(isTeamMember(user)) {
+            members.remove(user);
+            user.setIsland(null);
+            user.setIslandRole(IslandRole.VISITOR);
+        }
     }
 
     public PermissionSet getPermissions() {
@@ -137,6 +157,7 @@ public class Island {
     }
 
     public Chunk getBottomLeftChunk(World world) {
+        // TODO: extract(?) world.getMinHeight()
         return world.getChunkAt(bottomLeftBound);
     }
 
@@ -156,8 +177,8 @@ public class Island {
         private boolean isDeleted = false;
         private PermissionSet permissions;
 
-        // TODO: remove hard-reference for EtherUser
-        private Set<EtherUser> members = new HashSet<>();
+        private EtherUser owner;
+        private Set<EtherUser> members;
 
         /**
          *
@@ -194,9 +215,14 @@ public class Island {
             return this;
         }
 
-        public Builder addTeamMember(EtherUser user, IslandRole role) {
-            members.add(user);
-            user.setIslandRole(role);
+        // TODO: either call setOwner or setMembers (setOwner for creating new island, setMembers for database/persist loading)
+        public Builder setOwner(EtherUser owner) {
+            this.owner = owner;
+            return this;
+        }
+
+        public Builder setMembers(Set<EtherUser> members) {
+            this.members = members;
             return this;
         }
 

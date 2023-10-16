@@ -17,11 +17,15 @@ public class EtherUser {
     private Island island;
     private IslandRole role;
 
-    // TODO: implement builder pattern (good for loading persisted data cleanly)
-    private EtherUser() {
+    public static Builder builder() {
+        return new Builder();
+    }
 
-        this.island = null;
-        this.role = IslandRole.VISITOR;
+    private EtherUser(Builder builder) {
+
+        this.island = builder.island;
+        this.role = builder.role;
+        this.uuid = builder.uuid;
 
     }
 
@@ -58,6 +62,36 @@ public class EtherUser {
     public boolean hasPermission(Island island, IslandPermission permission) {
         IslandRole islandRole = island.isTeamMember(this) ? role : IslandRole.VISITOR;
         return island.getPermissions().has(islandRole, permission);
+    }
+
+    public static class Builder {
+
+        private Island island;
+        private IslandRole role;
+        private UUID uuid;
+
+        public Builder() {
+            this.role = IslandRole.VISITOR;
+        }
+
+        public EtherUser build() {
+            return new EtherUser(this);
+        }
+
+        public Builder setUUID(UUID uuid) {
+            this.uuid = uuid;
+            return this;
+        }
+
+        public Builder setIsland(Island island) {
+            this.island = island;
+            return this;
+        }
+
+        public Builder setIslandRole(IslandRole role) {
+            this.role = role;
+            return this;
+        }
     }
 
 }

@@ -5,9 +5,9 @@ import org.minerift.ether.config.exceptions.ConfigFileWriteException;
 
 import java.io.File;
 
-public class SchematicConfigWriter extends IConfigWriter<SchematicConfig> {
+public class SchematicsConfigWriter extends IConfigWriter<SchematicsConfig> {
     @Override
-    protected void writeIt(SchematicConfig config, File file) throws ConfigFileWriteException {
+    protected void writeIt(SchematicsConfig config, File file) throws ConfigFileWriteException {
         // TODO: resolve
     }
 }

@@ -5,7 +5,6 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.readers.ISchematicReader;
 import org.minerift.ether.schematic.types.WorldEditSchematic;
-import org.minerift.ether.util.Result;
 
 import java.io.File;
 import java.io.FileInputStream;

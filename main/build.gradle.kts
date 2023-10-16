@@ -14,7 +14,18 @@ dependencies {
 
     implementation("com.google.guava:guava:31.1-jre")
     implementation("it.unimi.dsi:fastutil:8.5.6")
+    implementation("org.jooq:joor-java-8:0.9.15")
 
+    // Database stuffs
+    implementation("org.jooq:jooq:3.18.6")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+
+    // Database drivers
+    implementation("org.xerial:sqlite-jdbc:3.43.0.0")
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("com.h2database:h2:2.2.224")
+
+    // Plugin dependencies
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.14")
 
     jmhImplementation("org.openjdk.jmh:jmh-core:1.36")

@@ -7,8 +7,10 @@ import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.debug.*;
+import org.minerift.ether.island.IslandInviteManager;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
 
 import java.io.File;
@@ -32,6 +34,8 @@ public class Ether {
     private static WorkQueue workQueue;
 
     private static IslandManager islandManager;
+    private static IslandInviteManager inviteManager;
+    private static UserManager userManager;
     private static boolean isUsingWorldEdit;
 
     // For JavaPlugin
@@ -85,6 +89,8 @@ public class Ether {
 
         // Load managers
         islandManager = new IslandManager();
+        inviteManager = new IslandInviteManager();
+        userManager = new UserManager();
 
         stopwatch.stop();
 
@@ -160,6 +166,16 @@ public class Ether {
     public static IslandManager getIslandManager() {
         ensure(islandManager != null, () -> new UnsupportedOperationException("islandManager is not loaded!"));
         return islandManager;
+    }
+
+    public static IslandInviteManager getInviteManager() {
+        ensure(inviteManager != null, () -> new UnsupportedOperationException("inviteManager is not loaded!"));
+        return inviteManager;
+    }
+
+    public static UserManager getUserManager() {
+        ensure(userManager != null, () -> new UnsupportedOperationException("userManager is not loaded!"));
+        return userManager;
     }
 
     public static <T extends Config<T>> T getConfig(ConfigType<T> type) {

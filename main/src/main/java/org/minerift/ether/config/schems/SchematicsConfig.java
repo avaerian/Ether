@@ -7,11 +7,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SchematicConfig extends Config<SchematicConfig> {
+public class SchematicsConfig extends Config<SchematicsConfig> {
 
     private List<File> schemFiles;
 
-    public SchematicConfig() {
+    public SchematicsConfig() {
         this.schemFiles = new ArrayList<>();
     }
 
@@ -24,12 +24,12 @@ public class SchematicConfig extends Config<SchematicConfig> {
     }
 
     @Override
-    protected void copyFrom(SchematicConfig other) {
+    protected void copyFrom(SchematicsConfig other) {
         this.schemFiles = other.schemFiles;
     }
 
     @Override
-    public ConfigType<SchematicConfig> getType() {
+    public ConfigType<SchematicsConfig> getType() {
         return ConfigType.SCHEM_LIST;
     }
 }

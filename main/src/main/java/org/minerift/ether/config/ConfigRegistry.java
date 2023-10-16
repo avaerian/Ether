@@ -42,8 +42,7 @@ public class ConfigRegistry {
         try {
             return register(type);
         } catch (ConfigFileReadException ex) {
-            Ether.getLogger().log(Level.WARNING, type.getName() + " was unable to load!");
-            ex.printStackTrace();
+            Ether.getLogger().log(Level.WARNING, type.getName() + " was unable to load!", ex);
             return null;
         }
     }

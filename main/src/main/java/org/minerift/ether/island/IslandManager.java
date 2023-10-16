@@ -24,11 +24,13 @@ public class IslandManager {
         // Mark island as deleted
         island.markDeleted();
 
-        // Clear all island information
+        // Clear all island information (?)
+
         // Remove all entities in world within island region
         // Scan island and clear/set to air
         // Remove island references from players on island team
-        island.getTeamMembers().forEach(member -> member.setIsland(null));
+        island.getTeamMembers().forEach(island::removeTeamMember);
+        // Teleport players back to spawn
     }
 
     public Optional<Island> getIslandAt(Vec2i tile) {

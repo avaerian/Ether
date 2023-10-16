@@ -5,10 +5,9 @@ import org.minerift.ether.config.IConfigReader;
 
 import java.io.File;
 
-public class SchematicConfigReader extends IConfigReader<SchematicConfig> {
+public class SchematicsConfigReader extends IConfigReader<SchematicsConfig> {
     @Override
-    protected SchematicConfig readIt(File file) throws ConfigFileReadException {
-
+    protected SchematicsConfig readIt(File file) throws ConfigFileReadException {
         return null;
     }
 }
