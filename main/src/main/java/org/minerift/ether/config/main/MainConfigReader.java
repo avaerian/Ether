@@ -18,6 +18,11 @@ public class MainConfigReader extends IConfigReader<MainConfig> {
             YamlConfigView view = YamlConfigView.from(file);
             MainConfig config = new MainConfig();
 
+            // TODO: handle different config versions (provide default values?)
+            // TODO: for newer versions, create set of new fields for version and check if present in the config (handle per config)
+            //       - if none of them are present, provide defaults
+
+
             config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile height!")));
             config.setTileSize(           view.get(Integer.class, TILE_SIZE_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile size!")));
             config.setTileAccessibleArea( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile accessible area!")));

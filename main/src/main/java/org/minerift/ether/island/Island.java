@@ -174,7 +174,7 @@ public class Island {
         private Vec2i tile;
         private int id;
         private long bottomLeftBound, topRightBound;
-        private boolean isDeleted = false;
+        private boolean isDeleted;
         private PermissionSet permissions;
 
         private EtherUser owner;

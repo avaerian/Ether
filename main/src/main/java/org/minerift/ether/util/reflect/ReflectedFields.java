@@ -3,6 +3,7 @@ package org.minerift.ether.util.reflect;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,13 +33,33 @@ public class ReflectedFields implements Iterable<ReflectedField> {
         return all(field -> field.hasAnnotations(ann, rest));
     }
 
-    private boolean all(Predicate<ReflectedField> condition) {
+    public boolean all(Predicate<ReflectedField> condition) {
         for(ReflectedField field : fields) {
             if(!condition.test(field)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public ReflectedFields filter(Predicate<ReflectedField> condition) {
+        return new ReflectedFields(Arrays.stream(fields).filter(condition).toArray(ReflectedField[]::new));
+    }
+
+    public Object[] readAll(Object holder) {
+        Object[] vals = new Object[fields.length];
+        for(int i = 0; i < vals.length; i++) {
+            vals[i] = fields[i].get(holder);
+        }
+        return vals;
+    }
+
+    public <T> T[] readAllTyped(Object holder, Class<T> type) {
+        T[] vals = (T[]) Array.newInstance(type, fields.length);
+        for(int i = 0; i < vals.length; i++) {
+            vals[i] = (T) fields[i].get(holder);
+        }
+        return vals;
     }
 
     @NotNull

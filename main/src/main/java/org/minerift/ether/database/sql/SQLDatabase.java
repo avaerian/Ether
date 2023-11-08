@@ -1,30 +1,153 @@
 package org.minerift.ether.database.sql;
 
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
+import com.google.common.net.HostAndPort;
+import com.zaxxer.hikari.HikariDataSource;
+import org.minerift.ether.database.sql.connect.SQLConnector;
 import org.minerift.ether.database.sql.model.Model;
-import org.minerift.ether.database.sql.operations.SQLOperations;
+import org.minerift.ether.database.sql.operations.dml.*;
+import org.minerift.ether.island.Island;
+import org.minerift.ether.island.IslandGrid;
+import org.minerift.ether.math.GridAlgorithm;
+import org.minerift.ether.user.EtherUser;
 
-import javax.sql.DataSource;
-import java.util.Set;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+import java.util.Collection;
+import java.util.Random;
+import java.util.UUID;
+import java.util.function.Function;
 
-public class SQLDatabase {
+import static org.minerift.ether.database.sql.DatabasePlayground.HIDDEN;
 
-    private final DSLContext ctx;
-    private Set<Model<?>> tables;
+public class SQLDatabase implements AutoCloseable {
 
-    public SQLDatabase(Set<Model<?>> tables, SQLDialect dialect) {
-        // TODO: establish connection
-        DataSource dataSource = null;
-        this.ctx = DSL.using(dataSource, dialect);
-        this.tables = tables;
+
+    public static void main(String[] args) throws Exception {
+
+        // To connect to MySQL:
+        //  - try connect with db name
+        //  - if fails, try connect without db name and create db
+        //  - if fails, throw database connection exception (db not online)
+
+        // To connect to PostgreSQL:
+        //  - try connect with db name
+        //      - if fails, try connect without db name and create db
+        //          - if fails, throw database connection exception (db not online)
+        //          - close connection and try connect with db name
+        //          - if fails, throw database connection exception (created db but failed to connect)
+        DatabaseConnectionSettings postgresSettings = DatabaseConnectionSettings.builder()
+                .setDialect(SQLDialect.POSTGRES)
+                .setAddress(HostAndPort.fromHost("localhost"))
+                .setDbName("ether")
+                .setUsername("postgres")
+                .setPassword(HIDDEN)
+                .build();
+
+        DatabaseConnectionSettings h2Settings = DatabaseConnectionSettings.builder()
+                .setDialect(SQLDialect.H2)
+                .setDbName("ether")
+                .setUsername("root")
+                .setPassword("")
+                .build();
+
+        DatabaseConnectionSettings sqliteSettings = DatabaseConnectionSettings.builder()
+                .setDialect(SQLDialect.SQLITE)
+                .setDbName("ether")
+                .setUsername("root")
+                .setPassword("")
+                .build();
+
+        SQLDatabase db = new SQLDatabase(sqliteSettings, IslandModel::new);
+        SQLContext ctx = db.getSQLContext();
+
+        IslandModel model = db.getTable(IslandModel.class);
+
+        // TODO: remove create DB query and move to connect() method for SQLConnector's
+        //ctx.createDbQuery.getQuery(db).execute();
+        ctx.createTableQuery.getQuery(model).execute();
+
+        Random random = new Random();
+
+        final int GRID_SIZE = 100;
+        IslandGrid grid = new IslandGrid();
+        for(int i = 0; i < GRID_SIZE; i++) {
+            final Island island = Island.builder()
+                    .setTile(GridAlgorithm.computeTile(i), true)
+                    .setOwner(EtherUser.builder().setUUID(UUID.randomUUID()).build())
+                    .setDeleted(random.nextBoolean())
+                    .build();
+            grid.registerIsland(island);
+        }
+
+        var islandsView = grid.getIslandsView();
+
+        // New API
+        DMLInsert           insert          = new DMLInsert(ctx);
+        DMLUpdate           update          = new DMLUpdate(ctx);
+        DMLInsertOrUpdate   insertOrUpdate  = new DMLInsertOrUpdate(ctx);
+        DMLSelectAll        selectAll       = new DMLSelectAll(ctx);
+        DMLSelectObject     selectObject    = new DMLSelectObject(ctx);
+
+        /*
+        var upsertQuery = insertOrUpdate.getQuery(model);
+        DMLModelBatch<Island> batch = new DMLModelBatch<>(ctx, model, upsertQuery.right(), upsertQuery.left().getBindOrder());
+        batch.bindAll(islandsView);
+        batch.execute();
+         */
+
+        insertOrUpdate.getBatch(model).bindAll(islandsView).execute();
+
+        //System.out.println(SQLOperations.fetchAll(ctx.dsl(), model));
+        System.out.println(selectAll.getQuery(model).fetch());
+
+        db.close();
     }
 
-    public void saveAllTables() {
-        for(Model<?> model : tables) {
-            //SQLOperations
-            //model.
+    private final HikariDataSource dataSource;
+    private final SQLContext ctx;
+    private final String dbName;
+
+    public SQLDatabase(DatabaseConnectionSettings settings, Function<SQLContext, Model<?>> ... tables) {
+        // TODO: better error handling here???
+        SQLConnector connector = settings.getDialect().getDbConnector();
+        this.dataSource = new HikariDataSource(connector.createConfig(settings));
+
+        try {
+            if (!dataSource.getConnection().isValid(10)) { // 10 seconds
+                throw new SQLTimeoutException("Unable to connect to database; invalid connection.");
+            }
+
+            System.out.println("Database connection has been established!");
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
+
+        this.dbName = settings.getDbName();
+        this.ctx = new SQLContext(this, settings.getDialect(), tables);
+    }
+
+    public String getDbName() {
+        return dbName;
+    }
+
+    public HikariDataSource getDataSource() {
+        return dataSource;
+    }
+
+    public SQLContext getSQLContext() {
+        return ctx;
+    }
+
+    public <M extends Model> M getTable(Class<M> modelClazz) {
+        return ctx.getTable(modelClazz);
+    }
+
+    public Collection<Model<?>> getTables() {
+        return ctx.getTables();
+    }
+
+    @Override
+    public void close() {
+        dataSource.close();
     }
 }

@@ -31,13 +31,13 @@ public class ReflectedObject<T> {
         return reflectedClass.mapFieldsToValues(holder).inverse().get(fieldVal);
     }
 
-    public ReflectedField[] getFieldsFromRefs(Object ... fieldVals) {
+    public ReflectedFields getFieldsFromRefs(Object[] fieldVals) {
         final BiMap<Object, ReflectedField> valuesToFields = reflectedClass.mapFieldsToValues(holder).inverse();
         final ReflectedField[] fields = new ReflectedField[fieldVals.length];
         for(int i = 0; i < fields.length; i++) {
             fields[i] = valuesToFields.get(fieldVals[i]);
         }
-        return fields;
+        return new ReflectedFields(fields);
     }
 
     public <V> V readField(ReflectedField field) {

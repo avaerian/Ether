@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.operations;
+package org.minerift.ether.database.sql.deprecated;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

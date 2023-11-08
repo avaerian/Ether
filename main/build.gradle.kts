@@ -12,15 +12,17 @@ repositories {
 
 dependencies {
 
+    // General libraries
     implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("it.unimi.dsi:fastutil:8.5.6")
     implementation("org.jooq:joor-java-8:0.9.15")
 
-    // Database stuffs
+    // SQL stuffs
     implementation("org.jooq:jooq:3.18.6")
     implementation("com.zaxxer:HikariCP:5.0.1")
 
-    // Database drivers
+    // Db drivers
     implementation("org.xerial:sqlite-jdbc:3.43.0.0")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.2.224")

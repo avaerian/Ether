@@ -4,7 +4,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Collection;
 
 public class ReflectedClass<T> implements IReflectedElement {
@@ -69,10 +68,15 @@ public class ReflectedClass<T> implements IReflectedElement {
         return fieldsToValues;
     }
 
-    public BiMap<ReflectedField, Object> mapFieldsToValues(T holder) {
+    // Will not map null fields
+    public BiMap<ReflectedField,
+            Object> mapFieldsToValues(T holder) {
         final BiMap<ReflectedField, Object> fieldsToValues = HashBiMap.create();
         for(ReflectedField field : getFields()) {
-            fieldsToValues.put(field, field.get(holder));
+            Object val = field.get(holder);
+            if(val != null) {
+                fieldsToValues.put(field, val);
+            }
         }
         return fieldsToValues;
     }

@@ -22,6 +22,10 @@ public class ReflectedField implements IReflectedElement {
         this.field = field;
     }
 
+    public Field getJavaField() {
+        return field;
+    }
+
     public String getName() {
         return field.getName();
     }
