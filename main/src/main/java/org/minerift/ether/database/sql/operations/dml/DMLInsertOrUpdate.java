@@ -3,7 +3,6 @@ package org.minerift.ether.database.sql.operations.dml;
 import org.jooq.CloseableQuery;
 import org.minerift.ether.database.sql.SQLContext;
 import org.minerift.ether.database.sql.model.Model;
-import org.minerift.ether.database.sql.operations.Batchable;
 import org.minerift.ether.database.sql.operations.SupportedBy;
 import org.minerift.ether.database.sql.operations.dml.cache.PerModelBindQueryCache;
 import org.minerift.ether.database.sql.operations.dml.cache.RawBindQuery;
@@ -30,7 +29,7 @@ public class DMLInsertOrUpdate extends PerModelDMLOp<RawBindQuery, DMLQuery> imp
     @SupportedBy(dialects = { MYSQL })
     private <M> RawBindQuery cacheProc1(Model<M> model) {
         var allEmptyFields  = model.getEmptyBindValues();
-        var partEmptyFields = model.getEmptyBindValues(model.getFieldsNoKeys());
+        var partEmptyFields = model.getEmptyBindValues(model.getFieldsNoKey());
 
         String sql = ctx.dsl().insertInto(model.TABLE)
                 .set(allEmptyFields)
@@ -45,11 +44,11 @@ public class DMLInsertOrUpdate extends PerModelDMLOp<RawBindQuery, DMLQuery> imp
     @SupportedBy(dialects = { SQLITE, POSTGRES })
     private <M> RawBindQuery cacheProc2(Model<M> model) {
         var allEmptyFields  = model.getEmptyBindValues();
-        var partEmptyFields = model.getEmptyBindValues(model.getFieldsNoKeys());
+        var partEmptyFields = model.getEmptyBindValues(model.getFieldsNoKey());
 
         String sql = ctx.dsl().insertInto(model.TABLE)
                 .set(allEmptyFields)
-                .onConflict(model.getPrimaryKeys().asSQLFields())
+                .onConflict(model.getPrimaryKey().getSQLField())
                 .doUpdate()
                 .set(partEmptyFields)
                 .getSQL();
@@ -59,9 +58,9 @@ public class DMLInsertOrUpdate extends PerModelDMLOp<RawBindQuery, DMLQuery> imp
 
     @SupportedBy(dialects = { H2 })
     private <M> RawBindQuery cacheProc3(Model<M> model) {
-        var keyBindVals = model.getEmptyBindValues(model.getPrimaryKeys());
+        var keyBindVals = model.getEmptyBindValues(model.getPrimaryKey());
         var allBindVals = model.getEmptyBindValues();
-        var partBindVals = model.getEmptyBindValues(model.getFieldsNoKeys());
+        var partBindVals = model.getEmptyBindValues(model.getFieldsNoKey());
 
         String sql = ctx.dsl().mergeInto(model.TABLE)
                 .using(ctx.dsl().selectOne())
@@ -76,15 +75,16 @@ public class DMLInsertOrUpdate extends PerModelDMLOp<RawBindQuery, DMLQuery> imp
     }
 
     @Override
-    public <M> DMLQuery getQuery(Model<M> model) {
+    public <M> DMLQuery queryFor(Model<M> model) {
         RawBindQuery rawBindQuery = queryCache.getQuery(model);
-        CloseableQuery query = ctx.dsl().query(rawBindQuery.getSQL()).keepStatement(false);
+        CloseableQuery query = ctx.dsl().query(rawBindQuery.getSQL(), new Object[rawBindQuery.getBindOrder().length]).keepStatement(false);
+        System.out.println(query.getBindValues());
         return new DMLQuery(query, rawBindQuery.getBindOrder());
     }
 
     @Override
-    public <M> DMLModelBatch<M> getBatch(Model<M> model) {
-        var query = getQuery(model);
+    public <M> DMLModelBatch<M> batchFor(Model<M> model) {
+        var query = queryFor(model);
         return new DMLModelBatch<>(ctx, model, query.getQuery(), query.getBindOrder());
     }
 }

@@ -105,7 +105,7 @@ public class SQLOperations {
         private static <M> CreateTableElementListStep proc1(DSLContext ctx, Model<M> model) {
             var query = ctx.createTableIfNotExists(model.TABLE)
                     .columns(model.getFields().asSQLFields())
-                    .primaryKey(model.getPrimaryKeys().asSQLFields());
+                    .primaryKey(model.getPrimaryKey().getSQLField());
 
             Fields<M, ?> uniqueFields = model.getUniqueFields();
             if(!uniqueFields.isEmpty()) {
@@ -170,9 +170,9 @@ public class SQLOperations {
         private static <M> Insert<Record> proc2(DSLContext ctx, Model<M> model, M obj) {
             return ctx.insertInto(model.TABLE)
                     .set(model.dumpSQLValuesForObj(obj))
-                    .onConflict(model.getPrimaryKeys().asSQLFields())
+                    .onConflict(model.getPrimaryKey().getSQLField())
                     .doUpdate()
-                    .set(model.dumpSQLValuesForObj(obj, model.getFieldsNoKeys().getArray()));
+                    .set(model.dumpSQLValuesForObj(obj, model.getFieldsNoKey().getArray()));
         }
 
         @SQLOpProc
@@ -184,7 +184,7 @@ public class SQLOperations {
                     .using(ctx.selectOne())
                     .on()
                     .whenMatchedThenUpdate()
-                    .set(model.dumpSQLValuesForObj(obj, model.getFieldsNoKeys().getArray()))
+                    .set(model.dumpSQLValuesForObj(obj, model.getFieldsNoKey().getArray()))
                     .whenNotMatchedThenInsert()
                     .set(model.dumpSQLValuesForObj(obj));
         }

@@ -28,6 +28,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         this.fields = fields;
         this.flags = flags;
 
+        // TODO: refactor
         if(isOnlyPrimaryKeysTest()) {
             flags.add(Flag.ONLY_PRIMARY_KEYS);
         }
@@ -41,6 +42,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         return Arrays.stream(fields).map(field -> field.getSQLField().getName()).toArray(String[]::new);
     }
 
+    @Deprecated
     public Fields<M, T> getPrimaryKeys() {
         if(flags.contains(Flag.ONLY_PRIMARY_KEYS)) {
             return this;
@@ -51,6 +53,18 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
                     .readAllTyped(model, Field.class);
             return new Fields<>(model, primaryKeys, EnumSet.of(Flag.ONLY_PRIMARY_KEYS));
         }
+    }
+
+    public Field<M, T, ?> getPrimaryKey() {
+        ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+        Field<M, T, ?>[] primaryKeys = reflectedModel.getFieldsFromRefs(fields)
+                .filter(field -> field.hasAnnotation(PrimaryKey.class))
+                .readAllTyped(model, Field.class);
+
+        if(primaryKeys.length != 1) {
+            throw new IllegalStateException("There can only be 1 primary key in a model!");
+        }
+        return primaryKeys[0];
     }
 
     public Fields<M, T> getUniqueFields() {

@@ -3,8 +3,10 @@ package org.minerift.ether.database.sql;
 import com.google.common.net.HostAndPort;
 import com.zaxxer.hikari.HikariDataSource;
 import org.minerift.ether.database.sql.connect.SQLConnector;
+import org.minerift.ether.database.sql.metadata.MetadataModel;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.operations.dml.*;
+import org.minerift.ether.database.sql.operations.dml.bind.NamedBindValues;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
@@ -81,12 +83,10 @@ public class SQLDatabase implements AutoCloseable {
 
         var islandsView = grid.getIslandsView();
 
-        // New API
-        DMLInsert           insert          = new DMLInsert(ctx);
-        DMLUpdate           update          = new DMLUpdate(ctx);
-        DMLInsertOrUpdate   insertOrUpdate  = new DMLInsertOrUpdate(ctx);
-        DMLSelectAll        selectAll       = new DMLSelectAll(ctx);
-        DMLSelectObject     selectObject    = new DMLSelectObject(ctx);
+        var islandsDao  = new Dao<>(IslandModel.class,      IslandModel::getPrimaryKey,     ctx);
+        var metadataDao = new Dao<>(MetadataModel.class,    MetadataModel::getPrimaryKey,   ctx);
+
+        islandsDao.insertOrUpdate(islandsView.get(0));
 
         /*
         var upsertQuery = insertOrUpdate.getQuery(model);
@@ -95,10 +95,12 @@ public class SQLDatabase implements AutoCloseable {
         batch.execute();
          */
 
-        insertOrUpdate.getBatch(model).bindAll(islandsView).execute();
+        ctx.upsertQuery.queryFor(model).bind(model.dumpNamedBindValues_New(islandsView.get(0))).execute();
+        //insertOrUpdate.getBatch(model).bindAll(islandsView).execute();
 
-        //System.out.println(SQLOperations.fetchAll(ctx.dsl(), model));
-        System.out.println(selectAll.getQuery(model).fetch());
+        System.out.println(ctx.selectQuery.queryFor(model).bind(NamedBindValues.of(model.ID, 10)).fetch());
+
+        System.out.println(ctx.selectAllQuery.queryFor(model).fetch());
 
         db.close();
     }

@@ -1,5 +1,6 @@
 package org.minerift.ether.database.sql.model;
 
+import com.google.common.annotations.Beta;
 import org.jooq.CloseableQuery;
 import org.jooq.DataType;
 import org.jooq.Record;
@@ -7,6 +8,7 @@ import org.jooq.Table;
 import org.minerift.ether.database.sql.SQLContext;
 import org.minerift.ether.database.sql.adapters.Adapter;
 import org.minerift.ether.database.sql.fallback.JsonFallback;
+import org.minerift.ether.database.sql.operations.dml.bind.NamedBindValues;
 import org.minerift.ether.util.reflect.Reflect;
 
 import java.util.HashMap;
@@ -47,17 +49,15 @@ public abstract class Model<M> {
         return fields;
     }
 
-    public Fields<M, ?> getPrimaryKeys() {
-        return fields.getPrimaryKeys();
-    }
+    public abstract Field<M, ?, ?> getPrimaryKey();
 
     public Fields<M, ?> getUniqueFields() {
         return fields.getUniqueFields();
     }
 
-    public Fields<M, ?> getFieldsNoKeys() {
+    public Fields<M, ?> getFieldsNoKey() {
         var reflectedObj = Reflect.of(this);
-        Field[] fields = reflectedObj.getFieldsFromRefs(fields())
+        Field<M, ?, ?>[] fields = reflectedObj.getFieldsFromRefs(fields())
                 .filter(field -> !field.hasAnnotation(PrimaryKey.class))
                 .readAllTyped(this, Field.class);
         return Fields.of(this, fields);
@@ -103,14 +103,40 @@ public abstract class Model<M> {
         }
     }
 
+    @Beta
+    public NamedBindValues<?> dumpNamedBindValues_New(M obj) {
+        if(fields.size() == 1) {
+            Field<M, ?, ?> field = fields.getArray()[0];
+            return NamedBindValues.of(field.getName(), field.readAsSQLValue(obj));
+        } else {
+            Map<String, Object> bindVals = new HashMap<>(fields.size());
+            for(Field<M, ?, ?> field : fields) {
+                bindVals.put(field.getName(), field.readAsSQLValue(obj));
+            }
+            return NamedBindValues.of(bindVals);
+        }
+    }
+
     // Returns empty bind values (field with null value) for all fields
     public Map<org.jooq.Field<?>, ?> getEmptyBindValues() {
         return getEmptyBindValues(fields);
     }
 
+    // Returns empty bind values for a single field
+    public Map<org.jooq.Field<?>, ?> getEmptyBindValues(Field<M, ?, ?> field) {
+        return getEmptyBindValuesUnchecked(field);
+    }
+
     // Returns empty bind values for selected fields
     public Map<org.jooq.Field<?>, ?> getEmptyBindValues(Fields<M, ?> selectedFields) {
         return getEmptyBindValuesUnchecked(selectedFields);
+    }
+
+    public Map<org.jooq.Field<?>, ?> getEmptyBindValuesUnchecked(Field<?, ?, ?> field) {
+        Map<org.jooq.Field<?>, ?> bindVals = new HashMap<>(1);
+        bindVals.put(field.getSQLField(), null);
+        return bindVals;
+        //return Map.of(field.getSQLField(), null);
     }
 
     // Doesn't check model type for Fields arg (regarding generics)
@@ -128,6 +154,7 @@ public abstract class Model<M> {
         return bindVals;
     }
 
+    // TODO: deprecate
     public Object[] dumpBindValues(M obj, String ... bindOrder) {
         Object[] bindVals = new Object[bindOrder.length];
         var namedBindValues = dumpNamedBindValues(obj);

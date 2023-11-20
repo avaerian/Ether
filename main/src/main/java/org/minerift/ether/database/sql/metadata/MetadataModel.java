@@ -10,7 +10,7 @@ import org.minerift.ether.database.sql.model.PrimaryKey;
 public class MetadataModel extends Model<Metadata> {
 
     // Id should always be 0 to ensure single-entry table
-    public final @PrimaryKey Field<Metadata, Integer, ?> ID = createField("id", SQLDataType.INTEGER, (ignore) -> 0);
+    public final Field<Metadata, Integer, ?> ID             = createField("id", SQLDataType.INTEGER, (ignore) -> 0);
     public final Field<Metadata, Integer, ?> DB_VERSION     = createField("db_version", SQLDataType.INTEGER, Metadata::getDbVersion);
 
 
@@ -20,6 +20,14 @@ public class MetadataModel extends Model<Metadata> {
 
     @Override
     public Field<Metadata, ?, ?>[] fields() {
-        return new Field[]{ ID, DB_VERSION };
+        return new Field[]{
+                ID,
+                DB_VERSION
+        };
+    }
+
+    @Override
+    public Field<Metadata, Integer, ?> getPrimaryKey() {
+        return ID;
     }
 }

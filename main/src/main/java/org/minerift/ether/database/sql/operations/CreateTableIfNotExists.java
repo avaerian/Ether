@@ -21,7 +21,7 @@ public class CreateTableIfNotExists extends SQLOperation {
     private <M> CreateTableElementListStep proc1(Model<M> model) {
         var query = ctx.dsl().createTableIfNotExists(model.TABLE)
                 .columns(model.getFields().asSQLFields())
-                .primaryKey(model.getPrimaryKeys().asSQLFields());
+                .primaryKey(model.getPrimaryKey().getSQLField());
 
         Fields<M, ?> uniqueFields = model.getUniqueFields();
         if(!uniqueFields.isEmpty()) {

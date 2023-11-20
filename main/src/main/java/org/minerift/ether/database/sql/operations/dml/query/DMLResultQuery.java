@@ -4,7 +4,6 @@ import org.jooq.CloseableResultQuery;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.minerift.ether.database.sql.model.Field;
-import org.minerift.ether.database.sql.model.Model;
 
 import java.util.List;
 

@@ -18,8 +18,8 @@ public class IslandModel extends Model<Island> {
     // - Safe SQL data types are fallback data types supported across all dialects. Useful for when the dialect selected
     //   doesn't support the desired SQL data type. In our case, dumping it to JSON and saving as text works fine.
 
-    public final @PrimaryKey Field<Island, Integer, ?> ID  = createField("island_id", SQLDataType.INTEGER.notNull(), Island::getId);
-    public final Field<Island, Boolean, ?> IS_DELETED      = createField("is_deleted", SQLDataType.BIT.notNull(), Island::isDeleted);
+    public final Field<Island, Integer, ?> ID           = createField("island_id", SQLDataType.INTEGER.notNull(), Island::getId);
+    public final Field<Island, Boolean, ?> IS_DELETED   = createField("is_deleted", SQLDataType.BIT.notNull(), Island::isDeleted);
 
 
     // TODO:        !! TRY THIS IMPLEMENTATION !!
@@ -27,7 +27,7 @@ public class IslandModel extends Model<Island> {
     //  - ModelUpgradeSpec will provide a list of all the changes (table renames, col adds, dels, renames, etc.)
     //  - ModelUpgradeSpec will also provide functions to upgrade the data
     @Since(version = 2)
-    public final Field<Island, UUID[], ?> MEMBERS          = createField("members", SQLDataType.UUID.array(), Island::getTeamMembers, Adapters.ETHER_USERS_2_UUIDS);
+    public final Field<Island, UUID[], ?> MEMBERS       = createField("members", SQLDataType.UUID.array(), Island::getTeamMembers, Adapters.ETHER_USERS_2_UUIDS);
 
 
     public IslandModel(SQLContext ctx) {
@@ -42,5 +42,10 @@ public class IslandModel extends Model<Island> {
                 IS_DELETED,
                 MEMBERS,
         };
+    }
+
+    @Override
+    public Field<Island, Integer, ?> getPrimaryKey() {
+        return ID;
     }
 }

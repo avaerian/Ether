@@ -1,7 +1,7 @@
 package org.minerift.ether.database.sql.operations.dml.query;
 
 import org.jooq.CloseableQuery;
-import org.minerift.ether.database.sql.model.Model;
+import org.minerift.ether.database.sql.operations.dml.bind.NamedBindValues;
 
 public abstract class DMLQueryBase<T extends DMLQueryBase<T, Q>, Q extends CloseableQuery> {
 
@@ -13,10 +13,9 @@ public abstract class DMLQueryBase<T extends DMLQueryBase<T, Q>, Q extends Close
         this.bindOrder = bindOrder;
     }
 
-    public <M> T bind(Model<M> model, M obj) {
-        var namedBindVals = model.dumpNamedBindValues(obj);
+    public T bind(NamedBindValues<?> bindVals) {
         for(int i = 0; i < bindOrder.length; i++) {
-            query.bind(i + 1, namedBindVals.get(bindOrder[i]));
+            query.bind(i + 1, bindVals.getField(bindOrder[i]));
         }
         return (T) this;
     }
@@ -32,5 +31,4 @@ public abstract class DMLQueryBase<T extends DMLQueryBase<T, Q>, Q extends Close
     public String[] getBindOrder() {
         return bindOrder;
     }
-
 }

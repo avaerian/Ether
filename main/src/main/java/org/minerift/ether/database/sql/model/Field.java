@@ -14,7 +14,6 @@ import static org.jooq.impl.DSL.field;
 public class Field<M, T, F> {
 
     protected final org.jooq.Field<?> field;
-    protected final Class<?> dataTypeClazz;
     protected final Function<M, ?> objFieldReader;
     protected final Fallback<T, F> fallback; // safe data type supported across all dialects
 
@@ -23,17 +22,20 @@ public class Field<M, T, F> {
     }
 
     protected Field(String name, DataType<T> type, Function<M, ?> objFieldReader, Fallback<T, F> fallback) {
-        //System.out.println(fallback);
-        if(fallback == null) {
-            this.field = field(name, type);
-            this.dataTypeClazz = type.getType();
-        } else {
-            this.field = field(name, fallback.getDataType());
-            this.dataTypeClazz = fallback.getDataType().getType();
-        }
-        System.out.println(dataTypeClazz.getName());
+
+        this.field = fallback == null
+                ? field(name, type)
+                : field(name, fallback.getDataType());
+
+        // DEBUG
+        System.out.println(getSQLDataType().getName());
+
         this.objFieldReader = objFieldReader;
         this.fallback = fallback;
+    }
+
+    public String getName() {
+        return field.getName();
     }
 
     public org.jooq.Field<?> getSQLField() {
@@ -49,13 +51,18 @@ public class Field<M, T, F> {
         return fallback != null ? fallback.adaptTo(readField(obj)) : readField(obj);
     }
 
+    // Reads java field value as SQL value (either SQL fallback or original type)
+    public Object readJavaAsSQLValue(T javaVal) {
+        return fallback != null ? fallback.adaptTo(javaVal) : javaVal;
+    }
+
     // Takes SQL data and converts it from fallback to proper SQL data type if appropriate
     public T readSQLValue(Object sqlVal) {
         return fallback != null ? fallback.adaptFrom((F) sqlVal) : (T) sqlVal;
     }
 
     public Class<?> getSQLDataType() {
-        return dataTypeClazz;
+        return field.getType();
     }
 
     // R is Complex result

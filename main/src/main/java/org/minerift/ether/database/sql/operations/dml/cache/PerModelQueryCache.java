@@ -16,12 +16,12 @@ public abstract class PerModelQueryCache<Q> extends QueryCache {
         this.queryCache = Collections.emptyMap();
     }
 
-    public void cacheQueries(Collection<Model<?>> tables, Function<Model<?>, Q> cacheQueryFunc) {
+    public void cacheQueries(Collection<Model<?, ?>> tables, Function<Model<?, ?>, Q> cacheQueryFunc) {
         this.queryCache = new HashMap<>(tables.size());
         tables.forEach(model -> queryCache.put(model.getClass(), cacheQueryFunc.apply(model)));
     }
 
-    public Q getQuery(Model<?> model) {
+    public Q getQuery(Model<?, ?> model) {
         return queryCache.get(model.getClass());
     }
 }
