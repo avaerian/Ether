@@ -1,6 +1,6 @@
 package org.minerift.ether.database.sql;
 
-import org.minerift.ether.database.sql.connect.*;
+import org.minerift.ether.database.sql.connectors.*;
 
 import java.util.function.Supplier;
 
@@ -31,7 +31,7 @@ public enum SQLDialect {
         this.dbConnector = dbConnector;
     }
 
-    public org.jooq.SQLDialect getWrappedDialect() {
+    public org.jooq.SQLDialect asJooqDialect() {
         return dialect;
     }
 

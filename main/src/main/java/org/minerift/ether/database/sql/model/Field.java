@@ -38,7 +38,7 @@ public class Field<M, T, F> {
         return field.getName();
     }
 
-    public org.jooq.Field<?> getSQLField() {
+    public org.jooq.Field<?> asJooqField() {
         return field;
     }
 
@@ -66,8 +66,8 @@ public class Field<M, T, F> {
     }
 
     // R is Complex result
-    protected static class FieldWithAdapter<M, T, R, F> extends Field<M, T, F> {
-        protected final Adapter<R, T> adapter;
+    public static class FieldWithAdapter<M, T, R, F> extends Field<M, T, F> {
+        public final Adapter<R, T> adapter;
 
         protected FieldWithAdapter(String name, DataType<T> type, Function<M, R> objFieldReader, Adapter<R, T> adapter) {
             this(name, type, objFieldReader, adapter,null);

@@ -12,18 +12,18 @@ import java.util.function.Predicate;
 public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
 
     private EnumSet<Flag> flags;
-    private final Model<M> model;
+    private final Model<M, ?> model;
     private final Field<M, T, ?>[] fields;
 
-    public static <M> Fields<M, ?> of(Model<M> model, Field<M, ?, ?>[] fields) {
+    public static <M> Fields<M, ?> of(Model<M, ?> model, Field<M, ?, ?>[] fields) {
         return new Fields<>(model, (Field<M, Object, ?>[]) fields);
     }
 
-    public Fields(Model<M> model, Field<M, T, ?>[] fields) {
+    public Fields(Model<M, ?> model, Field<M, T, ?>[] fields) {
         this(model, fields, EnumSet.noneOf(Flag.class));
     }
 
-    private Fields(Model<M> model, Field<M, T, ?>[] fields, EnumSet<Flag> flags) {
+    private Fields(Model<M, ?> model, Field<M, T, ?>[] fields, EnumSet<Flag> flags) {
         this.model = model;
         this.fields = fields;
         this.flags = flags;
@@ -39,7 +39,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
     }
 
     public String[] getNames() {
-        return Arrays.stream(fields).map(field -> field.getSQLField().getName()).toArray(String[]::new);
+        return Arrays.stream(fields).map(field -> field.asJooqField().getName()).toArray(String[]::new);
     }
 
     @Deprecated
@@ -47,7 +47,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         if(flags.contains(Flag.ONLY_PRIMARY_KEYS)) {
             return this;
         } else {
-            ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+            ReflectedObject<Model<M, ?>> reflectedModel = Reflect.of(model);
             Field<M, T, ?>[] primaryKeys = reflectedModel.getFieldsFromRefs(fields)
                     .filter(field -> field.hasAnnotation(PrimaryKey.class))
                     .readAllTyped(model, Field.class);
@@ -55,8 +55,9 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         }
     }
 
+    @Deprecated
     public Field<M, T, ?> getPrimaryKey() {
-        ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+        ReflectedObject<Model<M, ?>> reflectedModel = Reflect.of(model);
         Field<M, T, ?>[] primaryKeys = reflectedModel.getFieldsFromRefs(fields)
                 .filter(field -> field.hasAnnotation(PrimaryKey.class))
                 .readAllTyped(model, Field.class);
@@ -71,7 +72,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         if(isOnlyUniqueFields()) {
             return this;
         } else {
-            ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+            ReflectedObject<Model<M, ?>> reflectedModel = Reflect.of(model);
             Field<M, T, ?>[] primaryKeys = reflectedModel.getFieldsFromRefs(fields)
                     .filter(field -> field.hasAnnotation(Unique.class))
                     .readAllTyped(model, Field.class);
@@ -82,7 +83,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
     public org.jooq.Field<?>[] asSQLFields() {
         org.jooq.Field<?>[] sqlFields = new org.jooq.Field[fields.length];
         for (int i = 0; i < fields.length; i++) {
-            sqlFields[i] = fields[i].getSQLField();
+            sqlFields[i] = fields[i].asJooqField();
         }
         return sqlFields;
     }
@@ -104,13 +105,13 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
     }
 
     private boolean isOnlyPrimaryKeysTest() {
-        final ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+        final ReflectedObject<Model<M, ?>> reflectedModel = Reflect.of(model);
         return reflectedModel.getFieldsFromRefs(fields).hasAnnotation(PrimaryKey.class);
         //return all(field -> reflectedModel.getFieldFromRef(field).hasAnnotation(PrimaryKey.class));
     }
 
     private boolean isOnlyUniqueKeysTest() {
-        final ReflectedObject<Model<M>> reflectedModel = Reflect.of(model);
+        final ReflectedObject<Model<M, ?>> reflectedModel = Reflect.of(model);
         return reflectedModel.getFieldsFromRefs(fields).hasAnnotation(Unique.class);
         //return all(field -> reflectedModel.getFieldFromRef(field).hasAnnotation(Unique.class));
     }

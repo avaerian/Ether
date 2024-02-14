@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.operations.dml.bind;
+package org.minerift.ether.database.sql.op.dml.bind;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.database.sql.model.Field;
@@ -9,11 +9,11 @@ import java.util.Map;
 
 public interface NamedBindValues<T> {
 
-    static SingleNamedBindValue<?> empty(Field<?, ?, ?> field) {
+    static SingleNamedBindValue<?> nulled(Field<?, ?, ?> field) {
         return new SingleNamedBindValue<>(field.getName(), null);
     }
 
-    static ManyNamedBindValues<?> empty(Fields<?, ?> fields) {
+    static ManyNamedBindValues<?> nulled(Fields<?, ?> fields) {
         Map<String, Object> namedBindVals = new HashMap<>();
         fields.forEach(field -> namedBindVals.put(field.getName(), null));
         return new ManyNamedBindValues<>(namedBindVals);

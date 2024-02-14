@@ -16,11 +16,11 @@ public class DatabaseConnectionSettings {
 
 
     private DatabaseConnectionSettings(Builder builder) {
-        this.dialect = builder.dialect;
-        this.address = builder.address;
-        this.username = builder.username;
-        this.password = builder.password;
-        this.dbName = builder.dbName;
+        this.dialect    = builder.dialect;
+        this.address    = builder.address;
+        this.username   = builder.username;
+        this.password   = builder.password;
+        this.dbName     = builder.dbName;
     }
 
     public SQLDialect getDialect() {

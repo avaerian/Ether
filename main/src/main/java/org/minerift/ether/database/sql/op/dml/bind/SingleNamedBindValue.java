@@ -1,6 +1,4 @@
-package org.minerift.ether.database.sql.operations.dml.bind;
-
-import org.minerift.ether.database.sql.model.Field;
+package org.minerift.ether.database.sql.op.dml.bind;
 
 public class SingleNamedBindValue<V> implements NamedBindValues<V> {
 
