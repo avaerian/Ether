@@ -44,7 +44,6 @@ public class GridAlgorithmBenchmarks {
                 "(-31, 1)",
                 //"(-9, 104)"
         })
-
         public String tile;
 
     }
