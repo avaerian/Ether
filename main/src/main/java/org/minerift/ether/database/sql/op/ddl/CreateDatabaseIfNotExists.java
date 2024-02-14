@@ -1,13 +1,15 @@
-package org.minerift.ether.database.sql.operations;
+package org.minerift.ether.database.sql.op.ddl;
 
 import org.jooq.Query;
-import org.minerift.ether.database.sql.SQLContext;
 import org.minerift.ether.database.sql.SQLDatabase;
 import org.minerift.ether.database.sql.SQLDialect;
 
 @Deprecated
-public class CreateDatabaseIfNotExists extends SQLOperation {
+public class CreateDatabaseIfNotExists {
 
+    // TODO: this will be handled individually when initing/connecting to database
+
+    /*
     public CreateDatabaseIfNotExists(SQLContext ctx) {
         super(ctx);
     }
@@ -35,4 +37,5 @@ public class CreateDatabaseIfNotExists extends SQLOperation {
                 """, db.getDbName(), db.getDbName())
         );
     }
+    */
 }
