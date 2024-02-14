@@ -18,7 +18,7 @@ public class IslandInviteManager {
 
     public List<IslandInvite> getOutgoingInvites(UUID sender) {
         List<IslandInvite> invites = new ArrayList<>();
-        for(IslandInvite invite : invites) {
+        for(IslandInvite invite : this.invites) {
             if(invite.getSender().equals(sender)) {
                 invites.add(invite);
             }
@@ -30,7 +30,6 @@ public class IslandInviteManager {
     protected boolean accept(IslandInvite invite) {
         if(invite.isExpired()) {
             // TODO: log to player
-            invites.remove(invite);
             return false;
         }
 
@@ -42,7 +41,6 @@ public class IslandInviteManager {
     protected boolean deny(IslandInvite invite) {
         if(invite.isExpired()) {
             // TODO: log to player
-            invites.remove(invite);
             return false;
         }
 
