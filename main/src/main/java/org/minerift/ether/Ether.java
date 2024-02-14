@@ -15,9 +15,10 @@ import org.minerift.ether.work.WorkQueue;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.minerift.ether.util.Utils.ensure;
 
 // Provides static access to plugin components
 // Must call load() before accessing any components
@@ -64,7 +65,7 @@ public class Ether {
             return;
         }
 
-        // For configs that don't exist, this will create a new file
+        // For config files that don't exist, this will create a new file
         configRegistry.getAll().forEach(Config::save);
 
         stopwatch.stop();
@@ -181,11 +182,5 @@ public class Ether {
     public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
         ensure(configRegistry != null, () -> new UnsupportedOperationException("configRegistry is not loaded!"));
         return configRegistry.get(type);
-    }
-
-    private static <E extends Exception> void ensure(boolean predicate, Supplier<E> ex) throws E {
-        if(!predicate) {
-            throw ex.get();
-        }
     }
 }

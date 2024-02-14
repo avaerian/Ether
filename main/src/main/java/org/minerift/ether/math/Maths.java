@@ -13,13 +13,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 // Class for all things math-related
 public class Maths {
 
-    private final static Pattern VEC_STRING_PATTERN = Pattern.compile("[^\\d|\\-|\\,]");
+    private final static Pattern VEC_STRING_PATTERN = Pattern.compile("[^\\d\\-,.]");
     private final static Function<Stream<String>, int[]> INT_ARGS_ADAPTER = (stream) -> stream.mapToInt(Integer::parseInt).toArray();
     private final static Function<Stream<String>, double[]> DOUBLE_ARGS_ADAPTER = (stream) -> stream.mapToDouble(Double::parseDouble).toArray();
 
     // For testing
     public static void main(String[] args) {
         System.out.println(Maths.strToVec3i("    1738,  -69,   420   "));
+        System.out.println(Maths.strToVec3d(" (420.69, -3.14,   1802)!   "));
+        System.out.println(Maths.strToVec2i("Z(420,b-69a)!"));
     }
 
     protected static Vec2i strToVec2i(String str) {
@@ -48,7 +50,7 @@ public class Maths {
     private static <T> T strToVecArgs(String str, String type, int expectedArgs, Function<Stream<String>, T> argsAdapter) {
 
         checkNotNull(str);
-        checkArgument(str.isBlank(), String.format("String for %s was blank!", type));
+        checkArgument(!str.isBlank(), String.format("String for %s was blank!", type));
 
         // Clear all additional characters + whitespaces
         StringBuilder sb = new StringBuilder();
