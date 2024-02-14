@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.readers.sponge.steps;
 
 import com.google.common.collect.Maps;
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.sponge.ReaderContext;
+import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
@@ -17,7 +17,7 @@ import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.*;
 
 public class ReadBlockEntitiesStep implements IReaderStep {
     @Override
-    public void read(ReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
         final String blockEntitiesKey = ctx.builder.getVersion() == 1 ? NBT_TILE_ENTITIES : NBT_BLOCK_ENTITIES;
         final Optional<List<Tag>> tagList = ctx.rootView.getList(blockEntitiesKey);

@@ -1,7 +1,7 @@
 package org.minerift.ether.schematic.readers.sponge.steps;
 
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.sponge.ReaderContext;
+import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
 import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
@@ -17,7 +17,7 @@ import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.*;
 
 public class ReadEntitiesStep implements IReaderStep {
     @Override
-    public void read(ReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
         final Optional<List<Tag>> tagList = ctx.rootView.getList(NBT_ENTITIES);
 

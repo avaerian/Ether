@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class ReaderContext {
+public class SchematicReaderContext {
 
     private final NBTInputStream nbt;
     private final CompoundTag head;
@@ -19,15 +19,15 @@ public class ReaderContext {
     public final NBTSectionView rootView;
     public final SpongeSchematic.Builder builder;
 
-    public static ReaderContext from(File file) throws SchematicFileReadException {
+    public static SchematicReaderContext from(File file) throws SchematicFileReadException {
         try {
-            return new ReaderContext(file);
+            return new SchematicReaderContext(file);
         } catch (IOException ex) {
             throw (SchematicFileReadException) ex;
         }
     }
 
-    private ReaderContext(File file) throws IOException {
+    private SchematicReaderContext(File file) throws IOException {
 
         Preconditions.checkNotNull(file, "File cannot be null!");
 

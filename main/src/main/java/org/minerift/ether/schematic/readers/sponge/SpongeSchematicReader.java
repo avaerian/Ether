@@ -12,7 +12,7 @@ public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> 
     @Override
     public SpongeSchematic read(File file) throws SchematicFileReadException {
 
-        final ReaderContext ctx = ReaderContext.from(file);
+        final SchematicReaderContext ctx = SchematicReaderContext.from(file);
 
         ReadStages.INIT.read(ctx);
         ReadStages.METADATA.read(ctx);
@@ -27,7 +27,7 @@ public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> 
             ctx.close();
         } catch (IOException ex) {
             // Context failed to close; this should be notified
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Failed to close schematic reader context!", ex);
         }
 
         return schem;
