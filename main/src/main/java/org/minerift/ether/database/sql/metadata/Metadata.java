@@ -7,6 +7,10 @@ public class Metadata {
     // and the data can go through a list of upgraders.
     private int dbVersion = 1;
 
+    public Metadata(int dbVersion) {
+        this.dbVersion = dbVersion;
+    }
+
     public int getDbVersion() {
         return dbVersion;
     }
