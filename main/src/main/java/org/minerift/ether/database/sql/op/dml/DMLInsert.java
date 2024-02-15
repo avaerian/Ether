@@ -7,7 +7,6 @@ import org.minerift.ether.database.sql.op.dml.cache.RawQuery;
 
 public class DMLInsert extends DMLOp {
 
-
     public DMLInsert(SQLDatabase db) {
         super(db);
     }

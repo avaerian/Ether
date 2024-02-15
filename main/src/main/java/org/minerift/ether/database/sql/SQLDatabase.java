@@ -38,17 +38,6 @@ public class SQLDatabase implements AutoCloseable {
         // TODO: use jOOQ to see supported data types for dialects
         //SQLDataType.UUID
 
-        // To connect to MySQL:
-        //  - try connect with db name
-        //  - if fails, try connect without db name and create db
-        //  - if fails, throw database connection exception (db not online)
-
-        // To connect to PostgreSQL:
-        //  - try connect with db name
-        //      - if fails, try connect without db name and create db
-        //          - if fails, throw database connection exception (db not online)
-        //          - close connection and try connect with db name
-        //          - if fails, throw database connection exception (created db but failed to connect)
         DatabaseConnectionSettings postgresSettings = DatabaseConnectionSettings.builder()
                 .setDialect(SQLDialect.POSTGRES)
                 .setAddress(HostAndPort.fromHost("localhost"))
@@ -74,10 +63,6 @@ public class SQLDatabase implements AutoCloseable {
         SQLDatabase db = new SQLDatabase(sqliteSettings, IslandModel::new);
 
         IslandModel model = db.getTable(IslandModel.class);
-
-        // TODO: remove create DB query and move to connect() method for SQLConnector's
-        //ctx.createDbQuery.getQuery(db).execute();
-        //ctx.createTableQuery.getQuery(model).execute();
 
         Random random = new Random();
 
