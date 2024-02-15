@@ -54,8 +54,16 @@ public class PostgreSQLConnector implements SQLConnector {
                 .setPassword("")
                 .build();
 
+        DatabaseConnectionSettings mysqlSettings = DatabaseConnectionSettings.builder()
+                .setDialect(SQLDialect.MYSQL)
+                .setAddress(HostAndPort.fromString("localhost:3306"))
+                .setDbName("ether")
+                .setUsername("root")
+                .setPassword("password")
+                .build();
+
         // Attempt to connect to db
-        SQLDatabase db = new SQLDatabase(postgresSettings, IslandModel::new);
+        SQLDatabase db = new SQLDatabase(mysqlSettings, IslandModel::new);
         HikariDataSource ds = db.getDataSource();
         System.out.println(ds == null ? "null" : ds.getConnection().isValid(10));
         db.close();

@@ -16,7 +16,7 @@ dependencies {
     implementation("com.google.guava:guava:31.1-jre")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("it.unimi.dsi:fastutil:8.5.6")
-    implementation("org.jooq:joor-java-8:0.9.15")
+    //implementation("org.jooq:joor-java-8:0.9.15")
 
     // SQL stuffs
     implementation("org.jooq:jooq:3.18.6")
@@ -26,6 +26,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.43.0.0")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.2.224")
+    implementation("com.mysql:mysql-connector-j:8.3.0")
 
     // Plugin dependencies
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.14")
