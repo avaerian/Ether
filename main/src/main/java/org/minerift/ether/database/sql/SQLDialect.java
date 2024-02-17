@@ -5,7 +5,7 @@ import org.minerift.ether.database.sql.connectors.*;
 import java.util.function.Supplier;
 
 public enum SQLDialect {
-    MYSQL       (org.jooq.SQLDialect.MYSQL,     true,   MySQLConnector::new),
+    MYSQL       (org.jooq.SQLDialect.MYSQL,     false,   MySQLConnector::new),
     POSTGRES    (org.jooq.SQLDialect.POSTGRES,  true,   PostgreSQLConnector::new),
     SQLITE      (org.jooq.SQLDialect.SQLITE,    false,  SQLiteConnector::new),
     H2          (org.jooq.SQLDialect.H2,        true,   H2Connector::new)

@@ -58,14 +58,12 @@ public class MySQLConnector implements SQLConnector {
 
                 // Create and select db
                 SQLAccess access = new SQLAccess(db, ds.getConnection());
+                //System.out.println(access.dsl().resultQuery("SELECT database();").fetch()); // DEBUG
                 access.dsl().createDatabase(settings.getDbName()).execute();
-
-                String sanitizedDb = settings.getDbName().replaceAll("[^a-z_]", "");
-                access.dsl().query("USE " + sanitizedDb + ";").execute();
                 System.out.println("Created database");
-                System.out.println(access.dsl().resultQuery("SELECT database();").fetch()); // DEBUG
 
-                return ds;
+                access.close();
+                ds.close();
             }
         } catch (HikariPool.PoolInitializationException | SQLException ex) {
             if(ds != null) {
@@ -81,6 +79,18 @@ public class MySQLConnector implements SQLConnector {
             throw new RuntimeException("Failed to create database", dx);
         }
 
-        throw new RuntimeException("Unreachable");
+        // Attempt to connect to db with name
+        try {
+            ds = new HikariDataSource(dbConfig);
+            if(ds.getConnection().isValid(TIMEOUT)) {
+                System.out.println("Connected successfully to dbConfig!");
+                return ds;
+            }
+            throw new SQLTimeoutException("Created database, but database timed out");
+        } catch (HikariPool.PoolInitializationException | SQLException ex) {
+            System.out.println("Closing ds...");
+            ds.close();
+            throw new RuntimeException("Created database, but failed to connect to database");
+        }
     }
 }
