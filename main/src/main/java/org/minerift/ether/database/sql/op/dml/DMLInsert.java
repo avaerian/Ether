@@ -15,7 +15,7 @@ public class DMLInsert extends DMLOp {
     protected RawQuery newQueryForCache(Model<?, ?> model) {
         Fields<?, ?> fields = model.getFields();
         String sql = db.dsl().insertInto(model.asJooqTable())
-                .columns(fields.asSQLFields())
+                .columns(fields.asJooqFields())
                 .getSQL();
         return new RawQuery(sql, fields.getNames());
     }

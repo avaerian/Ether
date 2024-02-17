@@ -20,7 +20,7 @@ public abstract class DMLOp {
     public DMLOp(SQLDatabase db) {
         this.db = db;
         this.queryCache = new QueryCache();
-        queryCache.cacheQueries(db.getTables(), this::newQueryForCache);
+        queryCache.cacheQueries(db.getModels(), this::newQueryForCache);
     }
 
     protected abstract RawQuery newQueryForCache(Model<?, ?> model);

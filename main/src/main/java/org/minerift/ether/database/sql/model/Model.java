@@ -35,6 +35,8 @@ public abstract class Model<M, K> {
         System.out.println("ctor end");
     }
 
+    // NOTE: No fields associated with this Jooq table object
+    // This is purely for SQL formatting when building queries
     public Table<Record> asJooqTable() {
         return table(TABLE_NAME);
     }

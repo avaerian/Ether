@@ -80,7 +80,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         }
     }
 
-    public org.jooq.Field<?>[] asSQLFields() {
+    public org.jooq.Field<?>[] asJooqFields() {
         org.jooq.Field<?>[] sqlFields = new org.jooq.Field[fields.length];
         for (int i = 0; i < fields.length; i++) {
             sqlFields[i] = fields[i].asJooqField();

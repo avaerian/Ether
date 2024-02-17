@@ -1,31 +1,25 @@
 package org.minerift.ether.database.sql;
 
 import com.google.common.net.HostAndPort;
-//import com.google.gson.internal.sql.SqlTypesSupport;
 import com.zaxxer.hikari.HikariDataSource;
-//import org.h2.value.Value;
-//import org.jooq.DataType;
-//import org.jooq.impl.SQLDataType;
-//import org.jooq.util.sqlite.SQLiteDataType;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.DefaultConfiguration;
-import org.minerift.ether.database.sql.connectors.PostgreSQLConnector;
-import org.minerift.ether.database.sql.connectors.SQLConnector;
 import org.minerift.ether.database.sql.metadata.Metadata;
 import org.minerift.ether.database.sql.metadata.MetadataModel;
 import org.minerift.ether.database.sql.model.Model;
+import org.minerift.ether.database.sql.op.ddl.DDLGetTables;
 import org.minerift.ether.database.sql.op.dml.*;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandGrid;
 import org.minerift.ether.island.IslandModel;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
-//import org.postgresql.core.Oid;
-//import org.postgresql.jdbc.PgStatement;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.*;
 import java.util.function.Function;
 
@@ -62,7 +56,7 @@ public class SQLDatabase implements AutoCloseable {
 
         SQLDatabase db = new SQLDatabase(sqliteSettings, IslandModel::new);
 
-        IslandModel model = db.getTable(IslandModel.class);
+        IslandModel model = db.getModel(IslandModel.class);
 
         Random random = new Random();
 
@@ -99,7 +93,7 @@ public class SQLDatabase implements AutoCloseable {
     public final Configuration connConfig;
     private final String dbName;
     private final SQLDialect dialect;
-    private final Map<Class<? extends Model>, Model<?, ?>> tables;
+    private final Map<Class<? extends Model>, Model<?, ?>> models;
 
 
     // Query Caches
@@ -111,7 +105,7 @@ public class SQLDatabase implements AutoCloseable {
     public final DMLSelectById SELECT_ID_QUERY;
 
 
-    public SQLDatabase(DatabaseConnectionSettings settings, Function<SQLDatabase, Model<?, ?>> ... tables) {
+    public SQLDatabase(DatabaseConnectionSettings settings, Function<SQLDatabase, Model<?, ?>> ... models) {
 
         // Init db object
         this.dbName = settings.getDbName();
@@ -120,10 +114,10 @@ public class SQLDatabase implements AutoCloseable {
         this.connConfig = new DefaultConfiguration();
         connConfig.set(settings.getDialect().asJooqDialect());
 
-        this.tables = new HashMap<>(tables.length);
-        for(var tableSupplier : tables) {
+        this.models = new HashMap<>(models.length);
+        for(var tableSupplier : models) {
             var table = tableSupplier.apply(this);
-            this.tables.put(table.getClass(), table);
+            this.models.put(table.getClass(), table);
         }
 
         this.INSERT_QUERY = new DMLInsert(this);
@@ -136,6 +130,12 @@ public class SQLDatabase implements AutoCloseable {
         // Connect to db
         // TODO: SQLConnector connector = settings.getDialect().getDbConnector();
         this.dataSource = settings.getDialect().getDbConnector().connect(this, settings);
+
+        try {
+            SQLDbStartupScript.run(new SQLAccess(this, dataSource.getConnection()));
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to run database startup script", ex);
+        }
     }
 
     public String getDbName() {
@@ -216,12 +216,12 @@ public class SQLDatabase implements AutoCloseable {
         return connConfig.dsl();
     }
 
-    public <M extends Model> M getTable(Class<M> modelClazz) {
-        return (M) tables.get(modelClazz);
+    public <M extends Model> M getModel(Class<M> modelClazz) {
+        return (M) models.get(modelClazz);
     }
 
-    public Collection<Model<?, ?>> getTables() {
-        return tables.values();
+    public Collection<Model<?, ?>> getModels() {
+        return models.values();
     }
 
     @Override
