@@ -4,11 +4,14 @@ import org.jooq.BatchBindStep;
 import org.jooq.CloseableQuery;
 import org.jooq.DSLContext;
 import org.minerift.ether.database.sql.model.Model;
+import org.minerift.ether.database.sql.op.ddl.DDLCreateTable;
+import org.minerift.ether.database.sql.op.ddl.DDLGetTables;
 import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Set;
 
 // Provides access to SQL operations from a connection
 public class SQLAccess implements AutoCloseable {
@@ -28,68 +31,89 @@ public class SQLAccess implements AutoCloseable {
         return dsl;
     }
 
+    public SQLDialect dialect() {
+        return db.getDialect();
+    }
+
+    public SQLDatabase db() {
+        return db;
+    }
+
+    // DDL Operations
+
+    public Set<String> getDatabaseTables() {
+        return DDLGetTables.getDatabaseTables(this);
+    }
+
+    public <M, K> void createTable(Model<M, K> model) {
+        DDLCreateTable.createTableFromModel(this, model);
+    }
+
+
+    // DML Operations
+
     public <M, K> int insert(Class<? extends Model<M, K>> modelClazz, M obj) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.INSERT_QUERY.getJooqQuery(this, model, obj);
         return query.execute();
     }
 
     public <M, K> int[] insert(Class<? extends Model<M, K>> modelClazz, Collection<M> objs) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         BatchBindStep batch = db.INSERT_QUERY.getJooqBatch(this, model, objs);
         return batch.execute();
     }
 
     public <M, K> int update(Class<? extends Model<M, K>> modelClazz, M obj) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.UPDATE_QUERY.getJooqQuery(this, model, obj);
         return query.execute();
     }
 
     public <M, K> int[] update(Class<? extends Model<M, K>> modelClazz, Collection<M> objs) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         BatchBindStep batch = db.UPDATE_QUERY.getJooqBatch(this, model, objs);
         return batch.execute();
     }
 
     public <M, K> int insertOrUpdate(Class<? extends Model<M, K>> modelClazz, M obj) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.UPSERT_QUERY.getJooqQuery(this, model, obj);
         return query.execute();
     }
 
     public <M, K> int[] insertOrUpdate(Class<? extends Model<M, K>> modelClazz, Collection<M> objs) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         BatchBindStep batch = db.UPSERT_QUERY.getJooqBatch(this, model, objs);
         return batch.execute();
     }
 
     public <M, K> int deleteById(Class<? extends Model<M, K>> modelClazz, K id) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.DELETE_QUERY.getJooqQuery(this, model, NamedBindValues.of(model.getPrimaryKey(), id));
         return query.execute();
     }
 
     public <M, K> int delete(Class<? extends Model<M, K>> modelClazz, M obj) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.DELETE_QUERY.getJooqQuery(this, model, obj);
         return query.execute();
     }
 
     public <M, K> int[] delete(Class<? extends Model<M, K>> modelClazz, Collection<M> objs) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         BatchBindStep batch = db.DELETE_QUERY.getJooqBatch(this, model, objs);
         return batch.execute();
     }
 
     public <M, K> SQLResult<M> selectById(Class<? extends Model<M, K>> modelClazz, K id) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         var query = db.SELECT_ID_QUERY.getJooqQuery(this, model, NamedBindValues.of(model.getPrimaryKey(), id));
         return new SQLResult<>(model, query.fetch());
     }
 
     public <M, K> SQLResult<M> selectAll(Class<? extends Model<M, K>> modelClazz) {
-        Model<M, K> model = db.getTable(modelClazz);
+        Model<M, K> model = db.getModel(modelClazz);
         var query = db.SELECT_ALL_QUERY.getJooqQuery(this, model);
         return new SQLResult<>(model, query.fetch());
     }
@@ -100,6 +124,10 @@ public class SQLAccess implements AutoCloseable {
 
     public void rollback() throws SQLException {
         conn.rollback();
+    }
+
+    public boolean getAutoCommit() throws SQLException {
+        return conn.getAutoCommit();
     }
 
     @Override
