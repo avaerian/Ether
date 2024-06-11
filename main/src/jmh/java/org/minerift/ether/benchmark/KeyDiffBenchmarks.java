@@ -1,6 +1,7 @@
 package org.minerift.ether.benchmark;
 
-import org.minerift.ether.database.sql.KeyDiff;
+import org.minerift.ether.database.sql.diff.DiffType;
+import org.minerift.ether.database.sql.diff.KeyDiff;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -68,7 +69,7 @@ public class KeyDiffBenchmarks {
 
     @Group
     @Benchmark
-    public Map<KeyDiff.DiffType, List<Integer>> partitionDiffsBenchmark(KeyDiffState state) {
+    public Map<DiffType, List<Integer>> partitionDiffsBenchmark(KeyDiffState state) {
         return KeyDiff.partitionDiffs(state.oldSet, state.newSet);
     }
 

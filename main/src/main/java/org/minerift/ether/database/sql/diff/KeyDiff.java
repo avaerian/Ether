@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql;
+package org.minerift.ether.database.sql.diff;
 
 import com.google.common.collect.Sets;
 
@@ -46,8 +46,8 @@ public class KeyDiff {
     }
 
     private static DiffType getDiffType(boolean inOld, boolean inNew) {
-        //return TYPES[bool2Int(inOld) | (bool2Int(inNew) << 1)]; // this handles it properly
-        return TYPES[bool2Int(inOld) + (bool2Int(inNew) << 1)]; // hacky, but has the same effect
+        return TYPES[bool2Int(inOld) | (bool2Int(inNew) << 1)]; // this handles it properly
+        //return TYPES[bool2Int(inOld) + (bool2Int(inNew) << 1)]; // hacky, but has the same effect
     }
 
     public static <T> Diff<T>[] getDiffs(Set<T> oldSet, Set<T> newSet) {
@@ -112,12 +112,5 @@ public class KeyDiff {
         public String toString() {
             return "[ obj: " + obj + ", diff: " + diff + " ]";
         }
-    }
-
-    public enum DiffType {
-        NOT_EXISTS,     // 00, if element doesn't exist in either set
-        DELETED,        // 01, if element is in old set, but not new set
-        INSERTED,       // 10, if element is in new set, but not old set
-        UPDATED,        // 11, if element is in both sets
     }
 }
