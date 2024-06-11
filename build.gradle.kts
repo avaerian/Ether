@@ -34,6 +34,7 @@ allprojects {
         dependencies {
             include(project(":main"))
             include(project(":v1_19_R1"))
+            include(dependency("xyz.jpenilla:reflection-remapper"))
         }
     }
 }
@@ -41,6 +42,7 @@ allprojects {
 // Paper-API dependency for submodules
 subprojects {
     repositories {
+        mavenCentral()
         maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
     }
 
@@ -53,8 +55,13 @@ subprojects {
 configure(subprojects.filter { listOf("v1_19_R1").contains(it.name) }) {
     apply(plugin = "io.papermc.paperweight.userdev")
 
+    repositories {
+        mavenCentral()
+    }
+
     dependencies {
         implementation(project(":main"))
+        implementation("xyz.jpenilla:reflection-remapper:0.1.1")
     }
 }
 
