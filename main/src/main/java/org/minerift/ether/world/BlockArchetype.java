@@ -41,6 +41,10 @@ public class BlockArchetype {
         return getZ() >> 4;
     }
 
+    public ChunkCoords getChunk() {
+        return new ChunkCoords(getChunkX(), getChunkZ());
+    }
+
     @Override
     public String toString() {
         return String.format("%s -> %s", pos, id);
