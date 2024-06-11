@@ -1,12 +1,12 @@
 package org.minerift.ether.config;
 
 import org.minerift.ether.Ether;
+import org.minerift.ether.config.islandspecs.IslandSpecsConfig;
+import org.minerift.ether.config.islandspecs.IslandSpecsReader;
+import org.minerift.ether.config.islandspecs.IslandSpecsWriter;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.config.main.MainConfigReader;
 import org.minerift.ether.config.main.MainConfigWriter;
-import org.minerift.ether.config.schems.SchematicsConfig;
-import org.minerift.ether.config.schems.SchematicsConfigReader;
-import org.minerift.ether.config.schems.SchematicsConfigWriter;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -14,11 +14,11 @@ import java.util.function.Supplier;
 public class ConfigType<T extends Config<T>> {
 
     public static final ConfigType<MainConfig> MAIN;
-    public static final ConfigType<SchematicsConfig> SCHEM_LIST;
+    public static final ConfigType<IslandSpecsConfig> ISLAND_SPECS_LIST;
 
     static {
-        MAIN       = new ConfigType<>("MainConfig (config.yml)", MainConfig.class, new MainConfigReader(), new MainConfigWriter(), MainConfig::new, new File(Ether.getPluginDir(), "config.yml"));
-        SCHEM_LIST = new ConfigType<>("Schematic List (schem_list.yml)", SchematicsConfig.class, new SchematicsConfigReader(), new SchematicsConfigWriter(), SchematicsConfig::new, null);
+        MAIN       = new ConfigType<>("MainConfig (config.yml)", MainConfig.class, new MainConfigReader(), new MainConfigWriter(), MainConfig::new, Ether.getPluginFile("config.yml"));
+        ISLAND_SPECS_LIST = new ConfigType<>("Island Specs List (island_specs.yml)", IslandSpecsConfig.class, new IslandSpecsReader(), new IslandSpecsWriter(), IslandSpecsConfig::new, Ether.getPluginFile("island_specs.yml"));
     }
 
     private final String name;
