@@ -24,15 +24,15 @@ public class MainConfigReader extends IConfigReader<MainConfig> {
 
 
             config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile height!")));
-            config.setTileSize(           view.get(Integer.class, TILE_SIZE_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile size!")));
-            config.setTileAccessibleArea( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile accessible area!")));
+            config.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile size!")));
+            config.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile accessible area!")));
             config.setChanged(false);
 
             return config;
         } catch (IllegalArgumentException ex) { // Thrown when failing to set values
             throw new ConfigFileReadException(ex);
         } catch (IOException ex) {
-            throw (ConfigFileReadException) ex;
+            throw new ConfigFileReadException(ex);
         }
     }
 }

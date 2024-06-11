@@ -17,8 +17,8 @@ public class MainConfigWriter extends IConfigWriter<MainConfig> {
             final YamlConfigView view = YamlConfigView.from(file);
 
             view.set(TILE_HEIGHT_PATH,          config.getTileHeight());
-            view.set(TILE_SIZE_PATH,            config.getTileSize());
-            view.set(TILE_ACCESSIBLE_AREA_PATH, config.getTileAccessibleArea());
+            view.set(TILE_SIZE_CHUNKS_PATH,     config.getTileLengthChunks());
+            view.set(TILE_ACCESSIBLE_AREA_PATH, config.getTileAccessibleAreaBlocks());
 
             view.save(file);
         } catch (IOException ex) {
