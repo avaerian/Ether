@@ -21,6 +21,10 @@ public class ReflectedFields implements Iterable<ReflectedField> {
         return fields;
     }
 
+    public int size() {
+        return fields.length;
+    }
+
     public boolean hasAnnotation(Class<? extends Annotation> ann) {
         return all(field -> field.hasAnnotation(ann));
     }
@@ -49,7 +53,7 @@ public class ReflectedFields implements Iterable<ReflectedField> {
     public Object[] readAll(Object holder) {
         Object[] vals = new Object[fields.length];
         for(int i = 0; i < vals.length; i++) {
-            vals[i] = fields[i].get(holder);
+            vals[i] = fields[i].getValue(holder);
         }
         return vals;
     }
@@ -57,9 +61,16 @@ public class ReflectedFields implements Iterable<ReflectedField> {
     public <T> T[] readAllTyped(Object holder, Class<T> type) {
         T[] vals = (T[]) Array.newInstance(type, fields.length);
         for(int i = 0; i < vals.length; i++) {
-            vals[i] = (T) fields[i].get(holder);
+            vals[i] = (T) fields[i].getValue(holder);
         }
         return vals;
+    }
+
+    @Override
+    public String toString() {
+        return "ReflectedFields{" +
+                "fields=" + Arrays.deepToString(fields) +
+                '}';
     }
 
     @NotNull

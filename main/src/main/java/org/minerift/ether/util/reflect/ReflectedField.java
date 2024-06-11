@@ -6,11 +6,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
 
-// Custom abstraction for simplicity
 public class ReflectedField implements IReflectedElement {
 
-    @PrimaryKey
-    @Deprecated
     private final Field field;
 
     public static void main(String[] args) throws NoSuchFieldException {
@@ -20,6 +17,7 @@ public class ReflectedField implements IReflectedElement {
 
     public ReflectedField(Field field) {
         this.field = field;
+        field.setAccessible(true);
     }
 
     public Field getJavaField() {
@@ -52,13 +50,19 @@ public class ReflectedField implements IReflectedElement {
         return field.getAnnotation(clazz);
     }
 
-    public boolean isAssignableFrom(Class<?> clazz) {
+    public boolean isType(Class<?> clazz) {
         return field.getType().isAssignableFrom(clazz);
     }
 
-    public Object get(Object obj) {
+    @Override
+    public String toString() {
+        return "ReflectedField{" +
+                "field=" + field +
+                '}';
+    }
+
+    public Object getValue(Object obj) {
         try {
-            field.setAccessible(true);
             return field.get(obj);
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);

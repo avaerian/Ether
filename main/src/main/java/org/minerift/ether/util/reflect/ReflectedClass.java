@@ -1,12 +1,29 @@
 package org.minerift.ether.util.reflect;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.primitives.Primitives;
+import com.google.common.reflect.Reflection;
+import org.minerift.ether.database.sql.model.PrimaryKey;
 
 import java.lang.annotation.Annotation;
+import java.lang.invoke.TypeDescriptor;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ReflectedClass<T> implements IReflectedElement {
+
+    // DEBUG
+    public static class TestCls {
+        @PrimaryKey public final int TEST_PK = 42069;
+        public final int TEST2 = 42069;
+
+    }
+
+    // DEBUG
+    public static void main(String[] args) {
+        TestCls test = new TestCls();
+        System.out.println(Reflect.of(test).getFieldFromRef(test.TEST_PK).getName());
+    }
 
     private final Class<T> cls;
 
@@ -34,6 +51,22 @@ public class ReflectedClass<T> implements IReflectedElement {
         return cls.getAnnotation(clazz);
     }
 
+    public boolean isPrimitive() {
+        return cls.isPrimitive();
+    }
+
+    public boolean isBoxedPrimitive() {
+        return Primitives.isWrapperType(cls);
+    }
+
+    public boolean isArray() {
+        return cls.isArray();
+    }
+
+    public Class<?> getArrayType() {
+        return cls.arrayType();
+    }
+
     public boolean isAnnotationClass() {
         return cls.isAnnotation();
     }
@@ -46,6 +79,18 @@ public class ReflectedClass<T> implements IReflectedElement {
         return Reflect.of(cls.getDeclaredFields());
     }
 
+    public ReflectedField getField(String name) throws NoSuchFieldException {
+        return Reflect.of(cls.getDeclaredField(name));
+    }
+
+    public ReflectedField getFieldOrNull(String name) {
+        try {
+            return getField(name);
+        } catch (NoSuchFieldException ex) {
+            return null;
+        }
+    }
+
     public ReflectedMethods getMethods() {
         return Reflect.of(cls.getMethods());
     }
@@ -54,13 +99,15 @@ public class ReflectedClass<T> implements IReflectedElement {
         return Reflect.of(cls.getDeclaredMethods());
     }
 
-    public BiMap<ReflectedField, Object> mapFieldsToValues(T holder, Iterable<Object> queriedFields) {
-        final BiMap<ReflectedField, Object> fieldsToValues = HashBiMap.create();
+    // TODO: is there a better way for this code not be as brute force?
+    public Map<ReflectedField, Object> mapFieldsToValues(T holder, Iterable<Object> queriedFields) {
+        final Map<ReflectedField, Object> fieldsToValues = new HashMap<>();
         // For each field, compare queried field addresses
         for(ReflectedField field : getFields()) {
             for(Object queriedField : queriedFields) {
-                if(field.get(holder) == queriedField) {
-                    fieldsToValues.put(field, queriedField);
+                Object val = field.getValue(holder);
+                if(val == queriedField) {
+                    fieldsToValues.put(field, val);
                     break;
                 }
             }
@@ -68,17 +115,12 @@ public class ReflectedClass<T> implements IReflectedElement {
         return fieldsToValues;
     }
 
-    // Will not map null fields
-    public BiMap<ReflectedField,
-            Object> mapFieldsToValues(T holder) {
-        final BiMap<ReflectedField, Object> fieldsToValues = HashBiMap.create();
+    public Map<ReflectedField, Object> mapFieldsToValues(T holder) {
+        final Map<ReflectedField, Object> fieldsToValues = new HashMap<>();
         for(ReflectedField field : getFields()) {
-            Object val = field.get(holder);
-            if(val != null) {
-                fieldsToValues.put(field, val);
-            }
+            Object val = field.getValue(holder);
+            fieldsToValues.put(field, val);
         }
         return fieldsToValues;
     }
-
 }
