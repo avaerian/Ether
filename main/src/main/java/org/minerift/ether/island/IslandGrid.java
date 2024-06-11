@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Deprecated(forRemoval = true)
 public class IslandGrid {
 
     // All islands on the grid, including deleted islands
@@ -83,7 +84,8 @@ public class IslandGrid {
                 .collect(ImmutableList.toImmutableList());
     }
 
-    public ImmutableList<Island> getIslandsView() {
+    // Return view of all islands
+    public ImmutableList<Island> getAllIslandsView() {
         return ImmutableList.copyOf(islands);
     }
 

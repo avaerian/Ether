@@ -104,6 +104,24 @@ public class IslandGridSearchBenchmarks {
     }
 
     @State(Scope.Benchmark)
+    public static class IslandGridV2State {
+        IslandGridV2 grid;
+
+        @Setup
+        public void setup() {
+            this.grid = new IslandGridV2();
+            for(int i = 0; i < TILE_COUNT; i++) {
+                Island island = Island.builder()
+                        .setTile(grid.getNextTile(), true)
+                        .setDeleted(false)
+                        .definePermissions(IslandRole.VISITOR)
+                        .build();
+                grid.registerIsland(island);
+            }
+        }
+    }
+
+    @State(Scope.Benchmark)
     public static class FastUtilMapState {
 
         Int2ObjectMap<Island> grid;
@@ -142,6 +160,11 @@ public class IslandGridSearchBenchmarks {
 
     @Benchmark
     public Optional<Island> islandGrid_findIslandBenchmark(IslandGridState state) {
+        return state.grid.getIslandAt(TILE_TO_FIND);
+    }
+
+    @Benchmark
+    public Optional<Island> islandGridV2_findIslandBenchmark(IslandGridV2State state) {
         return state.grid.getIslandAt(TILE_TO_FIND);
     }
 
