@@ -19,8 +19,12 @@ public abstract class DMLOp {
 
     public DMLOp(SQLDatabase db) {
         this.db = db;
-        this.queryCache = new QueryCache();
-        queryCache.cacheQueries(db.getModels(), this::newQueryForCache);
+        this.queryCache = new QueryCache(db.getModels(), this::newQueryForCache);
+
+        // debug
+        for(RawQuery rawQuery : queryCache.modelQueryCache.values()) {
+            System.out.println(rawQuery.getSql());
+        }
     }
 
     protected abstract RawQuery newQueryForCache(Model<?, ?> model);
@@ -32,7 +36,7 @@ public abstract class DMLOp {
     public <M, K> CloseableQuery getJooqQuery(SQLAccess access, Model<M, K> model, NamedBindValues<?> namedBindVals) {
         RawQuery rawQuery = queryFor(model);
         CloseableQuery query = access.dsl().query(rawQuery.getSql(), rawQuery.getEmptyBindOrder()).keepStatement(false);
-        SQLUtils.bind(query, namedBindVals, rawQuery.getBindOrder());
+        SQLUtils.bind(query, model, namedBindVals, rawQuery.getBindOrder());
         return query;
     }
 
@@ -43,7 +47,7 @@ public abstract class DMLOp {
     public <M, K> BatchBindStep getJooqBatch(SQLAccess access, Model<M, K> model, Collection<M> objs) {
         RawQuery rawQuery = queryFor(model);
         CloseableQuery query = access.dsl().query(rawQuery.getSql(), rawQuery.getEmptyBindOrder()).keepStatement(false);
-        BatchBindStep batch = SQLUtils.bindToBatch(access.dsl().batch(query), model, objs);
+        BatchBindStep batch = SQLUtils.bindToBatch(access.dsl().batch(query), model, objs, rawQuery.getBindOrder());
         return batch;
     }
 }

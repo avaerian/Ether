@@ -6,23 +6,25 @@ import org.jooq.CloseableResultQuery;
 import org.jooq.Record;
 import org.minerift.ether.database.sql.SQLAccess;
 import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.SQLUtils;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
 import org.minerift.ether.database.sql.op.dml.cache.RawQuery;
 
 import java.util.Collection;
 
-public class DMLSelectAll extends DMLOp {
+import static org.minerift.ether.database.sql.SQLUtils.EMPTY_BIND_VALS;
 
-    public DMLSelectAll(SQLDatabase db) {
+// Selects all ids in a table
+public class DMLSelectAllIds extends DMLOp {
+
+    public DMLSelectAllIds(SQLDatabase db) {
         super(db);
     }
 
     @Override
     protected RawQuery newQueryForCache(Model<?, ?> model) {
-        String sql = db.dsl().select().from(model.asJooqTable()).getSQL();
-        return new RawQuery(sql, SQLUtils.EMPTY_BIND_VALS);
+        String sql = db.dsl().select(model.getPrimaryKey().asJooqField()).from(model.asJooqTable()).getSQL();
+        return new RawQuery(sql, EMPTY_BIND_VALS);
     }
 
     public <M, K> CloseableResultQuery<Record> getJooqQuery(SQLAccess access, Model<M, K> model) {

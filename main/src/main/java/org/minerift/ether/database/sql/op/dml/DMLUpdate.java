@@ -15,11 +15,11 @@ public class DMLUpdate extends DMLOp {
     @Override
     protected RawQuery newQueryForCache(Model<?, ?> model) {
         var keyBindVals = model.getEmptyBindValuesUnchecked(model.getPrimaryKey());
-        var allBindVals = model.getEmptyBindValues();
+        var fieldsNoKeyVals = model.getEmptyBindValuesUnchecked(model.getFieldsNoKey());
         String sql = db.dsl().update(model.asJooqTable())
-                .set(allBindVals)
+                .set(fieldsNoKeyVals)
                 .where(condition(keyBindVals))
                 .getSQL();
-        return new RawQuery(sql, allBindVals.keySet(), keyBindVals.keySet());
+        return new RawQuery(sql, fieldsNoKeyVals.keySet(), keyBindVals.keySet());
     }
 }

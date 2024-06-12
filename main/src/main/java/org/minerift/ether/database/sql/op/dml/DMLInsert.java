@@ -16,6 +16,7 @@ public class DMLInsert extends DMLOp {
         Fields<?, ?> fields = model.getFields();
         String sql = db.dsl().insertInto(model.asJooqTable())
                 .columns(fields.asJooqFields())
+                .values(new Object[fields.size()])
                 .getSQL();
         return new RawQuery(sql, fields.getNames());
     }
