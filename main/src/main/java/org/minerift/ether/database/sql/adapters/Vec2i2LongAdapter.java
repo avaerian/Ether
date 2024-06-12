@@ -1,16 +1,19 @@
 package org.minerift.ether.database.sql.adapters;
 
+import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 
 public class Vec2i2LongAdapter implements Adapter<Vec2i, Long> {
 
+    private static final Maths.PackingOrder ORDER = Maths.PackingOrder.ZX;
+
     @Override
     public Long adaptTo(Vec2i obj) {
-        return ((long) obj.getX() << 32) | (obj.getZ() & 0xffffffffL);
+        return Maths.pack(obj, ORDER);
     }
 
     @Override
     public Vec2i adaptFrom(Long obj) {
-        return new Vec2i((int)(obj >> 32), obj.intValue());
+        return Maths.unpack(obj, ORDER);
     }
 }
