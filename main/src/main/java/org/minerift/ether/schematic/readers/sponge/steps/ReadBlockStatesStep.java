@@ -65,7 +65,7 @@ public class ReadBlockStatesStep implements IReaderStep {
                     } else {
                         final int index = x + (z * width) + (y * width * length);
                         final int blockId = blockDataRaw[index] & 0xFF;
-                        builder.getBlocks().add(new BlockArchetype(palette.get(blockId), mutablePos.newImmutable()));
+                        builder.getBlocks().add(new BlockArchetype(palette.get(blockId), mutablePos.copyAsImmutable()));
                     }
                 }
             }

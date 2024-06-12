@@ -16,7 +16,8 @@ public class SchematicType {
     public final static SchematicType WORLDEDIT;
 
     static {
-        UNSUPPORTED = new SchematicType(null, null);
+        //UNSUPPORTED = new SchematicType(null, null);
+        UNSUPPORTED = null;
         SPONGE = new SchematicType(new SpongeSchematicReader(), new SpongeSchematicPaster());
         // Initialize only if WorldEdit is supported
         WORLDEDIT = Ether.isUsingWorldEdit()

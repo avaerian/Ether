@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class SchematicReaderContext {
+public class SchematicReaderContext implements AutoCloseable {
 
     private final NBTInputStream nbt;
     private final CompoundTag head;
@@ -23,12 +23,11 @@ public class SchematicReaderContext {
         try {
             return new SchematicReaderContext(file);
         } catch (IOException ex) {
-            throw (SchematicFileReadException) ex;
+            throw new SchematicFileReadException(ex);
         }
     }
 
     private SchematicReaderContext(File file) throws IOException {
-
         Preconditions.checkNotNull(file, "File cannot be null!");
 
         // Attempt to read file
@@ -38,6 +37,7 @@ public class SchematicReaderContext {
         this.builder = SpongeSchematic.builder();
     }
 
+    @Override
     public void close() throws IOException {
         nbt.close();
     }

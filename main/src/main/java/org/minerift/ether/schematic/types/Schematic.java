@@ -18,7 +18,6 @@ public interface Schematic {
                 ? SchematicType.WORLDEDIT
                 : SchematicType.SPONGE;
 
-        // Read into memory
         return schemType.getReader().read(file);
     }
 

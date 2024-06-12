@@ -8,14 +8,12 @@ import org.minerift.ether.util.nbt.tags.CompoundTag;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.*;
 
 public class ReadEntitiesStep implements IReaderStep {
+
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
@@ -23,7 +21,7 @@ public class ReadEntitiesStep implements IReaderStep {
 
         if(tagList.isPresent()) {
             List<NBTSectionView> entitiesRaw = tagList.get().stream().map(tag -> new NBTSectionView((CompoundTag)tag)).toList();
-            ctx.builder.setEntities(new HashSet<>(entitiesRaw.size()));
+            ctx.builder.setEntities(new ArrayList<>(entitiesRaw.size()));
 
             for(NBTSectionView entity : entitiesRaw) {
 
@@ -42,4 +40,5 @@ public class ReadEntitiesStep implements IReaderStep {
             }
         }
     }
+
 }

@@ -1,8 +1,8 @@
 package org.minerift.ether.schematic.types;
 
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
-import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.world.BiomeArchetype;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
@@ -11,7 +11,6 @@ import org.minerift.ether.world.EntityArchetype;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class SpongeSchematic implements Schematic {
 
@@ -19,7 +18,7 @@ public class SpongeSchematic implements Schematic {
     private Vec3i offset;
     private List<BlockArchetype> blocks;
     private List<BiomeArchetype> biomes;
-    private Set<EntityArchetype> entities;
+    private List<EntityArchetype> entities;
 
     public static SpongeSchematic.Builder builder() {
         return new SpongeSchematic.Builder();
@@ -73,7 +72,7 @@ public class SpongeSchematic implements Schematic {
         return biomes;
     }
 
-    public Set<EntityArchetype> getEntities() {
+    public List<EntityArchetype> getEntities() {
         return entities;
     }
 
@@ -85,7 +84,7 @@ public class SpongeSchematic implements Schematic {
         private Vec3i offset;
         private List<BlockArchetype> blocks;
         private Map<Vec3i, BlockEntityArchetype> blockEntities;
-        private Set<EntityArchetype> entities;
+        private List<EntityArchetype> entities;
         private List<BiomeArchetype> biomes;
 
         private Builder() {
@@ -97,7 +96,7 @@ public class SpongeSchematic implements Schematic {
             this.blocks = Collections.emptyList();
             this.biomes = Collections.emptyList();
             this.blockEntities = Collections.emptyMap();
-            this.entities = Collections.emptySet();
+            this.entities = Collections.emptyList();
         }
 
         public SpongeSchematic build() {
@@ -121,6 +120,10 @@ public class SpongeSchematic implements Schematic {
             return length;
         }
 
+        public Vec3i getDimensions() {
+            return new Vec3i(width, height, length);
+        }
+
         public Vec3i getOffset() {
             return offset;
         }
@@ -137,7 +140,7 @@ public class SpongeSchematic implements Schematic {
             return biomes;
         }
 
-        public Set<EntityArchetype> getEntities() {
+        public List<EntityArchetype> getEntities() {
             return entities;
         }
 
@@ -174,7 +177,7 @@ public class SpongeSchematic implements Schematic {
             this.biomes = biomes;
         }
 
-        public void setEntities(Set<EntityArchetype> entities) {
+        public void setEntities(List<EntityArchetype> entities) {
             this.entities = entities;
         }
     }

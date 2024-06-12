@@ -18,8 +18,7 @@ public class WESchematicReader implements ISchematicReader<WorldEditSchematic> {
             Clipboard clipboard = ClipboardFormats.findByFile(file).getReader(new FileInputStream(file)).read();
             return new WorldEditSchematic(clipboard);
         } catch (IOException ex) {
-            throw (SchematicFileReadException) ex;
+            throw new SchematicFileReadException("Failed to read schematic via WorldEdit", ex);
         }
     }
-
 }
