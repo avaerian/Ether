@@ -20,12 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.NBT_BLOCK_DATA;
 import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.NBT_PALETTE;
 
+// TODO: refactor this class into PalettedData and remove all region stuff (handle this outside of this class)
 public class BinaryPalettedRegion implements Iterable<Byte> {
 
     public static void main(String[] args) throws IOException {
