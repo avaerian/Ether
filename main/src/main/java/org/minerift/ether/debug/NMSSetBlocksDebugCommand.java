@@ -19,6 +19,8 @@ import java.util.*;
 
 public class NMSSetBlocksDebugCommand implements CommandExecutor {
 
+    // /nmsblock <mode> <width> <height> <length>
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
@@ -53,9 +55,10 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
 
         // Set blocks based on mode
         switch (mode) {
-            case "SYNC" -> nmsAccess.setBlocks(cuboid, plr.getWorld());
-            case "ASYNC" -> nmsAccess.setBlocksAsync(cuboid, plr.getWorld());
-            case "DIST" -> nmsAccess.setBlocksAsyncLazy(cuboid, plr.getWorld());
+            case "SYNC"     -> nmsAccess.setBlocks(cuboid, plr.getWorld());
+            case "ASYNC"    -> nmsAccess.setBlocksAsync(cuboid, plr.getWorld());
+            case "DIST"     -> nmsAccess.setBlocksAsyncLazy(cuboid, plr.getWorld());
+            case "FIXED"    -> nmsAccess.testNewPartitionPaster(cuboid, plr.getWorld()); // should fix performance issues with loading chunks and pasting blocks
         }
         plr.sendMessage("Blocks updated");
 

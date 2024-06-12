@@ -19,9 +19,9 @@ public class ConfigReloadDebugCommand implements CommandExecutor {
         if(reload) {
             sender.sendMessage("Config reloaded successfully!");
 
-            getLogger().info("tileSize: " + config.getTileSize());
+            getLogger().info("tileSize: " + config.getTileLengthChunks());
             getLogger().info("tileHeight: " + config.getTileHeight());
-            getLogger().info("tileAccessibleArea: " + config.getTileAccessibleArea());
+            getLogger().info("tileAccessibleArea: " + config.getTileAccessibleAreaBlocks());
         }
         return reload;
     }
