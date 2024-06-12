@@ -1,7 +1,5 @@
 package org.minerift.ether.benchmark;
 
-import org.minerift.ether.GridAlgorithm;
-import org.minerift.ether.util.math.Vec2i;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;

@@ -7,7 +7,11 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import it.unimi.dsi.fastutil.shorts.ShortSets;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
@@ -17,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,20 +31,14 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.data.BlockData;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
-import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSBridge;
-import org.minerift.ether.util.math.Vec3i;
-import org.minerift.ether.util.nbt.tags.*;
-import org.minerift.ether.work.Operation;
-import org.minerift.ether.work.WorkQueue;
+import org.minerift.ether.util.reflect.Reflect;
+import org.minerift.ether.util.reflect.ReflectedObject;
+import org.minerift.ether.work.TaskBatch;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.EntityArchetype;
@@ -47,9 +46,22 @@ import org.minerift.ether.world.EntityArchetype;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static org.minerift.ether.nms.v1_19_R1.NativeTypeConversions.fromNative;
+import static org.minerift.ether.nms.v1_19_R1.NativeTypeConversions.toNative;
+
 public class NMSBridgeImpl implements NMSBridge {
+
+    @Override
+    public void bootstrap() {
+        ReflectionMappings.class.getClass(); // load class and fields for reflection
+        System.out.println("frozen registry obfuscated field: " + ReflectionMappings.FROZEN_REGISTRY_FIELD);
+        ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(BuiltinRegistries.BIOME);
+        System.out.println("Biome Registry Frozen? " + (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD));
+    }
 
     private void fastClearSingleChunk(ChunkPos pos, World world, boolean clearEntities) {
         fastClearSingleChunk(world.getChunkAt(pos.x, pos.z), clearEntities);
@@ -59,6 +71,7 @@ public class NMSBridgeImpl implements NMSBridge {
     // Does not perform lighting updates
     private void fastClearSingleChunk(Chunk chunk, boolean clearEntities) {
 
+        // TODO: reconsider chunk loading code (chunk should always be loaded when passed as argument)
         // Load chunk if not already loaded
         boolean chunkInitiallyLoaded = chunk.isLoaded();
         if(!chunkInitiallyLoaded) {
@@ -75,6 +88,7 @@ public class NMSBridgeImpl implements NMSBridge {
         final FriendlyByteBuf emptySectionBuf = new FriendlyByteBuf(Unpooled.buffer());
         emptyChunk.getSection(0).write(emptySectionBuf);
 
+        // TODO: clear block entities before clearing entities?
         // Remove entities from chunk
         if(clearEntities) {
             Arrays.stream(chunk.getEntities())
@@ -137,18 +151,18 @@ public class NMSBridgeImpl implements NMSBridge {
         });
     }
 
-    private void fastSetBlocksLogic(List<BlockArchetype> blocks, World world, GetChunkFunction getChunkFunc) {
+    private void fastSetBlocksLogic(List<BlockArchetype> blocks, World world, DeprecatedGetChunkFunction getChunkFunc) {
 
-        final BlockPartition partition = new BlockPartition(blocks, world, getChunkFunc);
+        final DeprecatedBlockPartition partition = new DeprecatedBlockPartition(blocks, world, getChunkFunc);
 
         // Perform actions on chunks
         partition.forEachChunk((chunk, chunkChanges) -> {
 
             // Apply changes to sections
-            for(Map.Entry<LevelChunkSection, ChunkSectionChanges> entry : chunkChanges.entrySet()) {
+            for(Map.Entry<LevelChunkSection, DeprecatedChunkSectionChanges> entry : chunkChanges.entrySet()) {
 
                 final LevelChunkSection section = entry.getKey();
-                final ChunkSectionChanges sectionChanges = entry.getValue();
+                final DeprecatedChunkSectionChanges sectionChanges = entry.getValue();
 
                 applyBlocksToSection(chunk, section, sectionChanges.blocks);
                 sectionChanges.computePacketData();
@@ -169,29 +183,32 @@ public class NMSBridgeImpl implements NMSBridge {
 
     @Override
     public void fastSetBlocks(List<BlockArchetype> blocks, World world) {
-        fastSetBlocksLogic(blocks, world, GetChunkFunction.SYNC);
+        fastSetBlocksLogic(blocks, world, DeprecatedGetChunkFunction.SYNC);
     }
 
     @Override
     public void fastSetBlocksAsync(List<BlockArchetype> blocks, World world) {
-        fastSetBlocksLogic(blocks, world, GetChunkFunction.ASYNC);
+        fastSetBlocksLogic(blocks, world, DeprecatedGetChunkFunction.ASYNC);
     }
 
     @Override
     public void fastSetBlocksAsyncLazy(List<BlockArchetype> blocks, World world) {
 
-        final BlockPartition partition = new BlockPartition(blocks, world, GetChunkFunction.ASYNC);
-        final WorkQueue workQueue = EtherPlugin.getInstance().getWorkQueue();
-        final Operation operation = new Operation();
+        final DeprecatedBlockPartition partition = new DeprecatedBlockPartition(blocks, world, DeprecatedGetChunkFunction.ASYNC);
+        //final WorkQueue workQueue = EtherPlugin.getInstance().getWorkQueue();
+        final Logger logger = Ether.getLogger();
+        final TaskBatch operation = new TaskBatch();
+
+        System.out.println("Partition Chunks = " + partition.getChunks());
 
         // Perform actions on chunks
         partition.forEachChunk((chunk, chunkChanges) -> {
 
             // Apply changes to sections
-            for(Map.Entry<LevelChunkSection, ChunkSectionChanges> entry : chunkChanges.entrySet()) {
+            for(Map.Entry<LevelChunkSection, DeprecatedChunkSectionChanges> entry : chunkChanges.entrySet()) {
 
                 final LevelChunkSection section = entry.getKey();
-                final ChunkSectionChanges sectionChanges = entry.getValue();
+                final DeprecatedChunkSectionChanges sectionChanges = entry.getValue();
 
                 operation.addTask(() -> {
 
@@ -212,52 +229,44 @@ public class NMSBridgeImpl implements NMSBridge {
             }
         });
 
-        // Queue light updates after operation
-        operation.whenComplete((success, failReason) -> {
-            if(failReason == Operation.FailReason.QUEUE_SHUTDOWN) {
-                // TODO: replace with proper logger
-                System.out.println("Queue shutdown, so lazy block-setting operation failed.");
-                System.out.println(String.format("Failed to execute %d tasks for operation.", operation.getRemainingTaskCount()));
-            }
+        operation.whenComplete((status) -> {
 
-            if(success) {
-                final ServerLevel level = ((CraftWorld) world).getHandle();
-                level.getChunkSource().getLightEngine().relight(partition.getChunksForRelighting(), a -> {}, b -> {});
+            switch(status) {
+                // Queue light updates after operation completes
+                case OP_COMPLETE -> {
+                    final ServerLevel level = ((CraftWorld) world).getHandle();
+                    level.getChunkSource().getLightEngine().relight(partition.getChunksForRelighting(), a -> {}, b -> {});
 
-                /*
-                // Save to disk so new changes can be flushed from memory
-                if(partition.getTotalBlockChanges() > (100 * 100 * 100)) {
-                    level.save(null, true, level.noSave(), false);
-                }*/
+                    /*
+                    // Save to disk so new changes can be flushed from memory?
+                    if(partition.getTotalBlockChanges() > (100 * 100 * 100)) {
+                        level.save(null, true, level.noSave(), false);
+                    }*/
+                }
+
+                case QUEUE_SHUTDOWN -> {
+                    logger.log(Level.WARNING, "Queue shutdown, so lazy block-setting operation failed.");
+                    logger.log(Level.WARNING, String.format("Failed to execute %d tasks for operation.", operation.getRemainingTaskCount()));
+                }
             }
         });
 
         // Queue work for execution
-        workQueue.enqueue(operation);
+        Ether.getWorkQueue().enqueue(operation);
     }
 
-    private interface GetChunkFunction {
-        void accept(World world, Vec3i pos, Consumer<Chunk> cb);
+    // Deprecated for removal because block partition should not have to load regions in world to partition block archetypes
+    @Deprecated(forRemoval = true)
+    private static class DeprecatedBlockPartition {
 
-        GetChunkFunction SYNC = (world, pos, chunkCallback) -> {
-            chunkCallback.accept(world.getChunkAt(pos.getX() >> 4, pos.getZ() >> 4));
-        };
-
-        GetChunkFunction ASYNC = (world, pos, chunkCallback) -> {
-            world.getChunkAtAsync(pos.getX() >> 4, pos.getZ() >> 4, chunkCallback);
-        };
-    }
-
-    private static class BlockPartition {
-
-        private final Map<LevelChunk, Map<LevelChunkSection, ChunkSectionChanges>> partition;
+        private final Map<LevelChunk, Map<LevelChunkSection, DeprecatedChunkSectionChanges>> partition;
         private final World world;
-        private final GetChunkFunction chunkGetter;
+        private final DeprecatedGetChunkFunction chunkGetter;
         private int totalBlockCount;
 
         private ChunkPos bottomLeft, topRight;
 
-        public BlockPartition(List<BlockArchetype> blocks, World world, GetChunkFunction chunkGetter) {
+        public DeprecatedBlockPartition(List<BlockArchetype> blocks, World world, DeprecatedGetChunkFunction chunkGetter) {
             Preconditions.checkArgument(blocks != null && !blocks.isEmpty(), "Queued blocks cannot be empty!");
 
             // Filter out-of-bound blocks
@@ -315,7 +324,7 @@ public class NMSBridgeImpl implements NMSBridge {
             this.topRight = new ChunkPos(right, top);
         }
 
-        public Map<LevelChunkSection, ChunkSectionChanges> getChunkChanges(LevelChunk chunk) {
+        public Map<LevelChunkSection, DeprecatedChunkSectionChanges> getChunkChanges(LevelChunk chunk) {
             return partition.get(chunk);
         }
 
@@ -344,15 +353,18 @@ public class NMSBridgeImpl implements NMSBridge {
 
         public void addAll(Collection<BlockArchetype> blocks) {
             blocks.forEach(this::add);
+            System.out.println("Requested block count = " + blocks.size());
+            System.out.println("Partition size = " + this.partition.size());
+            findRegionBounds();
         }
 
         public int getTotalBlockChanges() {
-            return totalBlockCount;
+            return totalBlockCount; // TODO: calculate from partition instead of storing num?
         }
 
         // Simple cache for partition method
         private LevelChunkSection lastSection = null;
-        private ChunkSectionChanges lastSectionChanges = null;
+        private DeprecatedChunkSectionChanges lastSectionChanges = null;
 
         private void partitionSingleBlock(BlockArchetype block, Chunk bukkitChunk) {
             final LevelChunk chunk = ((CraftChunk) bukkitChunk).getHandle();
@@ -360,11 +372,11 @@ public class NMSBridgeImpl implements NMSBridge {
             final SectionPos pos = SectionPos.of(block.getX() >> 4, block.getY() >> 4, block.getZ() >> 4);
 
             // Check if cached and update if needed
-            ChunkSectionChanges sectionChanges;
+            DeprecatedChunkSectionChanges sectionChanges;
             if(section != lastSection) {
                 // Prepare partition
-                Map<LevelChunkSection, ChunkSectionChanges> chunkChanges = partition.computeIfAbsent(chunk, (ignore) -> new HashMap<>());
-                sectionChanges = chunkChanges.computeIfAbsent(section, (ignore) -> new ChunkSectionChanges(pos, totalBlockCount));
+                Map<LevelChunkSection, DeprecatedChunkSectionChanges> chunkChanges = partition.computeIfAbsent(chunk, (ignore) -> new HashMap<>());
+                sectionChanges = chunkChanges.computeIfAbsent(section, (ignore) -> new DeprecatedChunkSectionChanges(pos, totalBlockCount));
             } else {
                 sectionChanges = lastSectionChanges;
             }
@@ -377,12 +389,12 @@ public class NMSBridgeImpl implements NMSBridge {
             this.lastSectionChanges = sectionChanges;
         }
 
-        public void forEachChunk(BiConsumer<LevelChunk, Map<LevelChunkSection, ChunkSectionChanges>> callback) {
+        public void forEachChunk(BiConsumer<LevelChunk, Map<LevelChunkSection, DeprecatedChunkSectionChanges>> callback) {
             partition.forEach(callback);
         }
     }
 
-    private void applyBlocksToSection(LevelChunk chunk, LevelChunkSection section, List<BlockArchetype> blocks) {
+    public static void applyBlocksToSection(LevelChunk chunk, LevelChunkSection section, List<BlockArchetype> blocks) {
         section.acquire();
         try {
             final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
@@ -398,7 +410,7 @@ public class NMSBridgeImpl implements NMSBridge {
                 final int z = SectionPos.sectionRelative(block.getZ());
 
                 // Set block
-                BlockState state = toNativeBlockState(block, Blocks.AIR.defaultBlockState());
+                BlockState state = toNative(block, Blocks.AIR.defaultBlockState());
                 BlockState oldState = section.setBlockState(x, y, z, state, false);
 
                 // Remove old block entity, if needed
@@ -414,7 +426,7 @@ public class NMSBridgeImpl implements NMSBridge {
 
                         // Load NBT data
                         if(block instanceof BlockEntityArchetype blockEntityArchetype) {
-                            net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) toNativeTag(blockEntityArchetype.getNBTData());
+                            CompoundTag nbt = (CompoundTag) toNative(blockEntityArchetype.getNBTData());
                             blockEntity.load(nbt);
                             blockEntity.setChanged();
                         }
@@ -430,47 +442,6 @@ public class NMSBridgeImpl implements NMSBridge {
         } finally {
             section.release();
         }
-    }
-
-    private static class ChunkSectionChanges {
-
-        public static final int BLOCKS_PER_SECTION = 16 * 16 * 16; // 4096
-
-        public final List<BlockArchetype> blocks; // block states to be applied in section
-        public final SectionPos sectionPos;
-
-        // Packet data
-        public ShortSet positions;
-        public BlockState[] states;
-
-        public ChunkSectionChanges(SectionPos sectionPos, int totalBlockCount) {
-            this.blocks = new ArrayList<>(totalBlockCount >= BLOCKS_PER_SECTION
-                    ? BLOCKS_PER_SECTION
-                    : BLOCKS_PER_SECTION / 4);
-            this.sectionPos = sectionPos;
-            this.positions = ShortSets.emptySet();
-            this.states = new BlockState[0];
-        }
-
-        // Computes data about section changes for section update packet
-        public void computePacketData() {
-            short[] positions = new short[blocks.size()];
-            BlockState[] states = new BlockState[blocks.size()];
-
-            int index = 0;
-            BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
-            for(Iterator<BlockArchetype> it = blocks.iterator(); it.hasNext(); index++) {
-                BlockArchetype block = it.next();
-                mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
-
-                positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
-                states[index] = toNativeBlockState(block);
-            }
-
-            this.positions = new ShortArraySet(positions);
-            this.states = states;
-        }
-
     }
 
     private void fastClearChunksLogic(Chunk e1, Chunk e2, Consumer<ChunkPos> clearChunk) {
@@ -504,7 +475,7 @@ public class NMSBridgeImpl implements NMSBridge {
         // Attempt to spawn entity
         //EntityType.loadEntityRecursive() // this spawns the entities that can be spawned and logs failed entities
         EntityType.byString(entityArchetype.getType()).ifPresent(type -> {
-            final net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) toNativeTag(entityArchetype.getNbtData());
+            final net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) toNative(entityArchetype.getNbtData());
             final Entity entity = type.create(level);
             if(entity != null) {
                 entity.load(nbt);
@@ -515,6 +486,12 @@ public class NMSBridgeImpl implements NMSBridge {
         //return success.get();
 
         return null;
+    }
+
+    @Override
+    public void testNewPartitionPaster(List<BlockArchetype> blocks, World world) {
+        BlockPartition partition = new BlockPartition(blocks, world.getMinHeight());
+        PartitionPaster.paste(world, partition);
     }
 
     // Single chunk section
@@ -587,6 +564,17 @@ public class NMSBridgeImpl implements NMSBridge {
         stateCounts.forEach((key, value) -> System.out.println(key + " : " + value[0]));
     }
 
+    @Override
+    public NamespacedKey getBiomeAt(World world, int x, int y, int z) {
+        ServerLevel level = ((CraftWorld) world).getHandle();
+        Holder<Biome> biomeHolder = level.getBiomeManager().getNoiseBiomeAtPosition(new BlockPos(x, y, z));
+        Biome biome = biomeHolder.value();
+        //Biome biome = level.getBiome().value();
+
+        System.out.println(biome == null ? "null" : biome.toString());
+        return fromNative(biome);
+    }
+
     private static LevelChunkSection getChunkSectionAt(Location loc) {
         return getChunkSectionAt(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), loc.getWorld());
     }
@@ -603,6 +591,7 @@ public class NMSBridgeImpl implements NMSBridge {
         return getNeighboringChunks(chunk, chunk);
     }
 
+    @Deprecated
     // Get the neighboring chunks between two endpoints (chunks)
     private static Set<ChunkPos> getNeighboringChunks(Chunk e1, Chunk e2) {
 
@@ -617,84 +606,55 @@ public class NMSBridgeImpl implements NMSBridge {
         return getNeighboringChunks(p1, p2);
     }
 
-    private static Set<ChunkPos> getNeighboringChunks(ChunkPos e1, ChunkPos e2) {
+    @Deprecated
+    public static Set<ChunkPos> getNeighboringChunks(ChunkPos e1, ChunkPos e2) {
         // Adjust for neighbors
-        e1 = new ChunkPos(e1.x - 1, e1.z - 1);
-        e2 = new ChunkPos(e2.x + 1, e2.z + 1);
+        ChunkPos updatedE1 = new ChunkPos(e1.x - 1, e1.z - 1);
+        ChunkPos updatedE2 = new ChunkPos(e2.x + 1, e2.z + 1);
 
         // Get chunks with neighbors
-        return ChunkPos.rangeClosed(e1, e2).collect(Collectors.toSet());
+        return ChunkPos.rangeClosed(updatedE1, updatedE2).collect(Collectors.toSet());
     }
 
+    @Deprecated
+    public static class DeprecatedChunkSectionChanges {
 
+        public static final int BLOCKS_PER_SECTION = 16 * 16 * 16; // 4096
 
-    // TODO: refactor into adapter class for NMS/Ether conversions
-    private static net.minecraft.nbt.Tag toNativeTag(Tag tag) {
-        if(tag == null) {
-            return null;
+        public final List<BlockArchetype> blocks; // block states to be applied in section
+        public final SectionPos sectionPos;
+
+        // Packet data
+        public ShortSet positions;
+        public BlockState[] states;
+
+        public DeprecatedChunkSectionChanges(SectionPos sectionPos, int totalBlockCount) {
+            this.blocks = new ArrayList<>(totalBlockCount >= BLOCKS_PER_SECTION
+                    ? BLOCKS_PER_SECTION
+                    : BLOCKS_PER_SECTION / 4);
+            this.sectionPos = sectionPos;
+            this.positions = ShortSets.emptySet();
+            this.states = new BlockState[0];
         }
 
-        return switch (tag.getTagType()) {
+        // Computes data about section changes for section update packet
+        public void computePacketData() {
+            short[] positions = new short[blocks.size()];
+            BlockState[] states = new BlockState[blocks.size()];
 
-            case END_TAG -> net.minecraft.nbt.EndTag.INSTANCE;
+            int index = 0;
+            BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+            for (Iterator<BlockArchetype> it = blocks.iterator(); it.hasNext(); index++) {
+                BlockArchetype block = it.next();
+                mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
 
-            // Primitives
-            case BYTE_TAG   -> net.minecraft.nbt.ByteTag.valueOf(((ByteTag)tag).getValue());
-            case SHORT_TAG  -> net.minecraft.nbt.ShortTag.valueOf(((ShortTag)tag).getValue());
-            case INT_TAG    -> net.minecraft.nbt.IntTag.valueOf(((IntTag)tag).getValue());
-            case LONG_TAG   -> net.minecraft.nbt.LongTag.valueOf(((LongTag)tag).getValue());
-            case FLOAT_TAG  -> net.minecraft.nbt.FloatTag.valueOf(((FloatTag)tag).getValue());
-            case DOUBLE_TAG -> net.minecraft.nbt.DoubleTag.valueOf(((DoubleTag)tag).getValue());
-            case STRING_TAG -> net.minecraft.nbt.StringTag.valueOf(((StringTag)tag).getValue());
-
-            // Arrays
-            case BYTE_ARRAY_TAG -> new net.minecraft.nbt.ByteArrayTag(((ByteArrayTag)tag).getValue());
-            case INT_ARRAY_TAG  -> new net.minecraft.nbt.IntArrayTag(((IntArrayTag)tag).getValue());
-            case LONG_ARRAY_TAG -> new net.minecraft.nbt.LongArrayTag(((LongArrayTag)tag).getValue());
-
-            // Collections
-            case LIST_TAG -> {
-                final ListTag listTag = ((ListTag) tag);
-                final net.minecraft.nbt.ListTag nativeTag = new net.minecraft.nbt.ListTag();
-                listTag.getValue().forEach(tagInList -> nativeTag.add(toNativeTag(tagInList)));
-                yield nativeTag;
+                positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
+                states[index] = toNative(block);
             }
 
-            case COMPOUND_TAG -> {
-                final CompoundTag compoundTag = (CompoundTag) tag;
-                final net.minecraft.nbt.CompoundTag nativeTag = new net.minecraft.nbt.CompoundTag();
-                for(Map.Entry<String, Tag> entry : compoundTag.getValue().entrySet()) {
-                    nativeTag.put(entry.getKey(), toNativeTag(entry.getValue()));
-                }
-                yield nativeTag;
-            }
-        };
-    }
-
-    private static BlockState toNativeBlockState(BlockArchetype block) {
-        return toNativeBlockState(block.getId());
-    }
-
-    private static BlockState toNativeBlockState(BlockArchetype block, BlockState fallback) {
-        return toNativeBlockState(block.getId(), fallback);
-    }
-
-    private static BlockState toNativeBlockState(BlockData data) {
-        Preconditions.checkNotNull(data, "BlockData cannot be null!");
-        return ((CraftBlockData)data).getState();
-    }
-
-    // Returns null if block state can't be read
-    private static BlockState toNativeBlockState(String id) {
-        return toNativeBlockState(id, null);
-    }
-
-    // Returns the fallback if the block state can't be read
-    private static BlockState toNativeBlockState(String id, BlockState fallback) {
-        try {
-            return toNativeBlockState(Bukkit.createBlockData(id));
-        } catch (IllegalArgumentException ex) {
-            return fallback;
+            this.positions = new ShortArraySet(positions);
+            this.states = states;
         }
+
     }
 }

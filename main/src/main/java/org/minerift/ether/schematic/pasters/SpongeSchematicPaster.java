@@ -8,7 +8,7 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.types.SpongeSchematic;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 public class SpongeSchematicPaster implements ISchematicPaster<SpongeSchematic> {
 
@@ -19,16 +19,17 @@ public class SpongeSchematicPaster implements ISchematicPaster<SpongeSchematic> 
         Preconditions.checkNotNull(world, String.format("World %s could not be found!", worldName));
 
         // Translate to location + offset
-        final Vec3i.Mutable worldPasteLoc = pos.asMutable();
-        worldPasteLoc.add(schem.getOffset());
+        final Vec3i.Mutable worldPasteLoc = pos.copy().asMutable();
+        worldPasteLoc.subtract(schem.getOffset());
+        worldPasteLoc.subtract(options.offset); // account for additional SchematicPasteOptions offset
 
         // TODO: ignore air blocks based on options
 
         // Lazily set blocks
         schem.getBlocks().forEach(block -> block.getPos().add(worldPasteLoc)); // translate to proper pos
-        //final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
         final NMSAccess nmsAccess = Ether.getNMS();
-        nmsAccess.setBlocksAsyncLazy(schem.getBlocks(), world);
+        //nmsAccess.setBlocksAsyncLazy(schem.getBlocks(), world);
+        nmsAccess.testNewPartitionPaster(schem.getBlocks(), world);
 
         // Set biomes
         if(options.copyBiomes) {

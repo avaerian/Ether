@@ -3,7 +3,7 @@ package org.minerift.ether.test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.minerift.ether.island.*;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.Vec2i;
 
 import java.util.EnumSet;
 

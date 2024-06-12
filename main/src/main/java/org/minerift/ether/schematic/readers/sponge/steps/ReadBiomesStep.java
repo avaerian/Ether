@@ -4,8 +4,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.bukkit.block.Biome;
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.sponge.ReaderContext;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.IntTag;
 import org.minerift.ether.util.nbt.tags.Tag;
@@ -21,7 +21,7 @@ import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.*;
 public class ReadBiomesStep implements IReaderStep {
 
     @Override
-    public void read(ReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
         final short width = ctx.builder.getWidth();
         final short height = ctx.builder.getHeight();

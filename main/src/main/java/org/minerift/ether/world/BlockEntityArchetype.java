@@ -1,7 +1,7 @@
 package org.minerift.ether.world;
 
 import org.minerift.ether.util.nbt.tags.CompoundTag;
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 // A block containing a block entity
 public class BlockEntityArchetype extends BlockArchetype {

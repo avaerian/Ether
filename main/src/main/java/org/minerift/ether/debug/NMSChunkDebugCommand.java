@@ -15,6 +15,8 @@ import org.minerift.ether.nms.NMSAccess;
 public class NMSChunkDebugCommand implements CommandExecutor {
 
 
+    // /nmschunk <diameter> <mode>
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
@@ -29,7 +31,7 @@ public class NMSChunkDebugCommand implements CommandExecutor {
         }
 
         // TODO: mode doesn't matter as of right now
-        String mode = "CLEAR"; // modes: "CLEAR", "REGEN", "ASYNC" -> default: clear
+        String mode = "CLEAR"; // modes: "CLEAR", "REGEN", "ASYNC"
         if(args.length >= 2) {
             mode = args[1].toUpperCase();
         }

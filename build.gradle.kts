@@ -3,8 +3,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("com.github.johnrengelman.shadow") version("7.1.2") apply(false)
     id("java")
-
-    // TODO: create a global constant for this plugin id
     id("io.papermc.paperweight.userdev") version("1.5.4") apply(false)
 }
 
@@ -36,6 +34,7 @@ allprojects {
         dependencies {
             include(project(":main"))
             include(project(":v1_19_R1"))
+            include(dependency("xyz.jpenilla:reflection-remapper"))
         }
     }
 }
@@ -43,6 +42,7 @@ allprojects {
 // Paper-API dependency for submodules
 subprojects {
     repositories {
+        mavenCentral()
         maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
     }
 
@@ -55,8 +55,13 @@ subprojects {
 configure(subprojects.filter { listOf("v1_19_R1").contains(it.name) }) {
     apply(plugin = "io.papermc.paperweight.userdev")
 
+    repositories {
+        mavenCentral()
+    }
+
     dependencies {
         implementation(project(":main"))
+        implementation("xyz.jpenilla:reflection-remapper:0.1.1")
     }
 }
 

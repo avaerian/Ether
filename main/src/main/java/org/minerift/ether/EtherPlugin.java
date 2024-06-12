@@ -1,78 +1,44 @@
 package org.minerift.ether;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.minerift.ether.debug.NMSBlockScanDebugCommand;
-import org.minerift.ether.debug.NMSChunkDebugCommand;
-import org.minerift.ether.debug.NMSSetBlocksDebugCommand;
-import org.minerift.ether.debug.SchematicDebugCommand;
-import org.minerift.ether.island.IslandManager;
-import org.minerift.ether.work.WorkQueue;
+import org.minerift.ether.debug.*;
+import org.minerift.ether.listeners.BlockBreakListener;
+import org.minerift.ether.listeners.PlayerJoinQuitListener;
 
-import java.util.logging.Level;
-
+// Represents the Minecraft plugin (handles plugin API stuff here)
 public class EtherPlugin extends JavaPlugin {
-
-    private static EtherPlugin INSTANCE = null;
-
-    private boolean isUsingWorldEdit;
-
-    private WorkQueue workQueue;
-    private IslandManager islandManager;
-
-    public static EtherPlugin getInstance() {
-        return INSTANCE;
-    }
 
     @Override
     public void onLoad() {
-
+        Ether.onLoad(this);
     }
 
     @Override
     public void onEnable() {
+        Ether.onEnable();
 
-        INSTANCE = this;
-        Ether.load(INSTANCE);
+        // Register debug commands
+        getCommand("island").setExecutor(new IslandDebugCommand());
 
-        // Load other stuff
-        this.isUsingWorldEdit = false; // TODO
-        this.workQueue = new WorkQueue();
-        workQueue.start();
-
-        this.islandManager = new IslandManager();
-
-        // Register debug command
         getCommand("nmschunk").setExecutor(new NMSChunkDebugCommand());
         getCommand("nmsblock").setExecutor(new NMSSetBlocksDebugCommand());
         getCommand("blockscan").setExecutor(new NMSBlockScanDebugCommand());
         getCommand("pasteschem").setExecutor(new SchematicDebugCommand());
+        getCommand("cfgreload").setExecutor(new ConfigReloadDebugCommand());
 
-        getLogger().log(Level.INFO, "Ether plugin enabled!");
+        getCommand("testreg").setExecutor(new NMSRegistryDebugCommand());
+
+        Bukkit.getPluginManager().registerEvents(new BlockBreakListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
     }
 
     @Override
     public void onDisable() {
-        workQueue.close();
-        workQueue = null;
-
-        // TODO: close ConfigManager
+        Ether.onDisable();
     }
 
-    public boolean isUsingWorldEdit() {
-        return isUsingWorldEdit;
-    }
-
-    /*
-    public NMSAccess getNMS() {
-        return nmsAccess;
-    }
-    */
-
-    public IslandManager getIslandManager() {
-        return islandManager;
-    }
-
-    public WorkQueue getWorkQueue() {
-        return workQueue;
+    public void disable() {
+        Bukkit.getPluginManager().disablePlugin(this);
     }
 }

@@ -1,29 +1,27 @@
 package org.minerift.ether.schematic.readers.sponge.steps;
 
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.sponge.ReaderContext;
-import org.minerift.ether.util.math.Vec3d;
+import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
+import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.minerift.ether.schematic.readers.sponge.SchematicNBTFields.*;
 
 public class ReadEntitiesStep implements IReaderStep {
+
     @Override
-    public void read(ReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
         final Optional<List<Tag>> tagList = ctx.rootView.getList(NBT_ENTITIES);
 
         if(tagList.isPresent()) {
             List<NBTSectionView> entitiesRaw = tagList.get().stream().map(tag -> new NBTSectionView((CompoundTag)tag)).toList();
-            ctx.builder.setEntities(new HashSet<>(entitiesRaw.size()));
+            ctx.builder.setEntities(new ArrayList<>(entitiesRaw.size()));
 
             for(NBTSectionView entity : entitiesRaw) {
 
@@ -42,4 +40,5 @@ public class ReadEntitiesStep implements IReaderStep {
             }
         }
     }
+
 }

@@ -1,6 +1,6 @@
 package org.minerift.ether.schematic;
 
-import org.minerift.ether.util.math.Vec3i;
+import org.minerift.ether.math.Vec3i;
 
 public class SchematicPasteOptions {
 
@@ -11,7 +11,7 @@ public class SchematicPasteOptions {
     public static final SchematicPasteOptions IDENTITY;
 
     /**
-     * Preferred default SchematicPasteOptions.
+     * "Preferred" default SchematicPasteOptions.
      * Will copy biomes and entities with zero offset and no ignored air blocks.
      */
     public static final SchematicPasteOptions DEFAULT;

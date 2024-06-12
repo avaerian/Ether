@@ -1,18 +1,43 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Location;
+import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
-import org.minerift.ether.util.math.Vec2i;
 
-import java.util.Optional;
+import java.util.*;
 
 public class IslandManager {
 
-    private IslandGrid grid;
+    private IslandGridV2 grid;
 
     public IslandManager() {
-        this.grid = new IslandGrid();
+        this(new IslandGridV2());
+    }
+
+    public IslandManager(IslandGridV2 grid) {
+        this.grid = grid;
+    }
+
+    public Set<Integer> getKeySet() {
+        Set<Integer> keys = new HashSet<>(grid.getData().size());
+        for(Island island : grid.getData()) {
+            // Return only active island ids for key set
+            if (island != null && !island.isDeleted()) {
+                keys.add(island.getId());
+            }
+        }
+        return keys;
+    }
+
+    // Get multiple islands
+    // Returns active, deleted, and null islands
+    public List<Island> getIslands(Collection<Integer> ids) {
+        List<Island> islands = ids.isEmpty() ? Collections.emptyList() : new ArrayList<>(ids.size());
+        for(int id : ids) {
+            islands.add(grid.getIslandAt(id).orElse(null));
+        }
+        return islands;
     }
 
     public Island createIsland(EtherUser user) {
@@ -24,15 +49,21 @@ public class IslandManager {
         // Mark island as deleted
         island.markDeleted();
 
-        // Clear all island information
+        // Clear all island information (?)
+
         // Remove all entities in world within island region
         // Scan island and clear/set to air
         // Remove island references from players on island team
-        island.getTeamMembers().forEach(member -> member.setIsland(null));
+        island.getTeamMembers().forEach(island::removeTeamMember);
+        // Teleport players back to spawn
     }
 
     public Optional<Island> getIslandAt(Vec2i tile) {
         return grid.getIslandAt(tile);
+    }
+
+    public Optional<Island> getIslandAt(Integer islandId) {
+        return grid.getIslandAt(islandId);
     }
 
     public Optional<Island> getIslandAt(Location location) {

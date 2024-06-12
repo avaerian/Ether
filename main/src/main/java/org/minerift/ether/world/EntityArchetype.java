@@ -1,6 +1,6 @@
 package org.minerift.ether.world;
 
-import org.minerift.ether.util.math.Vec3d;
+import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
 
 public class EntityArchetype {

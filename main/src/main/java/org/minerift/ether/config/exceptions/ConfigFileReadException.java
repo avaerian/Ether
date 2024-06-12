@@ -12,4 +12,12 @@ public class ConfigFileReadException extends IOException {
     public ConfigFileReadException(String message) {
         super(message);
     }
+
+    public ConfigFileReadException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ConfigFileReadException(Throwable cause) {
+        super(cause);
+    }
 }

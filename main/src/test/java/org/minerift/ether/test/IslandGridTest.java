@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.minerift.ether.GridAlgorithm;
+import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandGrid;
-import org.minerift.ether.util.math.Vec2i;
+import org.minerift.ether.math.Vec2i;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class IslandGridTest {
             grid.registerIsland(island);
         }
 
-        ImmutableList<Island> islandsView = grid.getIslandsView();
+        ImmutableList<Island> islandsView = grid.getAllIslandsView();
 
         assertEquals(ISLAND_COUNT, islandsView.size());
         assertTrue(areIslandsSorted(islandsView));
@@ -62,6 +62,7 @@ public class IslandGridTest {
         // getIslandAt.get() will throw an error if null (invalid island/out-of-bounds)
         // In other words, ensure island at tile doesn't return null
         assertDoesNotThrow(() -> grid.getIslandAt(tile).get());
+        assertEquals(tile.getTileId(), grid.getIslandAt(tile).get().getId());
     }
 
     private static Stream<Vec2i> getIslandAtTest() {

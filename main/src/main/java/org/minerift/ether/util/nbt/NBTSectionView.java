@@ -6,9 +6,11 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+// TODO: refactor into individual NBT Tag classes
 public class NBTSectionView {
 
     private final CompoundTag head;
@@ -60,7 +62,6 @@ public class NBTSectionView {
     public <T> Optional<T[]> readArray(String name, Class<T> valueType, Function<Tag, T> tagToValue) {
         AtomicReference<Optional<T[]>> optional = new AtomicReference<>(Optional.empty());
         getList(name).ifPresent((tagList) -> {
-
             T[] elements = (T[]) Array.newInstance(valueType, tagList.size());
             for(int i = 0; i < tagList.size(); i++) {
                 elements[i] = tagToValue.apply(tagList.get(i));

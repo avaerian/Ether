@@ -1,0 +1,38 @@
+package org.minerift.ether.config.main;
+
+import org.minerift.ether.config.YamlConfigView;
+import org.minerift.ether.config.IConfigReader;
+import org.minerift.ether.config.exceptions.ConfigFileReadException;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.minerift.ether.config.main.MainConfigPaths.*;
+
+public class MainConfigReader extends IConfigReader<MainConfig> {
+
+    @Override
+    protected MainConfig readIt(File file) throws ConfigFileReadException {
+
+        try {
+            YamlConfigView view = YamlConfigView.from(file);
+            MainConfig config = new MainConfig();
+
+            // TODO: handle different config versions (provide default values?)
+            // TODO: for newer versions, create set of new fields for version and check if present in the config (handle per config)
+            //       - if none of them are present, provide defaults
+
+
+            config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile height!")));
+            config.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile size!")));
+            config.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Cannot read tile accessible area!")));
+            config.setChanged(false);
+
+            return config;
+        } catch (IllegalArgumentException ex) { // Thrown when failing to set values
+            throw new ConfigFileReadException(ex);
+        } catch (IOException ex) {
+            throw new ConfigFileReadException(ex);
+        }
+    }
+}

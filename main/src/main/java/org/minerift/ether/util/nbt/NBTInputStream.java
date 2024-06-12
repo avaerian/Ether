@@ -62,7 +62,7 @@ import java.util.zip.GZIPInputStream;
  * @author Graham Edgecombe
  *
  */
-public final class NBTInputStream implements Closeable {
+public final class NBTInputStream implements AutoCloseable {
 
     /**
      * The data input stream.
@@ -171,22 +171,22 @@ public final class NBTInputStream implements Closeable {
             }
 
             // Primitive tag types
-            case BYTE_TAG -> new ByteTag(name, is.readByte());
-            case SHORT_TAG -> new ShortTag(name, is.readShort());
-            case INT_TAG -> new IntTag(name, is.readInt());
-            case LONG_TAG -> new LongTag(name, is.readLong());
-            case FLOAT_TAG -> new FloatTag(name, is.readFloat());
+            case BYTE_TAG   -> new ByteTag(name, is.readByte());
+            case SHORT_TAG  -> new ShortTag(name, is.readShort());
+            case INT_TAG    -> new IntTag(name, is.readInt());
+            case LONG_TAG   -> new LongTag(name, is.readLong());
+            case FLOAT_TAG  -> new FloatTag(name, is.readFloat());
             case DOUBLE_TAG -> new DoubleTag(name, is.readDouble());
             case STRING_TAG -> readStringTagPayload(name);
 
             // Array tag types
             case BYTE_ARRAY_TAG -> readByteArrayTagPayload(name);
-            case INT_ARRAY_TAG -> readIntArrayTagPayload(name);
-            case LONG_ARRAY_TAG ->  readLongArrayTagPayload(name);
+            case INT_ARRAY_TAG  -> readIntArrayTagPayload(name);
+            case LONG_ARRAY_TAG -> readLongArrayTagPayload(name);
 
             // Collection tag types
-            case LIST_TAG -> readListTagPayload(name, depth);
-            case COMPOUND_TAG -> readCompoundTagPayload(name, depth);
+            case LIST_TAG       -> readListTagPayload(name, depth);
+            case COMPOUND_TAG   -> readCompoundTagPayload(name, depth);
         };
     }
 

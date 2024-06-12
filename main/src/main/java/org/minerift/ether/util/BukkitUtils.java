@@ -1,12 +1,14 @@
 package org.minerift.ether.util;
 
 import org.bukkit.Location;
-import org.minerift.ether.util.math.Vec2i;
-import org.minerift.ether.util.math.Vec3d;
-import org.minerift.ether.util.math.Vec3i;
-
-import static org.minerift.ether.config.deprecated.MainConfig.TILE_HEIGHT;
-import static org.minerift.ether.config.deprecated.MainConfig.TILE_SIZE;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
+import org.minerift.ether.Ether;
+import org.minerift.ether.math.Maths;
+import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.math.Vec3d;
+import org.minerift.ether.math.Vec3i;
 
 /**
  * Utility class for interfacing with the Bukkit API.
@@ -14,22 +16,24 @@ import static org.minerift.ether.config.deprecated.MainConfig.TILE_SIZE;
  */
 public class BukkitUtils {
 
-    // Get a tile from a Bukkit location
-    public static Vec2i getTileAt(Location loc) {
-        int tileX = (int) Math.floor(loc.getX() / TILE_SIZE);
-        int tileZ = (int) Math.floor(loc.getZ() / TILE_SIZE);
-        return new Vec2i(tileX, tileZ);
+    public static String dumpItemStack(ItemStack item) {
+        NamespacedKey key = Ether.getNMS().getNamespacedKey(item);
+        return key.asString() + item.getItemMeta().getAsString();
     }
 
-    // Get the top right corner Vec3i location from a tile (world coordinates)
-    public static Vec3i getVec3iAt(Vec2i tile) {
-        return new Vec3i(tile.getX() * TILE_SIZE, TILE_HEIGHT, tile.getZ() * TILE_SIZE);
+    // Get a tile from a Bukkit location
+    public static Vec2i getTileAt(Location loc) {
+        return Maths.getTileAt(loc.getBlockX(), loc.getBlockZ());
     }
 
     // Get the top right corner Bukkit location from a tile (world coordinates)
     public static Location getLocationAt(Vec2i tile) {
-        final Vec3i loc = getVec3iAt(tile);
-        return new Location(null, loc.getX(), loc.getY(), loc.getZ());
+        return getLocationAt(null, tile);
+    }
+
+    public static Location getLocationAt(World world, Vec2i tile) {
+        final Vec3i vec = Maths.getVec3iAt(tile);
+        return new Location(null, vec.getX(), vec.getY(), vec.getZ());
     }
 
     public static Vec3i asVec3i(Location loc) {

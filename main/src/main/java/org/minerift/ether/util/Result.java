@@ -60,15 +60,21 @@ public class Result<V, E> {
         return (E) value;
     }
 
+    public ResultType getType() {
+        return type;
+    }
+
+    @Deprecated
     public boolean isOk() {
         return type == ResultType.OK;
     }
 
+    @Deprecated
     public boolean isErr() {
         return type == ResultType.ERR;
     }
 
-    // Runs a callback safely (if not null)
+    // Runs a callback safely
     private void runCallback(Runnable callback) {
         if(callback != null) {
             callback.run();
