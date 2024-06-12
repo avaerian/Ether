@@ -1,9 +1,11 @@
 package org.minerift.ether.nms;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
+import org.minerift.ether.math.Vec3d;
+import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.EntityArchetype;
 
@@ -14,16 +16,20 @@ public class NMSAccess {
 
     private String implVersion;
     private final NMSBridge bridge;
+    private final RegistryAccess registryAccess;
     public NMSAccess() {
         this.implVersion = getImplVersion();
 
         // Attempt to load bridge
         try {
-            this.bridge = getBridge(implVersion);
+            this.bridge         = loadNmsImpl(NMSBridge.class, "NMSBridgeImpl");
+            this.registryAccess = loadNmsImpl(RegistryAccess.class, "RegistryAccessImpl");
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException e) {
-            throw new RuntimeException(e);
+                 IllegalAccessException ex) {
+            throw new RuntimeException(ex);
         }
+
+        bridge.bootstrap();
     }
 
     public void clearChunk(Chunk chunk, boolean clearEntities) {
@@ -66,6 +72,42 @@ public class NMSAccess {
         bridge.spawnEntity(entityArchetype, world);
     }
 
+    public void testNewPartitionPaster(List<BlockArchetype> blocks, World world) {
+        bridge.testNewPartitionPaster(blocks, world);
+    }
+
+    public NamespacedKey getBiomeKey(World world, int x, int y, int z) {
+        return bridge.getBiomeAt(world, x, y, z);
+    }
+
+    public NamespacedKey getBiomeKey(Location loc) {
+        return getBiomeKey(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+    }
+
+    public NamespacedKey getBiomeKey(World world, Vec3i pos) {
+        return getBiomeKey(world, pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public NamespacedKey getBiomeKey(World world, Vec3d pos) {
+        return getBiomeKey(world, (int)pos.getX(), (int)pos.getY(), (int)pos.getZ());
+    }
+
+    public NamespacedKey getNamespacedKey(ItemStack item) {
+        return registryAccess.getNamespacedKey(item);
+    }
+
+    public NamespacedKey getNamespacedKey(BlockState blockState) {
+        return registryAccess.getNamespacedKey(blockState);
+    }
+
+    public NamespacedKey getNamespacedKey(BlockData blockData) {
+        return registryAccess.getNamespacedKey(blockData);
+    }
+
+    public NamespacedKey getDimNamespacedKey(World world) {
+        return registryAccess.getDimNamespacedKey(world);
+    }
+
     private String getImplVersion() {
         if(implVersion == null) {
             String version = Bukkit.getServer().getClass().getPackageName();
@@ -74,9 +116,13 @@ public class NMSAccess {
         return implVersion;
     }
 
-    private NMSBridge getBridge(String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> clazz = Class.forName("org.minerift.ether.nms.v" + version + ".NMSBridgeImpl");
-        return (NMSBridge) clazz.getConstructor().newInstance();
+    // Assumes that the implVersion is already loaded appropriately
+    private <T> T loadNmsImpl(Class<T> iface, String implName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return loadNmsImpl(iface, implName, implVersion);
     }
 
+    private <T> T loadNmsImpl(Class<T> iface, String implName, String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> clazz = Class.forName("org.minerift.ether.nms.v" + version + "." + implName);
+        return iface.cast(clazz.getConstructor().newInstance());
+    }
 }
