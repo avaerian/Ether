@@ -7,16 +7,10 @@ import org.minerift.ether.database.sql.SQLResult;
 import org.minerift.ether.database.sql.adapters.Adapters;
 import org.minerift.ether.database.sql.model.Field;
 import org.minerift.ether.database.sql.model.Model;
-import org.minerift.ether.math.GridAlgorithm;
 
 import java.util.UUID;
 
 public class IslandModel extends Model<Island, Integer> {
-
-    // TODO: remove after debugging model ctor and createField calls
-    public static void main(String[] args) {
-        new IslandModel(null);
-    }
 
     // TODO: for upgrading databases, each table should contain a list of table upgraders
 
@@ -27,8 +21,14 @@ public class IslandModel extends Model<Island, Integer> {
     //   doesn't support the desired SQL data type. In our case, dumping it to JSON and saving as text works fine.
 
     public final Field<Island, Integer, ?> ID           = createField("island_id", SQLDataType.INTEGER.notNull(), Island::getId);
+    public final Field<Island, Long,    ?> COORDS       = createField("island_coords", SQLDataType.BIGINT.notNull(), Island::getTile, Adapters.VEC2I_2_LONG);
     public final Field<Island, Boolean, ?> IS_DELETED   = createField("is_deleted", SQLDataType.BIT.notNull(), Island::isDeleted);
     public final Field<Island, UUID[],  ?> MEMBERS      = createField("members", SQLDataType.UUID.array(), Island::getTeamMembers, Adapters.ETHER_USERS_2_UUIDS);
+
+    // Chunk bounds
+    //public final Field<Island, Long,    ?> TR_CHUNK     = createField("tr_chunk_coords", SQLDataType.BIGINT, Island::getTopRightChunkKey);
+    //public final Field<Island, Long,    ?> BL_CHUNK     = createField("bl_chunk_coords", SQLDataType.BIGINT, Island::getBottomLeftChunkKey);
+
 
     // TODO:        !! TRY THIS IMPLEMENTATION !!
     //  - For versioning, changes that are made on the developer-end need to be tracked.
@@ -37,16 +37,24 @@ public class IslandModel extends Model<Island, Integer> {
 
     public IslandModel(SQLDatabase db) {
         super("islands", db);
-        setupFields(ID, IS_DELETED, MEMBERS);
+        registerFields();
+    }
+
+    @Override
+    public Island.Builder readAsBuilder(SQLResult<Island> result, Record record) {
+        return Island.builder()
+                //.setTile(GridAlgorithm.computeTile(result.readField(ID, record)), true)
+                //.setTile(Adapters.VEC2I_2_LONG.adaptFrom(result.readField(COORDS, record)), true)
+                .setTile(result.readField(COORDS.asComplexField(), record), true)
+                .setDeleted(result.readField(IS_DELETED, record))
+                .setMembers(result.readField(MEMBERS.asComplexField(), record))
+
+                ;
     }
 
     @Override
     public Island readResult(SQLResult<Island> result, Record record) {
-        return Island.builder()
-                .setTile(GridAlgorithm.computeTile(result.getField(ID, record)), true)
-                .setDeleted(result.getField(IS_DELETED, record))
-                .setMembers(Adapters.ETHER_USERS_2_UUIDS.adaptFrom(result.getField(MEMBERS, record))) // TODO: remove adapter
-                .build();
+        return readAsBuilder(result, record).build();
     }
 
     @Override

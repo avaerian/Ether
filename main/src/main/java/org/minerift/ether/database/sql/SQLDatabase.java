@@ -5,25 +5,39 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.conf.BackslashEscaping;
+import org.jooq.conf.RenderNameCase;
+import org.jooq.conf.RenderQuotedNames;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DefaultConfiguration;
-import org.minerift.ether.database.sql.metadata.Metadata;
+import org.minerift.ether.Ether;
+import org.minerift.ether.database.sql.adapters.Adapters;
+import org.minerift.ether.database.sql.diff.DiffType;
+import org.minerift.ether.database.sql.diff.KeyDiff;
 import org.minerift.ether.database.sql.metadata.MetadataModel;
 import org.minerift.ether.database.sql.model.Model;
-import org.minerift.ether.database.sql.op.ddl.DDLGetTables;
 import org.minerift.ether.database.sql.op.dml.*;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.IslandGrid;
+import org.minerift.ether.island.IslandGridV2;
 import org.minerift.ether.island.IslandModel;
+import org.minerift.ether.island.invites.InviteRegistry;
+import org.minerift.ether.island.invites.IslandInvite;
+import org.minerift.ether.island.invites.IslandInvitesModel;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
+import org.minerift.ether.util.pair.SameTypePair;
+import org.minerift.ether.util.pair.UUIDPair;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import static org.minerift.ether.database.sql.DatabasePlayground.HIDDEN;
+import static org.minerift.ether.Secrets.HIDDEN;
 
 public class SQLDatabase implements AutoCloseable {
 
@@ -54,14 +68,15 @@ public class SQLDatabase implements AutoCloseable {
                 .setPassword("")
                 .build();
 
-        SQLDatabase db = new SQLDatabase(sqliteSettings, IslandModel::new);
+        SQLDatabase db = new SQLDatabase(sqliteSettings, IslandModel::new, IslandInvitesModel::new);
 
         IslandModel model = db.getModel(IslandModel.class);
+        IslandInvitesModel invitesModel = db.getModel(IslandInvitesModel.class);
 
         Random random = new Random();
 
         final int GRID_SIZE = 100;
-        IslandGrid grid = new IslandGrid();
+        IslandGridV2 grid = new IslandGridV2();
         for(int i = 0; i < GRID_SIZE; i++) {
             final Island island = Island.builder()
                     .setTile(GridAlgorithm.computeTile(i), true)
@@ -71,22 +86,52 @@ public class SQLDatabase implements AutoCloseable {
             grid.registerIsland(island);
         }
 
-        var islandsView = grid.getIslandsView();
+        Ether.Debug.setIslandGrid(grid);
+        Ether.Debug.setLogger(Logger.getGlobal());
+        var islandsView = grid.getData();
 
-        db.access(true, (access) -> {
-            access.insert(IslandModel.class, (Island)null);
-            access.update(MetadataModel.class, (Metadata)null);
+        InviteRegistry inviteRegistry = new InviteRegistry();
 
-            SQLResult<Island> islandsResult = access.selectAll(IslandModel.class);
-            for(Record record : islandsResult) {
-                Island island = islandsResult.readRecord(record);
-                //int id              = islandsResult.getField(model.ID, record);
-                //boolean isDeleted   = islandsResult.getField(model.IS_DELETED, record);
-                //UUID[] members      = islandsResult.getField(model.MEMBERS, record);
+        IslandInvite randomInvite = new IslandInvite(UUID.randomUUID(), UUID.randomUUID(), islandsView.get(random.nextInt(GRID_SIZE)), System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
+
+        db.access(false, (access) -> {
+
+            access.insert(IslandInvitesModel.class, randomInvite);
+            //access.update(MetadataModel.class, (Metadata)null);
+
+            // Read and register all invites
+            SQLResult<IslandInvite> invitesResult = access.selectAll(IslandInvitesModel.class);
+            for(Record record : invitesResult) {
+                IslandInvite invite = invitesResult.readRecord(record);
+                inviteRegistry.register(invite);
+                System.out.println(invite);
+                System.out.println(invite.isExpired());
+                /*if(invite.isExpired()) {
+                    access.deleteById(IslandInvitesModel.class, invitesModel.SENDER_RECEIVER.readField(invite));
+                }*/
+            }
+
+            inviteRegistry.purgeExpiredInvites();
+
+            // Get differences
+            Set<UUIDPair> dbInviteKeys = access.selectAllIds(IslandInvitesModel.class, Adapters.PAIR_2_UUIDS);
+
+            System.out.println(Arrays.deepToString(dbInviteKeys.toArray(SameTypePair[]::new)));
+            System.out.println(Arrays.deepToString(inviteRegistry.getKeySet().toArray(SameTypePair[]::new)));
+            Map<DiffType, List<UUIDPair>> inviteDiffs = KeyDiff.partitionDiffs(dbInviteKeys, inviteRegistry.getKeySet());
+            System.out.println(inviteDiffs);
+
+            // Remove deleted ids
+            if(!inviteDiffs.getOrDefault(DiffType.DELETED, Collections.emptyList()).isEmpty()) {
+                access.deleteByIds(IslandInvitesModel.class, inviteDiffs.get(DiffType.DELETED).stream().map(UUIDPair::toArray).collect(Collectors.toList()));
             }
         });
 
         db.close();
+    }
+
+    public static SQLDatabase debug(SQLDialect dialect) {
+        return new SQLDatabase(dialect);
     }
 
     private final HikariDataSource dataSource;
@@ -102,33 +147,63 @@ public class SQLDatabase implements AutoCloseable {
     public final DMLUpsert UPSERT_QUERY;
     public final DMLDelete DELETE_QUERY;
     public final DMLSelectAll SELECT_ALL_QUERY;
+    public final DMLSelectAllIds SELECT_ALL_IDS_QUERY;
     public final DMLSelectById SELECT_ID_QUERY;
 
+    // debug ctor used for bootstrapping Model objects
+    private SQLDatabase(SQLDialect dialect) {
+        this.dbName = "debug";
+        this.dialect = dialect;
+        this.models = Collections.emptyMap();
 
+        this.connConfig = null;
+        this.dataSource = null;
+
+        this.INSERT_QUERY = null;
+        this.UPDATE_QUERY = null;
+        this.UPSERT_QUERY = null;
+        this.DELETE_QUERY = null;
+        this.SELECT_ID_QUERY = null;
+        this.SELECT_ALL_QUERY = null;
+        this.SELECT_ALL_IDS_QUERY = null;
+    }
+
+    @SafeVarargs
     public SQLDatabase(DatabaseConnectionSettings settings, Function<SQLDatabase, Model<?, ?>> ... models) {
-
         // Init db object
         this.dbName = settings.getDbName();
         this.dialect = settings.getDialect();
 
+        // Configure Jooq render settings
+        Settings connSettings = new Settings()
+                .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_QUOTED)
+                .withRenderNameCase(RenderNameCase.AS_IS)
+                .withBackslashEscaping(BackslashEscaping.OFF);
+
         this.connConfig = new DefaultConfiguration();
         connConfig.set(settings.getDialect().asJooqDialect());
+        connConfig.set(connSettings);
 
+        // Register models
         this.models = new HashMap<>(models.length);
         for(var tableSupplier : models) {
             var table = tableSupplier.apply(this);
             this.models.put(table.getClass(), table);
         }
 
+        // Register metadata model for versioning and other db metadata
+        this.models.putIfAbsent(MetadataModel.class, new MetadataModel(this));
+
+        // Cache DML queries
         this.INSERT_QUERY = new DMLInsert(this);
         this.UPDATE_QUERY = new DMLUpdate(this);
         this.UPSERT_QUERY = new DMLUpsert(this);
         this.DELETE_QUERY = new DMLDelete(this);
         this.SELECT_ALL_QUERY = new DMLSelectAll(this);
+        this.SELECT_ALL_IDS_QUERY = new DMLSelectAllIds(this);
         this.SELECT_ID_QUERY = new DMLSelectById(this);
 
         // Connect to db
-        // TODO: SQLConnector connector = settings.getDialect().getDbConnector();
         this.dataSource = settings.getDialect().getDbConnector().connect(this, settings);
 
         try {
@@ -138,7 +213,7 @@ public class SQLDatabase implements AutoCloseable {
         }
     }
 
-    public String getDbName() {
+    public String getName() {
         return dbName;
     }
 

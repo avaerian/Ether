@@ -3,6 +3,7 @@ package org.minerift.ether.database.sql;
 import org.jooq.BatchBindStep;
 import org.jooq.CloseableQuery;
 import org.jooq.DSLContext;
+import org.minerift.ether.database.sql.adapters.Adapter;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.op.ddl.DDLCreateTable;
 import org.minerift.ether.database.sql.op.ddl.DDLGetTables;
@@ -12,6 +13,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // Provides access to SQL operations from a connection
 public class SQLAccess implements AutoCloseable {
@@ -94,6 +97,12 @@ public class SQLAccess implements AutoCloseable {
         return query.execute();
     }
 
+    public <M, K> int[] deleteByIds(Class<? extends Model<M, K>> modelClazz, Collection<K> ids) {
+        Model<M, K> model = db.getModel(modelClazz);
+        BatchBindStep batch = db.DELETE_QUERY.getJooqBatchIds(this, model, ids);
+        return batch.execute();
+    }
+
     public <M, K> int delete(Class<? extends Model<M, K>> modelClazz, M obj) {
         Model<M, K> model = db.getModel(modelClazz);
         CloseableQuery query = db.DELETE_QUERY.getJooqQuery(this, model, obj);
@@ -116,6 +125,24 @@ public class SQLAccess implements AutoCloseable {
         Model<M, K> model = db.getModel(modelClazz);
         var query = db.SELECT_ALL_QUERY.getJooqQuery(this, model);
         return new SQLResult<>(model, query.fetch());
+    }
+
+    public <M, K> Stream<K> selectAllIdsStream(Class<? extends Model<M, K>> modelClazz) {
+        Model<M, K> model = db.getModel(modelClazz);
+        var query = db.SELECT_ALL_IDS_QUERY.getJooqQuery(this, model);
+
+        // Get result and read ids
+        SQLResult<M> result = new SQLResult<>(model, query.fetch());
+        return result.stream().map(record -> result.readField(model.getPrimaryKey(), record));
+    }
+
+    public <M, K> Set<K> selectAllIds(Class<? extends Model<M, K>> modelClazz) {
+        return selectAllIdsStream(modelClazz).collect(Collectors.toSet());
+    }
+
+    // Used for mapping to complex field data type
+    public <M, K, R> Set<R> selectAllIds(Class<? extends Model<M, K>> modelClazz, Adapter<R, K> adapter) {
+        return selectAllIdsStream(modelClazz).map(adapter::adaptFrom).collect(Collectors.toSet());
     }
 
     public void commit() throws SQLException {
