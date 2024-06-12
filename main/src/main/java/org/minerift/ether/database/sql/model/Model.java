@@ -5,19 +5,25 @@ import org.jooq.CloseableQuery;
 import org.jooq.DataType;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.minerift.ether.Ether;
 import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.adapters.Adapter;
-import org.minerift.ether.database.sql.fallback.JsonFallback;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
 import org.minerift.ether.database.sql.SQLResult;
+import org.minerift.ether.database.sql.adapters.Adapter;
+import org.minerift.ether.database.sql.fallback.Fallback;
+import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.island.invites.IslandInvite;
+import org.minerift.ether.island.invites.IslandInviteManager;
+import org.minerift.ether.island.invites.IslandInvitesModel;
+import org.minerift.ether.util.IBuilder;
 import org.minerift.ether.util.reflect.Reflect;
+import org.minerift.ether.util.reflect.ReflectedFields;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
+import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
-import static org.minerift.ether.database.sql.SQLUtils.isDataTypeSupported;
+import static org.minerift.ether.database.sql.SQLUtils.getPossibleFallback;
 
 // Represents a database object model/table
 public abstract class Model<M, K> {
@@ -28,27 +34,31 @@ public abstract class Model<M, K> {
 
     private Fields<M, ?> fields;
 
-    protected Model(String table, SQLDatabase db) {
-        System.out.println("ctor start");
+    private final List<Field<M, ?, ?>> prepFields = new ArrayList<>();
+
+    public Model(String tableName, SQLDatabase db) {
         this.db = db;
-        this.TABLE_NAME = table;
-        System.out.println("ctor end");
+        this.TABLE_NAME = tableName;
     }
 
     // NOTE: No fields associated with this Jooq table object
     // This is purely for SQL formatting when building queries
     public Table<Record> asJooqTable() {
-        return table(TABLE_NAME);
+        return table(name(TABLE_NAME));
     }
 
-    // TODO: refactor code to remove this
     // Must be called after superconstructor
-    protected void setupFields(Field<M, ?, ?> ... fields) {
-        this.fields = Fields.of(this, fields);
+    protected final void registerFields() {
+        this.fields = Fields.of(this, prepFields.toArray(Field[]::new));
     }
 
-    // TODO: continue working on this
+    // Reads the full SQL result to read in a more complete object
     public abstract M readResult(SQLResult<M> result, Record record);
+
+    // Should return an incomplete prototype of an object from SQL result
+    // Incomplete prototype can be modified after being read from result
+    // Not all fields from SQL result may be read in at the same time, so those fields will be processed together (deferred)
+    public abstract IBuilder<M> readAsBuilder(SQLResult<M> result, Record record);
 
     public SQLDatabase getDb() {
         return db;
@@ -65,31 +75,47 @@ public abstract class Model<M, K> {
     }
 
     public Fields<M, ?> getFieldsNoKey() {
-        var reflectedObj = Reflect.of(this);
-        Field<M, ?, ?>[] fields = reflectedObj.getFieldsFromRefs(this.fields.getArray())
-                .filter(field -> !field.hasAnnotation(PrimaryKey.class))
-                .readAllTyped(this, Field.class);
-        return Fields.of(this, fields);
+        Field<M, ?, ?>[] fieldsNoKey = Arrays.stream(fields.getArray()).filter(field -> field != getPrimaryKey()).toArray(Field[]::new);
+        return Fields.of(this, fieldsNoKey);
     }
 
     protected <D> Field<M, D, ?> createField(String name, DataType<D> type, Function<M, D> objFieldReader) {
-        System.out.println("create field");
-
+        /*
         JsonFallback<D> fallback = isDataTypeSupported(type, db.getDialect())
                 ? null // no fallback adapter needed for supported types
                 : new JsonFallback<>(type.getType());
+        */
 
-        return new Field<>(name, type, objFieldReader, fallback);
+        Fallback<D, ?> fallback = getPossibleFallback(type, db.getDialect());
+        Field<M, D, ?> field = new Field<>(name, type, objFieldReader, fallback);
+        prepFields.add(field);
+        return field;
     }
 
     protected <D, R> Field<M, D, ?> createField(String name, DataType<D> type, Function<M, R> objFieldReader, Adapter<R, D> adapter) {
-        System.out.println("create field");
-
+        /*
         JsonFallback<D> fallback = isDataTypeSupported(type, db.getDialect())
                 ? null // no fallback adapter needed for supported types
                 : new JsonFallback<>(type.getType());
+        */
 
-        return new Field.FieldWithAdapter<>(name, type, objFieldReader, adapter, fallback);
+        Fallback<D, ?> fallback = getPossibleFallback(type, db.getDialect());
+        Field<M, D, ?> field = new Field.FieldWithAdapter<>(name, type, objFieldReader, adapter, fallback);
+        prepFields.add(field);
+        return field;
+    }
+
+    // NOTE: Ignores name case when finding field
+    public Field<M, ?, ?> getField(String name) {
+        // assumes all fields in model belong to model (no weird shit)
+        Field<M, ?, ?>[] fields = Reflect.of(this).getFields().filter(field -> field.isType(Field.class)).readAllTyped(this, Field.class);
+        for(Field<M, ?, ?> field : fields) {
+            if(field.getName().equalsIgnoreCase(name)) {
+                return field;
+            }
+        }
+        Ether.getLogger().warning("Could not find field in " + TABLE_NAME + " by the name " + name);
+        return null;
     }
 
     @Deprecated(forRemoval = true)
@@ -117,17 +143,6 @@ public abstract class Model<M, K> {
     // TODO: review and shorten
     @Beta
     public NamedBindValues<?> dumpNamedBindValues_New(M obj) {
-        /*if(fields.size() == 1) {
-            Field<M, ?, ?> field = fields.getArray()[0];
-            return NamedBindValues.of(field.getName(), field.readAsSQLValue(obj));
-        } else {
-            Map<String, Object> bindVals = new HashMap<>(fields.size());
-            for(Field<M, ?, ?> field : fields) {
-                bindVals.put(field.getName(), field.readAsSQLValue(obj));
-            }
-            return NamedBindValues.of(bindVals);
-        }*/
-
         Map<String, Object> bindVals = new HashMap<>(fields.size());
         for(Field<M, ?, ?> field : fields) {
             bindVals.put(field.getName(), field.readAsSQLValue(obj));
@@ -175,9 +190,10 @@ public abstract class Model<M, K> {
 
     public Object[] dumpBindValues(M obj, String ... bindOrder) {
         Object[] bindVals = new Object[bindOrder.length];
-        var namedBindValues = dumpNamedBindValues(obj);
+        Map<String, Object> namedBindValues = dumpNamedBindValues(obj);
         for(int i = 0; i < bindOrder.length; i++) {
-            bindVals[i] = namedBindValues.get(bindOrder[i]);
+            String column = bindOrder[i];
+            bindVals[i] = getField(column).readJavaAsSQLValue(namedBindValues.get(column));
         }
         return bindVals;
     }

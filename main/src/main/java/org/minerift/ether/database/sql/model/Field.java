@@ -3,10 +3,12 @@ package org.minerift.ether.database.sql.model;
 import org.jooq.DataType;
 import org.minerift.ether.database.sql.adapters.Adapter;
 import org.minerift.ether.database.sql.fallback.Fallback;
+import org.minerift.ether.util.Utils;
 
 import java.util.function.Function;
 
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 
 // M is Model (class that is being modeled, not model class itself)
 // T is SQL data type
@@ -24,11 +26,10 @@ public class Field<M, T, F> {
     protected Field(String name, DataType<T> type, Function<M, ?> objFieldReader, Fallback<T, F> fallback) {
 
         this.field = fallback == null
-                ? field(name, type)
-                : field(name, fallback.getDataType());
+                ? field(name(name), type)
+                : field(name(name), fallback.getDataType());
 
-        // DEBUG
-        System.out.println(getSQLDataType().getName());
+        //System.out.println(getSQLDataType().getName()); // debug
 
         this.objFieldReader = objFieldReader;
         this.fallback = fallback;
@@ -52,17 +53,29 @@ public class Field<M, T, F> {
     }
 
     // Reads java field value as SQL value (either SQL fallback or original type)
-    public Object readJavaAsSQLValue(T javaVal) {
-        return fallback != null ? fallback.adaptTo(javaVal) : javaVal;
+    public Object readJavaAsSQLValue(Object javaVal) {
+        return fallback != null ? fallback.adaptTo((T) javaVal) : javaVal;
     }
 
-    // Takes SQL data and converts it from fallback to proper SQL data type if appropriate
-    public T readSQLValue(Object sqlVal) {
-        return fallback != null ? fallback.adaptFrom((F) sqlVal) : (T) sqlVal;
+    // Takes SQL data and converts it from fallback to proper SQL data type, if appropriate
+    public T readSQLAsJavaValue(Object sqlVal) {
+        Object fixedSqlVal = sqlVal instanceof String sqlStr ? Utils.fixString(sqlStr) : sqlVal; // TODO: remove/refactor fix up
+        return fallback != null ? fallback.adaptFrom((F) fixedSqlVal) : (T) fixedSqlVal;
     }
 
     public Class<?> getSQLDataType() {
         return field.getType();
+    }
+
+    public <R> FieldWithAdapter<M, T, R, F> asComplexField() {
+        if(!(this instanceof Field.FieldWithAdapter<?,?,?,?> fieldWithAdapter)) {
+            throw new UnsupportedOperationException("Attempted to cast a db field as a complex (adapted) db field!");
+        }
+        return (FieldWithAdapter<M, T, R, F>) fieldWithAdapter;
+    }
+
+    public <R> FieldWithAdapter<M, T, R, F> asComplexField(Class<R> complexTypeClazz) {
+        return asComplexField();
     }
 
     // R is Complex result
