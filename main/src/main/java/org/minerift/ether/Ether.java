@@ -6,8 +6,9 @@ import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.main.MainConfig;
-import org.minerift.ether.debug.*;
-import org.minerift.ether.island.IslandInviteManager;
+import org.minerift.ether.island.IslandGridV2;
+import org.minerift.ether.island.invites.InviteRegistry;
+import org.minerift.ether.island.invites.IslandInviteManager;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.user.UserManager;
@@ -25,7 +26,7 @@ import static org.minerift.ether.util.Utils.ensure;
 // TODO: add loadNoPlugin() method to load an instance without a plugin
 public class Ether {
 
-    private static boolean isLoaded;
+    private static boolean isEnabled;
     private static EtherPlugin plugin;
     private static ConfigRegistry configRegistry;
     private static Logger logger;
@@ -41,7 +42,7 @@ public class Ether {
 
     // For JavaPlugin
     protected static void onLoad(EtherPlugin inst) {
-        isLoaded = false;
+        isEnabled = false;
         plugin = inst;
         pluginDir = plugin.getDataFolder();
         logger = plugin.getLogger();
@@ -73,9 +74,9 @@ public class Ether {
         stopwatch.reset();
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
-        logger.info("tileSize: " + config.getTileSize());
+        logger.info("tileSize: " + config.getTileLengthChunks());
         logger.info("tileHeight: " + config.getTileHeight());
-        logger.info("tileAccessibleArea: " + config.getTileAccessibleArea());
+        logger.info("tileAccessibleArea: " + config.getTileAccessibleAreaBlocks());
 
         stopwatch.start();
 
@@ -95,22 +96,16 @@ public class Ether {
 
         stopwatch.stop();
 
-        // Register debug commands
-        plugin.getCommand("nmschunk").setExecutor(new NMSChunkDebugCommand());
-        plugin.getCommand("nmsblock").setExecutor(new NMSSetBlocksDebugCommand());
-        plugin.getCommand("blockscan").setExecutor(new NMSBlockScanDebugCommand());
-        plugin.getCommand("pasteschem").setExecutor(new SchematicDebugCommand());
-        plugin.getCommand("cfgreload").setExecutor(new ConfigReloadDebugCommand());
-
+        // ** code for plugin command registration has been moved to EtherPlugin **
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
-        isLoaded = true;
+        isEnabled = true;
         logger.info("Ether plugin enabled!");
     }
 
     // For JavaPlugin
     protected static void onDisable() {
-        if(isLoaded) {
+        if(isEnabled) {
             configRegistry.getAll().forEach(Config::saveIfChanged);
             configRegistry = null;
 
@@ -125,7 +120,7 @@ public class Ether {
         pluginDir = null;
         plugin = null;
 
-        isLoaded = false;
+        isEnabled = false;
     }
 
     private Ether() {}
@@ -140,7 +135,7 @@ public class Ether {
         return logger;
     }
 
-    public static EtherPlugin getPlugin() {
+    public static EtherPlugin plugin() {
         ensure(plugin != null, () -> new UnsupportedOperationException("plugin is not loaded!"));
         return plugin;
     }
@@ -148,6 +143,29 @@ public class Ether {
     public static File getPluginDir() {
         ensure(pluginDir != null, () -> new UnsupportedOperationException("pluginDir is not loaded!"));
         return pluginDir;
+    }
+
+    public static File getPluginFile(String path) {
+        return new File(getPluginDir(), path);
+    }
+
+    public enum Directory {
+        SCHEMATICS("schems"),
+
+        ;
+
+        private String dirName;
+        Directory(String dirName) {
+            this.dirName = dirName;
+        }
+
+        public String getDirName() {
+            return dirName;
+        }
+    }
+
+    public static File getPluginFile(Directory dir, String path) {
+        return getPluginFile(dir.getDirName() + File.separator + path);
     }
 
     public static boolean isUsingWorldEdit() {
@@ -180,7 +198,34 @@ public class Ether {
     }
 
     public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
-        ensure(configRegistry != null, () -> new UnsupportedOperationException("configRegistry is not loaded!"));
-        return configRegistry.get(type);
+        return getConfigRegistry().get(type);
+    }
+
+    /**
+     * Only to be used when debugging
+     */
+    public static class Debug {
+
+        public static void setIslandManager(IslandManager manager) {
+            islandManager = manager;
+        }
+
+        public static void setIslandGrid(IslandGridV2 grid) {
+            setIslandManager(new IslandManager(grid));
+        }
+
+        public static void setIslandInviteManager(IslandInviteManager manager) {
+            inviteManager = manager;
+        }
+
+        public static void setUserManager(UserManager manager) {
+            userManager = manager;
+        }
+
+        public static void setLogger(Logger logger) {
+            Ether.logger = logger;
+        }
+
+        private Debug() {}
     }
 }
