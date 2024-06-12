@@ -3,16 +3,15 @@ package org.minerift.ether.config;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.exceptions.ConfigFileWriteException;
+import org.minerift.ether.util.CanChange;
 
 import java.io.FileNotFoundException;
 import java.util.logging.Level;
 
-public abstract class Config<T extends Config<T>> {
-
-    private boolean hasChanged;
+public abstract class Config<T extends Config<T>> extends CanChange {
 
     public Config() {
-        this.hasChanged = false;
+        setChanged(false);
     }
 
     public void save() {
@@ -24,7 +23,7 @@ public abstract class Config<T extends Config<T>> {
     }
 
     public void saveIfChanged() {
-        if(hasChanged) {
+        if(hasChanged()) {
             save();
         }
     }
@@ -54,13 +53,4 @@ public abstract class Config<T extends Config<T>> {
     protected abstract void copyFrom(T other);
 
     public abstract ConfigType<T> getType();
-
-    // Must be applied to any setters or data modifying methods
-    public void setChanged(boolean changed) {
-        this.hasChanged = changed;
-    }
-
-    public boolean hasChanged() {
-        return hasChanged;
-    }
 }

@@ -11,8 +11,8 @@ public abstract class IConfigReader<T extends Config<T>> {
     public T read(ConfigType<T> type) throws FileNotFoundException, ConfigFileReadException {
         final File file = type.getFile();
 
-        // Ensure file exists for reading
-        if(!file.exists()) {
+        // If the file isn't null, ensure it exists
+        if(file != null && !file.exists()) {
             throw new FileNotFoundException(type.getName() + " was not found!");
         }
 

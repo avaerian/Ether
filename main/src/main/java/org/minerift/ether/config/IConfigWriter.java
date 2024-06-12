@@ -11,8 +11,8 @@ public abstract class IConfigWriter<T extends Config<T>> {
 
     public void write(T config, File file) throws ConfigFileWriteException {
         // If a file doesn't exist, load default resource
-        if(!file.exists()) {
-            InputStream res = Ether.getPlugin().getResource(file.getName());
+        if(file != null && !file.exists()) {
+            InputStream res = Ether.plugin().getResource(file.getName());
             try {
                 // Create dirs + file
                 Files.createParentDirs(file);
