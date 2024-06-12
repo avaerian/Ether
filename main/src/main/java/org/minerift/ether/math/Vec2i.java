@@ -1,13 +1,20 @@
 package org.minerift.ether.math;
 
+import org.minerift.ether.world.ChunkCoords;
+
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 // Immutable by default (use Vec2i.Mutable for mutable operations)
 public class Vec2i {
 
     public final static Vec2i ZERO = new Vec2i(0, 0);
 
-    private int x, z;
+    protected int x, z;
 
     public static Vec2i fromString(String str) {
         return Maths.strToVec2i(str);
@@ -30,6 +37,7 @@ public class Vec2i {
         return GridAlgorithm.computeTileId(this);
     }
 
+    // TODO: refactor to return double for precision?
     public int distanceTo(Vec2i tile) {
         int distX = (x - tile.getX()) * (x - tile.getX());
         int distZ = (z - tile.getZ()) * (z - tile.getZ());

@@ -2,6 +2,7 @@ package org.minerift.ether.math;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;
@@ -138,7 +139,7 @@ public class Vec3i {
             return this;
         }
 
-        public Vec3i.Mutable transform(IntUnaryOperator x, IntUnaryOperator y, IntUnaryOperator z) {
+        public Vec3i.Mutable transform(@NotNull IntUnaryOperator x, @NotNull IntUnaryOperator y, @NotNull IntUnaryOperator z) {
             this.x = x.applyAsInt(this.x);
             this.y = y.applyAsInt(this.y);
             this.z = z.applyAsInt(this.z);
@@ -161,22 +162,32 @@ public class Vec3i {
         }
 
         public Vec3i.Mutable add(int x1, int y1, int z1) {
-            return transform(
+            /*return transform(
                     x -> x + x1,
                     y -> y + y1,
                     z -> z + z1
-            );
+            );*/
+
+            this.x += x1;
+            this.y += y1;
+            this.z += z1;
+            return this;
         }
 
         public Vec3i.Mutable subtract(int x1, int y1, int z1) {
-            return transform(
+            /*return transform(
                     x -> x - x1,
                     y -> y - y1,
                     z -> z - z1
-            );
+            );*/
+
+            this.x -= x1;
+            this.y -= y1;
+            this.z -= z1;
+            return this;
         }
 
-        public Vec3i newImmutable() {
+        public Vec3i copyAsImmutable() {
             return new Vec3i(x, y, z);
         }
     }
