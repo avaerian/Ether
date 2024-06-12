@@ -25,6 +25,7 @@ public class BlockBreakListener implements Listener {
             } else {
                 plr.sendMessage("Not in accessible region!");
             }
+            plr.sendMessage("Island id: " + island.getId() + " / " + island.getTile());
 
         },
         // Else

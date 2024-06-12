@@ -1,9 +1,6 @@
 package org.minerift.ether.user;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 // TODO: needs work
 public class UserManager {
@@ -14,8 +11,16 @@ public class UserManager {
         this.users = new HashMap<>();
     }
 
+    // Returns whether the user was registered successfully)
+    public boolean register(EtherUser user) {
+        return users.putIfAbsent(user.getUUID(), user) == null;
+    }
+
     public Optional<EtherUser> getUser(UUID uuid) {
         return Optional.ofNullable(users.get(uuid));
     }
 
+    public Set<UUID> getKeySet() {
+        return users.keySet();
+    }
 }

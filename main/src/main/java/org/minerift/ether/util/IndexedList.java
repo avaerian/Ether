@@ -2,8 +2,6 @@ package org.minerift.ether.util;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jooq.Index;
-import org.minerift.ether.island.Island;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -11,29 +9,28 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-// Represents a resizable buffer that can be indexed
-// Indexes begin at 0 and cannot be negative
+// Represents a resizable list with an indexer function
 // Primary use is for IslandGrid
-public class IndexedBuffer<T> implements Iterable<T> {
-    private ArrayList<T> buffer; // TODO: create ResizeableArray for better buffer handling
+public class IndexedList<T> implements Iterable<T> {
+    private ArrayList<T> buffer; // TODO: create ResizeableArray for better buffer resize handling?
     private Function<T, Integer> index;
     private Predicate<T> canReplace;
 
-    public static <T> IndexedBuffer<T> createUnreplaceable(int initialSize, Function<T, Integer> index) {
-        return new IndexedBuffer<>(initialSize, index, Predicates.never());
+    public static <T> IndexedList<T> createUnreplaceable(int initialSize, Function<T, Integer> index) {
+        return new IndexedList<>(initialSize, index, Predicates.never());
     }
 
-    public static <T> IndexedBuffer<T> createUnreplaceable(Function<T, Integer> index) {
-        return new IndexedBuffer<>(index, Predicates.never());
+    public static <T> IndexedList<T> createUnreplaceable(Function<T, Integer> index) {
+        return new IndexedList<>(index, Predicates.never());
     }
 
-    public IndexedBuffer(int initialSize, Function<T, Integer> index, Predicate<T> canReplace) {
+    public IndexedList(int initialSize, Function<T, Integer> index, Predicate<T> canReplace) {
         this.buffer = new ArrayList<>(initialSize);
         this.index = index;
         this.canReplace = canReplace;
     }
 
-    public IndexedBuffer(Function<T, Integer> index, Predicate<T> canReplace) {
+    public IndexedList(Function<T, Integer> index, Predicate<T> canReplace) {
         this(10, index, canReplace);
     }
 

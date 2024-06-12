@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.util.IndexedBuffer;
+import org.minerift.ether.util.IndexedList;
 
 import java.util.Optional;
 import java.util.logging.Level;
@@ -13,14 +13,14 @@ import java.util.logging.Level;
 public class IslandGridV2 {
 
     // All islands on the grid, including deleted islands
-    private final IndexedBuffer<Island> islands;
+    private final IndexedList<Island> islands;
 
     public IslandGridV2() {
-        this.islands = new IndexedBuffer<>(Island::getId, Island::isDeleted);
+        this.islands = new IndexedList<>(Island::getId, Island::isDeleted);
     }
 
     public IslandGridV2(int initialSize) {
-        this.islands = new IndexedBuffer<>(initialSize, Island::getId, Island::isDeleted);
+        this.islands = new IndexedList<>(initialSize, Island::getId, Island::isDeleted);
     }
 
     public void registerIsland(Island island) {
@@ -112,7 +112,7 @@ public class IslandGridV2 {
         return !tiles.isEmpty() ? tiles.get(0) : getNextTileFromGridBounds();
     }
 
-    public IndexedBuffer<Island> getData() {
+    public IndexedList<Island> getData() {
         return islands;
     }
 
