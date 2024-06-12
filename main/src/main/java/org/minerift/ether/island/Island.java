@@ -6,26 +6,27 @@ import org.bukkit.World;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.util.CanChange;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.util.BukkitUtils;
+import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.world.ChunkCoords;
 
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
-public class Island {
+public class Island extends CanChange {
 
     // TODO: when loading islands/players from database, load EtherUser's first (null island),
     //       then load Island's (set island for users and attach as island members here)
     //       This may require a DatabaseReaderContext or something similar for handling data loading
 
-    private long bottomLeftBound, topRightBound;
+    private long blChunkZX, trChunkZX;
+    private int accessibleRegionLength;
 
     // These 2 pieces of data can be calculated from each other
     private int id;
@@ -34,10 +35,7 @@ public class Island {
     // Team related fields
     private int maxTeamSize;
 
-    // NOTE: hard-referencing users could consume memory over time
-    // For lazy-loading, a proxy could solve this problem
-    // This feature is not a problem for now
-    private Set<EtherUser> members;
+    private Set<UUID> members;
 
     private PermissionSet permissions;
 
@@ -45,17 +43,24 @@ public class Island {
 
     // Private constructor
     private Island(Island.Builder builder) {
+
         // TODO: load all values from builder to object
         this.tile = builder.tile;
         this.id = builder.id;
         this.isDeleted = builder.isDeleted;
         this.permissions = builder.permissions;
 
-        this.members = new HashSet<>();
-        addTeamMember(builder.owner, IslandRole.OWNER);
+        // TODO: figure out addTeamMember and handling/storing team members for islands
+        this.members = builder.members.stream().map(EtherUser::getUUID).collect(Collectors.toSet());
+        if(builder.owner != null) {
+            members.add(builder.owner.getUUID());
+        }
+        //addTeamMember(builder.owner, IslandRole.OWNER);
 
-        this.bottomLeftBound = builder.bottomLeftBound;
-        this.topRightBound = builder.topRightBound;
+        this.blChunkZX = builder.bottomLeftChunkBound;
+        this.trChunkZX = builder.topRightChunkBound;
+
+        setChanged(false);
     }
 
 
@@ -73,7 +78,7 @@ public class Island {
 
     public boolean isInAccessibleRegion(Vec3i loc) {
         final MainConfig config = Ether.getConfig(ConfigType.MAIN);
-        final int offset = (config.getTileSize() / 2) - (config.getTileAccessibleArea() / 2);
+        final int offset = (config.getTileLengthBlocks() / 2) - (config.getTileAccessibleAreaBlocks() / 2);
 
         Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
         Vec3i.Mutable trBlock = getTopRightBlock().asMutable().subtract(offset, 0, offset);
@@ -81,12 +86,14 @@ public class Island {
         return Maths.inRangeInclusive(blBlock, trBlock, loc);
     }
 
-    public Set<EtherUser> getTeamMembers() {
-        return Set.copyOf(members);
+    public List<EtherUser> getTeamMembers() {
+        List<EtherUser> users = new ArrayList<>(members.size());
+        members.forEach(uuid -> users.add(Ether.getUserManager().getUser(uuid).orElse(null)));
+        return users;
     }
 
-    public Set<EtherUser> getTeamMembersWithRole(IslandRole role) {
-        return members.stream().filter(member -> member.getIslandRole() == role).collect(Collectors.toSet());
+    public List<EtherUser> getTeamMembersWithRole(IslandRole role) {
+        return getTeamMembers().stream().filter(member -> member.getIslandRole() == role).toList();
     }
 
     public EtherUser getOwner() {
@@ -94,20 +101,24 @@ public class Island {
     }
 
     public boolean isTeamMember(EtherUser user) {
-        return members.contains(user);
+        return members.contains(user.getUUID());
     }
 
     public void addTeamMember(EtherUser user, IslandRole role) {
-        members.add(user);
+        members.add(user.getUUID());
         user.setIsland(this);
         user.setIslandRole(role);
+
+        setChanged(true);
     }
 
     public void removeTeamMember(EtherUser user) {
         if(isTeamMember(user)) {
-            members.remove(user);
-            user.setIsland(null);
+            members.remove(user.getUUID());
+            user.setIsland((Integer) null);
             user.setIslandRole(IslandRole.VISITOR);
+
+            setChanged(true);
         }
     }
 
@@ -124,61 +135,83 @@ public class Island {
     }
 
     public void markDeleted() {
-        this.isDeleted = true;
+        if(!isDeleted) {
+            this.isDeleted = true;
+            setChanged(true);
+        }
     }
 
     public long getBottomLeftChunkKey() {
-        return bottomLeftBound;
+        return blChunkZX;
     }
 
     public long getTopRightChunkKey() {
-        return topRightBound;
+        return trChunkZX;
     }
 
-    public Vec2i getBottomLeftTile() {
-        return new Vec2i((int) bottomLeftBound, (int) (bottomLeftBound >> 32));
+    public Vec2i getBottomLeftChunk() {
+        return Maths.unpack(blChunkZX, Maths.PackingOrder.ZX);
     }
 
-    public Vec2i getTopRightTile() {
-        return new Vec2i((int) topRightBound, (int) (topRightBound >> 32));
+    public Vec2i getTopRightChunk() {
+        return Maths.unpack(trChunkZX, Maths.PackingOrder.ZX);
     }
 
-    public Vec3i getBottomLeftBlock() {
-        // TODO
-        return BukkitUtils.getVec3iAt(getBottomLeftTile()).asMutable().setY(0);
+    // Mutable for math purposes
+    // NOTE: Height is set to 0
+    public Vec3i.Mutable getBottomLeftBlock() {
+        final Vec2i blChunk = getBottomLeftChunk();
+        return new Vec3i.Mutable(blChunk.getX() * 16, 0, blChunk.getZ() * 16);
     }
 
-    public Vec3i getTopRightBlock() {
-        final Vec2i.Mutable trBound = getTopRightTile().asMutable();
-        trBound.add(1, 1);
-        final Vec3i.Mutable trBlock = BukkitUtils.getVec3iAt(trBound).asMutable();
-        trBlock.subtract(1, 0, 1);
-        return trBlock;
+    // Mutable for math purposes
+    // NOTE: Height is set to 0
+    public Vec3i.Mutable getTopRightBlock() {
+        final Vec2i.Mutable trChunk = getTopRightChunk().asMutable();
+        trChunk.add(1, 1);
+        return new Vec3i.Mutable((trChunk.getX() * 16) - 1, 0, (trChunk.getZ() * 16) - 1);
     }
 
     public Chunk getBottomLeftChunk(World world) {
-        // TODO: extract(?) world.getMinHeight()
-        return world.getChunkAt(bottomLeftBound);
+        return world.getChunkAt(blChunkZX);
     }
 
     public Chunk getTopRightChunk(World world) {
-        return world.getChunkAt(topRightBound);
+        return world.getChunkAt(trChunkZX);
     }
 
     public static Island.Builder builder() {
         return new Island.Builder();
     }
 
-    public static class Builder {
+    @Override
+    public String toString() {
+        return "Island{" +
+                "id=" + id +
+                ", tile=" + tile +
+                ", isDeleted=" + isDeleted +
+                ", bottomLeftBound=" + blChunkZX +
+                ", topRightBound=" + trChunkZX +
+                ", maxTeamSize=" + maxTeamSize +
+                ", members=" + members +
+                ", permissions=" + permissions +
+                "}\n";
+    }
+
+    public static class Builder implements IBuilder<Island> {
 
         private Vec2i tile;
         private int id;
-        private long bottomLeftBound, topRightBound;
+        private long bottomLeftChunkBound, topRightChunkBound;
         private boolean isDeleted;
         private PermissionSet permissions;
 
         private EtherUser owner;
-        private Set<EtherUser> members;
+        private List<EtherUser> members;
+
+        private Builder() {
+            this.members = new ArrayList<>();
+        }
 
         /**
          *
@@ -221,31 +254,40 @@ public class Island {
             return this;
         }
 
-        public Builder setMembers(Set<EtherUser> members) {
+        public Builder setMembers(List<EtherUser> members) {
             this.members = members;
             return this;
         }
 
         public Builder setBottomLeftBound(int x, int z) {
-            return setBottomLeftBound(Chunk.getChunkKey(x, z));
+            return setBottomLeftBound(ChunkCoords.getChunkKey(x, z));
+        }
+
+        public Builder setBottomLeftBound(Vec2i chunk) {
+            return setBottomLeftBound(chunk.getX(), chunk.getZ());
         }
 
         public Builder setTopRightBound(int x, int z) {
-            return setTopRightBound(Chunk.getChunkKey(x, z));
+            return setTopRightBound(ChunkCoords.getChunkKey(x, z));
+        }
+
+        public Builder setTopRightBound(Vec2i chunk) {
+            return setTopRightBound(chunk.getX(), chunk.getZ());
         }
 
         // Corner 1
-        public Builder setBottomLeftBound(long bottomLeftBound) {
-            this.bottomLeftBound = bottomLeftBound;
+        public Builder setBottomLeftBound(long bottomLeftChunkBound) {
+            this.bottomLeftChunkBound = bottomLeftChunkBound;
             return this;
         }
 
         // Corner 2
-        public Builder setTopRightBound(long topRightBound) {
-            this.topRightBound = topRightBound;
+        public Builder setTopRightBound(long topRightChunkBound) {
+            this.topRightChunkBound = topRightChunkBound;
             return this;
         }
 
+        @Override
         public Island build() {
             validate();
             return new Island(this);

@@ -1,9 +1,11 @@
 package org.minerift.ether.util;
 
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.minerift.ether.Ether;
-import org.minerift.ether.config.ConfigType;
-import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.math.Vec3i;
@@ -14,25 +16,24 @@ import org.minerift.ether.math.Vec3i;
  */
 public class BukkitUtils {
 
-    // Get a tile from a Bukkit location
-    public static Vec2i getTileAt(Location loc) {
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
-        int tileX = (int) Math.floor(loc.getX() / config.getTileSize());
-        int tileZ = (int) Math.floor(loc.getZ() / config.getTileSize());
-        return new Vec2i(tileX, tileZ);
+    public static String dumpItemStack(ItemStack item) {
+        NamespacedKey key = Ether.getNMS().getNamespacedKey(item);
+        return key.asString() + item.getItemMeta().getAsString();
     }
 
-    // Get the top right corner Vec3i location from a tile (world coordinates)
-    // TODO: move to Maths.class
-    public static Vec3i getVec3iAt(Vec2i tile) {
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
-        return new Vec3i(tile.getX() * config.getTileSize(), config.getTileHeight(), tile.getZ() * config.getTileSize());
+    // Get a tile from a Bukkit location
+    public static Vec2i getTileAt(Location loc) {
+        return Maths.getTileAt(loc.getBlockX(), loc.getBlockZ());
     }
 
     // Get the top right corner Bukkit location from a tile (world coordinates)
     public static Location getLocationAt(Vec2i tile) {
-        final Vec3i loc = getVec3iAt(tile);
-        return new Location(null, loc.getX(), loc.getY(), loc.getZ());
+        return getLocationAt(null, tile);
+    }
+
+    public static Location getLocationAt(World world, Vec2i tile) {
+        final Vec3i vec = Maths.getVec3iAt(tile);
+        return new Location(null, vec.getX(), vec.getY(), vec.getZ());
     }
 
     public static Vec3i asVec3i(Location loc) {
