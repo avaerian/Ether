@@ -17,10 +17,19 @@ public enum NBTTagType {
     LIST_TAG        ("TAG_List", ListTag.class),
     COMPOUND_TAG    ("TAG_Compound", CompoundTag.class),
     INT_ARRAY_TAG   ("TAG_Int_Array", IntArrayTag.class),
-    LONG_ARRAY_TAG  ("TAG_Long_Array", LongArrayTag.class);
+    LONG_ARRAY_TAG  ("TAG_Long_Array", LongArrayTag.class)
+
+    ;
+
+    public static final NBTTagType[] VALUES;
+
+    static {
+        VALUES = values();
+    }
+
 
     public static NBTTagType getTagType(Class<? extends Tag> clazz) {
-        for(NBTTagType type : values()) {
+        for(NBTTagType type : VALUES) {
             if(type.getTagClass().equals(clazz)) {
                 return type;
             }
@@ -29,9 +38,8 @@ public enum NBTTagType {
     }
 
     public static NBTTagType getTagType(int id) {
-        final NBTTagType[] types = NBTTagType.values();
-        Preconditions.checkArgument(id < types.length, String.format("Invalid tag id (%d)", id));
-        return types[id];
+        Preconditions.checkArgument(id < VALUES.length, String.format("Invalid tag id (%d)", id));
+        return VALUES[id];
     }
 
     private final String name;
