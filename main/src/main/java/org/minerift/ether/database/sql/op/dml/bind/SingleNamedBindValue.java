@@ -1,5 +1,7 @@
 package org.minerift.ether.database.sql.op.dml.bind;
 
+import java.util.Map;
+
 public class SingleNamedBindValue<V> implements NamedBindValues<V> {
 
     private final String field;
@@ -11,7 +13,12 @@ public class SingleNamedBindValue<V> implements NamedBindValues<V> {
     }
 
     @Override
-    public V getField(String field) {
+    public V getFieldValue(String field) {
         return this.field.equals(field) ? bindVal : null;
+    }
+
+    @Override
+    public Map<String, V> asMap() {
+        return Map.of(field, bindVal);
     }
 }

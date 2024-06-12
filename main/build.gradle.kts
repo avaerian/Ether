@@ -19,7 +19,7 @@ dependencies {
     //implementation("org.jooq:joor-java-8:0.9.15")
 
     // SQL stuffs
-    implementation("org.jooq:jooq:3.18.6")
+    implementation("org.jooq:jooq:3.19.9")
     implementation("com.zaxxer:HikariCP:5.0.1")
 
     // Db drivers

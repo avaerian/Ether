@@ -9,8 +9,7 @@ import org.minerift.ether.database.sql.SQLAccess;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.table;
+import static org.jooq.impl.DSL.*;
 
 public class DDLGetTables {
 
@@ -30,7 +29,7 @@ public class DDLGetTables {
             case MYSQL -> {
                 final Field<String> TABLE_NAME = field("table_name", TABLE_NAME_TYPE);
                 yield dsl.select(TABLE_NAME).from("information_schema.tables")
-                        .where(field("table_schema").eq(access.db().getDbName()))
+                        .where(field("table_schema").eq(access.db().getName()))
                         .fetchSet(TABLE_NAME);
             }
             case SQLITE -> {
@@ -41,7 +40,7 @@ public class DDLGetTables {
             }
             case H2 -> {
                 final Field<String> TABLE_NAME = field("table_name", TABLE_NAME_TYPE);
-                yield dsl.select(TABLE_NAME).from("information_schema.tables").fetchSet(TABLE_NAME);
+                yield dsl.select(TABLE_NAME).from("information_schema.tables").where(field("table_schema").eq("PUBLIC")).fetchSet(TABLE_NAME);
             }
         };
         return tableNames.stream().map(String::toUpperCase).collect(Collectors.toSet());

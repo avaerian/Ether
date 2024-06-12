@@ -5,16 +5,26 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
 import org.jooq.exception.DataAccessException;
-import org.minerift.ether.database.sql.DatabaseConnectionSettings;
-import org.minerift.ether.database.sql.SQLAccess;
-import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.SQLDialect;
+import org.minerift.ether.Ether;
+import org.minerift.ether.database.sql.*;
+import org.minerift.ether.database.sql.diff.DiffType;
+import org.minerift.ether.database.sql.diff.KeyDiff;
+import org.minerift.ether.island.Island;
+import org.minerift.ether.island.IslandGridV2;
 import org.minerift.ether.island.IslandModel;
+import org.minerift.ether.math.GridAlgorithm;
+import org.minerift.ether.user.EtherUser;
 
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
-import static org.minerift.ether.database.sql.DatabasePlayground.HIDDEN;
+import static org.minerift.ether.Secrets.HIDDEN;
 
 public class PostgreSQLConnector implements SQLConnector {
     @Override
@@ -63,9 +73,61 @@ public class PostgreSQLConnector implements SQLConnector {
                 .build();
 
         // Attempt to connect to db
-        SQLDatabase db = new SQLDatabase(mysqlSettings, IslandModel::new);
+        SQLDatabase db = new SQLDatabase(postgresSettings, IslandModel::new, UserModel::new);
         HikariDataSource ds = db.getDataSource();
         System.out.println(ds == null ? "null" : ds.getConnection().isValid(10));
+
+        Random random = new Random();
+        final IslandGridV2 grid = new IslandGridV2();
+
+        final int GRID_SIZE = 100;
+        for(int i = 0; i < GRID_SIZE; i++) {
+            final Island island = Island.builder()
+                    .setTile(GridAlgorithm.computeTile(i), true)
+                    .setOwner(EtherUser.builder().setUUID(UUID.randomUUID()).build())
+                    .setDeleted(random.nextBoolean())
+                    .build();
+            grid.registerIsland(island);
+        }
+
+        AtomicReference<List<Island>> islands = new AtomicReference<>(Collections.emptyList());
+        db.access(false, (access) -> {
+
+            System.out.println("Current ids: " + access.selectAllIds(IslandModel.class));
+
+            //access.insertOrUpdate(IslandModel.class, grid.getAllIslandsView());
+            access.update(IslandModel.class, grid.getIslandsView());
+
+            System.out.println("Current user ids: " + access.selectAllIds(UserModel.class));
+            access.insert(UserModel.class, EtherUser.builder().setUUID(UUID.randomUUID()).build());
+            System.out.println("Current user ids: " + access.selectAllIds(UserModel.class));
+
+            SQLResult<EtherUser> sqlUsers = access.selectAll(UserModel.class);
+            System.out.println(sqlUsers.stream().map(sqlUsers::readRecord).collect(Collectors.toList()));
+
+            // TODO: review
+            List<EtherUser.Builder> userBuilders = sqlUsers.stream().map(record -> (EtherUser.Builder)sqlUsers.readBuilder(record)).toList();
+
+            // Get diffs between database ids and in-memory ids
+            var diffs = KeyDiff.partitionDiffs(access.selectAllIds(IslandModel.class), Ether.getIslandManager().getKeySet());
+
+            // From diffs, update database appropriately
+            access.insert(IslandModel.class, Ether.getIslandManager().getIslands(diffs.get(DiffType.INSERTED)));
+            access.update(IslandModel.class, Ether.getIslandManager().getIslands(diffs.get(DiffType.UPDATED)));
+            access.deleteByIds(IslandModel.class, diffs.get(DiffType.DELETED));
+
+
+            // TODO: review
+            SQLResult<Island> sqlIslands = access.selectAll(IslandModel.class);
+            List<Island.Builder> islandBuilders = sqlIslands.stream().map(record -> (Island.Builder)sqlIslands.readBuilder(record)).toList();
+
+            System.out.println(sqlIslands.asResultSet());
+
+            islands.set(sqlIslands.stream().map(sqlIslands::readRecord).collect(Collectors.toList()));
+        });
+
+        System.out.println(islands);
+
         db.close();
     }
 

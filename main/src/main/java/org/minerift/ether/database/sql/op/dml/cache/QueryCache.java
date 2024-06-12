@@ -10,13 +10,9 @@ import java.util.function.Function;
 
 public class QueryCache {
 
-    private Map<Class<? extends Model>, RawQuery> modelQueryCache;
+    public final Map<Class<? extends Model>, RawQuery> modelQueryCache;
 
-    public QueryCache() {
-        this.modelQueryCache = Collections.emptyMap();
-    }
-
-    public void cacheQueries(Collection<Model<?, ?>> tables, Function<Model<?, ?>, RawQuery> cacheQueryFunc) {
+    public QueryCache(Collection<Model<?, ?>> tables, Function<Model<?, ?>, RawQuery> cacheQueryFunc) {
         this.modelQueryCache = new HashMap<>(tables.size());
         tables.forEach(model -> modelQueryCache.put(model.getClass(), cacheQueryFunc.apply(model)));
     }

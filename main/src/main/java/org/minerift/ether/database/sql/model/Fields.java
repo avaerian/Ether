@@ -9,6 +9,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+// TODO: review and refactor this class
 public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
 
     private EnumSet<Flag> flags;
@@ -68,6 +69,7 @@ public class Fields<M, T> implements Iterable<Field<M, T, ?>> {
         return primaryKeys[0];
     }
 
+    @Deprecated
     public Fields<M, T> getUniqueFields() {
         if(isOnlyUniqueFields()) {
             return this;

@@ -10,7 +10,7 @@ public class SQLDbStartupScript {
 
         // TODO: upgraders will need to run before table creation is handled
 
-        // Create tables that don't exist
+        // Create tables from models that don't exist in SQL db
         final Set<String> dbTables = access.getDatabaseTables();
         System.out.println("Tables: " + access.getDatabaseTables().toString()); // debug
         for(Model<?, ?> model : access.db().getModels()) {
@@ -20,6 +20,10 @@ public class SQLDbStartupScript {
             }
         }
         System.out.println("Tables: " + access.getDatabaseTables().toString()); // debug
+
+
+        // TODO: get rows for each table and create rows that don't exist
+        // TODO: add ability to get info on rows (data types, etc.)
     }
 
 }

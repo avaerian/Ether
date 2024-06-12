@@ -28,7 +28,6 @@ public class MySQLConnector implements SQLConnector {
     public HikariDataSource connect(SQLDatabase db, DatabaseConnectionSettings settings) {
 
         final int TIMEOUT = 10;
-
         HikariConfig noDbConfig = createConfig(settings);
         HikariConfig dbConfig = createConfig(settings);
         dbConfig.setJdbcUrl(dbConfig.getJdbcUrl() + "/" + settings.getDbName());

@@ -11,7 +11,12 @@ public class ManyNamedBindValues<T> implements NamedBindValues<T> {
     }
 
     @Override
-    public T getField(String field) {
+    public T getFieldValue(String field) {
         return namedBindVals.get(field);
+    }
+
+    @Override
+    public Map<String, T> asMap() {
+        return namedBindVals;
     }
 }

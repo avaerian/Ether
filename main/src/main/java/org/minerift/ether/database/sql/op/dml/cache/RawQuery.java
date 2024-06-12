@@ -15,6 +15,7 @@ public class RawQuery {
         this.bindOrder = bindOrder;
     }
 
+    @SafeVarargs
     public RawQuery(String sql, Set<Field<?>>... bindFieldNames) {
         this(sql, SQLUtils.getBindOrder(bindFieldNames));
     }

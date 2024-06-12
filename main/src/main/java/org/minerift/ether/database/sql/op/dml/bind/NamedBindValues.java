@@ -3,6 +3,7 @@ package org.minerift.ether.database.sql.op.dml.bind;
 import com.google.common.base.Preconditions;
 import org.minerift.ether.database.sql.model.Field;
 import org.minerift.ether.database.sql.model.Fields;
+import org.minerift.ether.database.sql.model.Model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,5 +41,16 @@ public interface NamedBindValues<T> {
         return new ManyNamedBindValues<>(namedBindVals);
     }
 
-    T getField(String field);
+    T getFieldValue(String field);
+
+    Map<String, T> asMap();
+
+    default Object[] getValuesFromBindOrder(Model<?, ?> model, String[] bindOrder) {
+        Object[] objs = new Object[bindOrder.length];
+        for(int i = 0; i < bindOrder.length; i++) {
+            String column = bindOrder[i];
+            objs[i] = model.getField(column).readJavaAsSQLValue(getFieldValue(bindOrder[i]));
+        }
+        return objs;
+    }
 }
