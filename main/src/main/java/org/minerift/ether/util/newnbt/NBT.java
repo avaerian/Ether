@@ -30,6 +30,10 @@ public class NBT {
             return LOOKUP[id];
         }
 
+        public static TagType getType(byte byteId) {
+            return getType(byteId & 0xFF);
+        }
+
         public static TagType getType(Class<? extends Tag> tagClazz) {
             for(TagType type : LOOKUP) {
                 if(type.clazz.equals(tagClazz)) {
@@ -56,6 +60,10 @@ public class NBT {
 
         public int getId() {
             return ordinal();
+        }
+
+        public byte getByteId() {
+            return (byte) getId();
         }
     }
 
