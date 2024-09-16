@@ -207,7 +207,7 @@ public final class NBTInputStream implements AutoCloseable {
     private ListTag readListTagPayload(String name, int depth) throws IOException {
         final NBTTagType childType = NBTTagType.getTagType(is.readByte());
         if(childType == NBTTagType.END_TAG) {
-            throw new IOException("TAG_End not permitted as child type for TAG_List");
+            throw new IOException(name + " : TAG_End not permitted as child type for TAG_List");
         }
 
         final int length = is.readInt();

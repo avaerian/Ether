@@ -1,4 +1,4 @@
-package org.minerift.ether.nms.v1_19_R1;
+package org.minerift.ether.nms.v1_19_R3;
 
 import it.unimi.dsi.fastutil.shorts.ShortArraySet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.minerift.ether.nms.v1_19_R1.NativeTypeConversions.toNative;
+import static org.minerift.ether.nms.v1_19_R3.NativeTypeConversions.toNative;
 
 // TODO: refactor into core code instead of version-specific NMS impl
 public class ChunkSectionChanges {

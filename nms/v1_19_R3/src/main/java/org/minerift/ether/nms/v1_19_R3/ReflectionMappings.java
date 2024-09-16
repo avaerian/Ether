@@ -1,4 +1,4 @@
-package org.minerift.ether.nms.v1_19_R1;
+package org.minerift.ether.nms.v1_19_R3;
 
 import net.minecraft.core.MappedRegistry;
 import xyz.jpenilla.reflectionremapper.ReflectionRemapper;

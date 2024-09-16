@@ -1,4 +1,4 @@
-package org.minerift.ether.nms.v1_19_R1;
+package org.minerift.ether.nms.v1_19_R3;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
@@ -10,11 +10,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
-import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -32,8 +33,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_19_R1.CraftChunk;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
 import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSBridge;
 import org.minerift.ether.util.reflect.Reflect;
@@ -50,8 +50,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.minerift.ether.nms.v1_19_R1.NativeTypeConversions.fromNative;
-import static org.minerift.ether.nms.v1_19_R1.NativeTypeConversions.toNative;
+import static org.minerift.ether.nms.v1_19_R3.NativeTypeConversions.*;
 
 public class NMSBridgeImpl implements NMSBridge {
 
@@ -59,7 +58,7 @@ public class NMSBridgeImpl implements NMSBridge {
     public void bootstrap() {
         ReflectionMappings.class.getClass(); // load class and fields for reflection
         System.out.println("frozen registry obfuscated field: " + ReflectionMappings.FROZEN_REGISTRY_FIELD);
-        ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(BuiltinRegistries.BIOME);
+        ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME));
         System.out.println("Biome Registry Frozen? " + (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD));
     }
 
@@ -71,18 +70,11 @@ public class NMSBridgeImpl implements NMSBridge {
     // Does not perform lighting updates
     private void fastClearSingleChunk(Chunk chunk, boolean clearEntities) {
 
-        // TODO: reconsider chunk loading code (chunk should always be loaded when passed as argument)
-        // Load chunk if not already loaded
-        boolean chunkInitiallyLoaded = chunk.isLoaded();
-        if(!chunkInitiallyLoaded) {
-            chunk.load();
-        }
+        final LevelChunk nmsChunk = toNativeChunk(chunk);
+        final ServerLevel level = nmsChunk.level;
+        final LevelChunk emptyChunk = new LevelChunk(level, nmsChunk.getPos());
 
-        final LevelChunk nmsChunk = ((CraftChunk) chunk).getHandle();
-        final LevelChunk emptyChunk = new LevelChunk(nmsChunk.getLevel(), nmsChunk.getPos());
-
-        final ServerLevel serverLevel = nmsChunk.level;
-        final ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
+        final ServerChunkCache serverChunkCache = level.getChunkSource();
 
         // Write empty chunk section to buffer
         final FriendlyByteBuf emptySectionBuf = new FriendlyByteBuf(Unpooled.buffer());
@@ -119,11 +111,6 @@ public class NMSBridgeImpl implements NMSBridge {
         // Resend entire chunk packet
         ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nmsChunk, serverChunkCache.getLightEngine(), null, null, true, true);
         nmsChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
-
-        // Clean up
-        if(!chunkInitiallyLoaded) { // if the chunk was not initially loaded, we had to load it
-            chunk.unload(true);
-        }
     }
 
     private void clearAllBlockEntities(LevelChunk chunk) {
@@ -367,7 +354,7 @@ public class NMSBridgeImpl implements NMSBridge {
         private DeprecatedChunkSectionChanges lastSectionChanges = null;
 
         private void partitionSingleBlock(BlockArchetype block, Chunk bukkitChunk) {
-            final LevelChunk chunk = ((CraftChunk) bukkitChunk).getHandle();
+            final LevelChunk chunk = toNativeChunk(bukkitChunk);
             final LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(block.getY()));
             final SectionPos pos = SectionPos.of(block.getX() >> 4, block.getY() >> 4, block.getZ() >> 4);
 
@@ -394,7 +381,7 @@ public class NMSBridgeImpl implements NMSBridge {
         }
     }
 
-    public static void applyBlocksToSection(LevelChunk chunk, LevelChunkSection section, List<BlockArchetype> blocks) {
+    public static void applyBlocksToSection(ChunkAccess chunk, LevelChunkSection section, List<BlockArchetype> blocks) {
         section.acquire();
         try {
             final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
@@ -422,7 +409,7 @@ public class NMSBridgeImpl implements NMSBridge {
                 if(state.hasBlockEntity()) {
                     BlockEntity blockEntity = ((EntityBlock) state.getBlock()).newBlockEntity(blockPos, state);
                     if(blockEntity != null) {
-                        chunk.addAndRegisterBlockEntity(blockEntity);
+                        chunk.setBlockEntity(blockEntity);
 
                         // Load NBT data
                         if(block instanceof BlockEntityArchetype blockEntityArchetype) {
@@ -450,8 +437,8 @@ public class NMSBridgeImpl implements NMSBridge {
             throw new IllegalArgumentException("Chunks are not in the same world!");
         }
 
-        final LevelChunk nmsChunk1 = ((CraftChunk) e1).getHandle();
-        final LevelChunk nmsChunk2 = ((CraftChunk) e2).getHandle();
+        final LevelChunk nmsChunk1 = toNativeChunk(e1);
+        final LevelChunk nmsChunk2 = toNativeChunk(e2);
 
         final ServerLevel serverLevel = nmsChunk1.level;
         final ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
@@ -516,7 +503,7 @@ public class NMSBridgeImpl implements NMSBridge {
 
         final Map<BlockState, int[]> stateCounts = new HashMap<>();
 
-        final LevelChunk chunk = ((CraftChunk)location.getChunk()).getHandle();
+        final LevelChunk chunk = toNativeChunk(location.getChunk());
         for(LevelChunkSection section : chunk.getSections()) {
             section.getStates().forEachLocation((state, loc) -> {
                 int[] count = stateCounts.computeIfAbsent(state, (ignore) -> new int[1]);
@@ -547,8 +534,8 @@ public class NMSBridgeImpl implements NMSBridge {
         final Chunk e1 = world.getChunkAt(centerX - radius, centerZ - radius);
         final Chunk e2 = world.getChunkAt(centerX + radius, centerZ + radius);
 
-        final ChunkPos p1 = ((CraftChunk)e1).getHandle().getPos();
-        final ChunkPos p2 = ((CraftChunk)e2).getHandle().getPos();
+        final ChunkPos p1 = toNativeChunkAccess(e1).getPos();
+        final ChunkPos p2 = toNativeChunkAccess(e2).getPos();
 
         ChunkPos.rangeClosed(p1, p2).forEach(pos -> {
             final LevelChunk chunk = level.getChunk(pos.x, pos.z);
@@ -581,7 +568,7 @@ public class NMSBridgeImpl implements NMSBridge {
 
     private static LevelChunkSection getChunkSectionAt(int x, int y, int z, World world) {
         final Chunk bukkitChunk = world.getChunkAt(x >> 4, z >> 4);
-        final LevelChunk chunk = ((CraftChunk)bukkitChunk).getHandle();
+        final LevelChunk chunk = toNativeChunk(bukkitChunk);
         return chunk.getSection(chunk.getSectionIndex(y));
     }
 
@@ -600,8 +587,8 @@ public class NMSBridgeImpl implements NMSBridge {
         }
 
         // Get original bounds
-        ChunkPos p1 = ((CraftChunk)e1).getHandle().getPos();
-        ChunkPos p2 = ((CraftChunk)e2).getHandle().getPos();
+        ChunkPos p1 = toNativeChunkAccess(e1).getPos();
+        ChunkPos p2 = toNativeChunkAccess(e2).getPos();
 
         return getNeighboringChunks(p1, p2);
     }

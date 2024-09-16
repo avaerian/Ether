@@ -1,7 +1,8 @@
-package org.minerift.ether.nms.v1_19_R1;
+package org.minerift.ether.nms.v1_19_R3;
 
 import net.kyori.adventure.sound.Sound;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -10,16 +11,21 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_19_R1.CraftSound;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlockState;
-import org.bukkit.craftbukkit.v1_19_R1.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.CraftChunk;
+import org.bukkit.craftbukkit.v1_19_R3.CraftSound;
+import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlockState;
+import org.bukkit.craftbukkit.v1_19_R3.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.minerift.ether.util.nbt.tags.*;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.world.BlockArchetype;
@@ -122,12 +128,20 @@ public class NativeTypeConversions {
     }
 
     public static Biome toNativeBiome(NamespacedKey key) {
-        Registry<Biome> biomeRegistry = MinecraftServer.getServer().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        Registry<Biome> biomeRegistry = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
         return biomeRegistry.get(toNative(key));
     }
 
+    public static LevelChunk toNativeChunk(Chunk chunk) {
+        return (LevelChunk) toNativeChunkAccess(chunk);
+    }
+
+    public static ChunkAccess toNativeChunkAccess(Chunk chunk) {
+        return ((CraftChunk)chunk).getHandle(ChunkStatus.FULL);
+    }
+
     public static NamespacedKey fromNative(Biome biome) {
-        Registry<Biome> biomeRegistry = MinecraftServer.getServer().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        Registry<Biome> biomeRegistry = MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME);
         ResourceLocation resource = biomeRegistry.getKey(biome);
 
         System.out.println("Is biome registry frozen? " + Reflect.of(biomeRegistry).readField(ReflectionMappings.FROZEN_REGISTRY_FIELD, boolean.class)); // TODO: remove after debug
