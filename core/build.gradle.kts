@@ -1,0 +1,50 @@
+plugins {
+    id("com.gradleup.shadow")
+    id("me.champeau.jmh") version("0.7.2")
+}
+
+//sourceSets["jmh"].compileClasspath += sourceSets["main"].runtimeClasspath
+//sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
+
+repositories {
+    mavenCentral()
+    maven ("https://maven.enginehub.org/repo/")
+}
+
+
+
+dependencies {
+
+    //implementation("org.jooq:joor-java-8:0.9.15")
+    compileOnly(libs.paperApi)
+
+    // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling
+    // General libraries
+    implementation(libs.guava)
+    implementation(libs.gson)
+    implementation(libs.fastutil)
+
+    // SQL libraries
+    implementation(libs.jooq)
+    implementation(libs.hikariCP)
+
+    implementation(libs.sql.driver.sqlite)
+    implementation(libs.sql.driver.postgresql)
+    implementation(libs.sql.driver.h2)
+    implementation(libs.sql.driver.mysql)
+
+    compileOnly(libs.worldeditBukkit)
+
+    // Benchmarking
+    jmhImplementation(libs.jmh.core)
+    jmhAnnotationProcessor(libs.jmh.annprocessor)
+
+    // Unit tests
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}

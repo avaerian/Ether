@@ -1,69 +1,72 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow") version("7.1.2") apply(false)
+    `kotlin-dsl`
+    `java-library`
     id("java")
-    id("io.papermc.paperweight.userdev") version("1.5.4") apply(false)
+    id("com.gradleup.shadow") version("8.3.1")
+    //id("io.papermc.paperweight.userdev") version("1.7.2") apply(false)
 }
 
+group = rootProject.group
+version = rootProject.version
+
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":nms:v1_19_R3", "reobf"))
 
-    implementation(project(":main"))
-    implementation(project(":v1_19_R1", "reobf"))
+    implementation(libs.reflectionRemapper)
+}
 
+tasks.named<ShadowJar>("shadowJar") {
+    archiveClassifier.set("")
+    configurations = listOf(project.configurations.runtimeClasspath.get()) // TODO: review
+    //configurations = listOf(project.configurations["compile"])
+
+    //exclude("module-info.class")
+    exclude("*.properties")
+
+    dependencies {
+        include(project(":core"))
+        include(project(":nms:v1_19_R3"))
+        include(dependency("xyz.jpenilla:reflection-remapper"))
+    }
 }
 
 allprojects {
-
     apply(plugin = "java")
-    apply(plugin = "com.github.johnrengelman.shadow")
+    //apply(plugin = "com.github.johnrengelman.shadow")
 
     java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+        //sourceCompatibility = JavaVersion.VERSION_21
     }
 
     repositories {
+        gradlePluginPortal()
         mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
     }
 
-    group = "org.minerift.ether"
-    version = "1.0-SNAPSHOT"
+    tasks.withType<JavaCompile> {
+        options.release.set(21)
+        options.encoding = Charsets.UTF_8.name()
+    }
 
-    tasks.withType<ShadowJar> {
+    tasks.withType<Javadoc> {
+        options.encoding = Charsets.UTF_8.name()
+    }
+
+    /*tasks.withType<ShadowJar> {
         archiveClassifier.set("") // SUPER IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         dependencies {
-            include(project(":main"))
-            include(project(":v1_19_R1"))
+            include(project(":core"))
+            include(project(":nms:v1_19_R3"))
             include(dependency("xyz.jpenilla:reflection-remapper"))
         }
-    }
+    }*/
 }
 
-// Paper-API dependency for submodules
-subprojects {
-    repositories {
-        mavenCentral()
-        maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
-    }
-
-    dependencies {
-        compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
-    }
-}
-
-// Once more versions are implemented, this list will grow
-configure(subprojects.filter { listOf("v1_19_R1").contains(it.name) }) {
-    apply(plugin = "io.papermc.paperweight.userdev")
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        implementation(project(":main"))
-        implementation("xyz.jpenilla:reflection-remapper:0.1.1")
-    }
-}
 
 /*
 compileJava.options.encoding = 'UTF-8'
