@@ -1,7 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
-
-import java.io.DataInputStream;
-import java.io.IOException;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 public interface ScalarIOPrimitive<T> extends IOPrimitive<T> {
 
@@ -14,7 +11,6 @@ public interface ScalarIOPrimitive<T> extends IOPrimitive<T> {
         return false;
     }
 
-    T read(DataInputStream is) throws IOException;
     ArrayIOPrimitive<?> arrayType();
 
 }

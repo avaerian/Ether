@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

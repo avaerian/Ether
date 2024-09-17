@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,6 +19,7 @@ public class ByteArrayIOPrimitive implements ArrayIOPrimitive<byte[]> {
     @Override
     public byte[] read(DataInputStream is, int length) throws IOException {
         byte[] buf = new byte[length];
+        System.out.println("len:" + length);
         is.readFully(buf);
         return buf;
     }

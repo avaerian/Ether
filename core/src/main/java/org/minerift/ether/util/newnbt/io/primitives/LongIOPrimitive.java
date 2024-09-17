@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -35,6 +35,6 @@ public class LongIOPrimitive implements ScalarIOPrimitive<Long> {
 
     @Override
     public LongArrayIOPrimitive arrayType() {
-        return IOPrimitive.LONG_ARRAY;
+        return LONG_ARRAY;
     }
 }

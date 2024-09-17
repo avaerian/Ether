@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -35,6 +35,6 @@ public class DoubleIOPrimitive implements ScalarIOPrimitive<Double> {
 
     @Override
     public DoubleArrayIOPrimitive arrayType() {
-        return IOPrimitive.DOUBLE_ARRAY;
+        return DOUBLE_ARRAY;
     }
 }

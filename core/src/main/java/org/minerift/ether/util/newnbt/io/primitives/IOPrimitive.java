@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -18,6 +18,7 @@ public interface IOPrimitive<T> {
     public static final FloatArrayIOPrimitive FLOAT_ARRAY = new FloatArrayIOPrimitive();
     public static final DoubleIOPrimitive DOUBLE = new DoubleIOPrimitive();
     public static final DoubleArrayIOPrimitive DOUBLE_ARRAY = new DoubleArrayIOPrimitive();
+    public static final StringIOPrimitive STRING = new StringIOPrimitive();
 
 
     default boolean isScalarType() {
@@ -27,4 +28,5 @@ public interface IOPrimitive<T> {
     Class<T> getPrimitiveType();
     int getByteSize(T obj);
     void write(DataOutputStream os, T scalar) throws IOException;
+    T read(DataInputStream is) throws IOException;
 }

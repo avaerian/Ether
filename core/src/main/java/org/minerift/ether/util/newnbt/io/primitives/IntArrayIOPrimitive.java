@@ -1,4 +1,4 @@
-package org.minerift.ether.util.newnbt.primitives;
+package org.minerift.ether.util.newnbt.io.primitives;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,12 +7,16 @@ import java.io.IOException;
 public class IntArrayIOPrimitive implements ArrayIOPrimitive<int[]> {
     @Override
     public int[] read(DataInputStream is, int length) throws IOException {
-        return new int[0];
+        int[] ints = new int[length];
+        for(int i = 0; i < length; i++) {
+            ints[i] = scalarType().readInt(is);
+        }
+        return ints;
     }
 
     @Override
     public IntIOPrimitive scalarType() {
-        return IOPrimitive.INT;
+        return INT;
     }
 
     @Override
