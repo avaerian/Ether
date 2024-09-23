@@ -1,6 +1,5 @@
-package org.minerift.ether.nms.v1_19_R3;
+package org.minerift.ether.nms.v1_20_R2;
 
-import net.kyori.adventure.sound.Sound;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -14,19 +13,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_19_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_19_R3.CraftSound;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R3.block.CraftBlockState;
-import org.bukkit.craftbukkit.v1_19_R3.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R2.CraftChunk;
+import org.bukkit.craftbukkit.v1_20_R2.CraftRegistry;
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.block.CraftBlockState;
+import org.bukkit.craftbukkit.v1_20_R2.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.minerift.ether.util.nbt.tags.*;
+import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.world.BlockArchetype;
 
@@ -110,9 +107,10 @@ public class NativeTypeConversions {
         return ((CraftItemStack)item).handle;
     }
 
-    // For some reason if I ever need this?
+    // Nice to have if we ever need this
     public static SoundEvent toNative(Sound sound) {
-        return CraftSound.getSoundEffect(sound.name().asString());
+        Registry<SoundEvent> soundRegistry = CraftRegistry.getMinecraftRegistry(Registries.SOUND_EVENT);
+        return soundRegistry.get(toNative(sound.getKey()));
     }
 
     public static Entity toNative(org.bukkit.entity.Entity entity) {
@@ -137,7 +135,11 @@ public class NativeTypeConversions {
     }
 
     public static ChunkAccess toNativeChunkAccess(Chunk chunk) {
-        return ((CraftChunk)chunk).getHandle(ChunkStatus.FULL);
+        return toNativeChunkAccess(chunk, ChunkStatus.FULL);
+    }
+
+    public static ChunkAccess toNativeChunkAccess(Chunk chunk, ChunkStatus status) {
+        return ((CraftChunk)chunk).getHandle(status);
     }
 
     public static NamespacedKey fromNative(Biome biome) {

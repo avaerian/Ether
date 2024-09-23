@@ -1,4 +1,4 @@
-package org.minerift.ether.nms.v1_19_R3;
+package org.minerift.ether.nms.v1_20_R2;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;

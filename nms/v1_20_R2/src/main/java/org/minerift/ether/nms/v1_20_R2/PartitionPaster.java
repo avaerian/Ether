@@ -1,11 +1,9 @@
-package org.minerift.ether.nms.v1_19_R3;
+package org.minerift.ether.nms.v1_20_R2;
 
-import io.papermc.paper.chunk.system.scheduling.ChunkHolderManager;
 import io.papermc.paper.chunk.system.scheduling.NewChunkHolder;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
-import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -13,20 +11,15 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.CraftChunk;
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.minerift.ether.Ether;
 import org.minerift.ether.work.TaskBatch;
 import org.minerift.ether.world.ChunkGetter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import static org.minerift.ether.nms.v1_19_R3.NMSBridgeImpl.applyBlocksToSection;
-import static org.minerift.ether.nms.v1_19_R3.NativeTypeConversions.toNative;
 
 public class PartitionPaster {
 
@@ -46,12 +39,13 @@ public class PartitionPaster {
                     for(ChunkSectionChanges sectionChanges : sections.values()) {
                         // Apply blocks
                         LevelChunkSection section = chunk.getSection(sectionChanges.sectionIdx);
-                        applyBlocksToSection(chunk, section, sectionChanges.blocks);
+                        NMSBridgeImpl.applyBlocksToSection(chunk, section, sectionChanges.blocks);
 
                         // Prepare packet data
                         ChunkSectionChanges.PacketData packetData = sectionChanges.computePacketData();
-                        SectionPos sectionPos = SectionPos.of(chunkCoords.x, section.bottomBlockY() >> 4, chunkCoords.z);
-                        ClientboundSectionBlocksUpdatePacket packet = new ClientboundSectionBlocksUpdatePacket(sectionPos, packetData.positions, packetData.states, false);
+                        int bottomBlockY = sectionChanges.sectionIdx << 4;
+                        SectionPos sectionPos = SectionPos.of(chunkCoords.x, bottomBlockY, chunkCoords.z);
+                        ClientboundSectionBlocksUpdatePacket packet = new ClientboundSectionBlocksUpdatePacket(sectionPos, packetData.positions, packetData.states);
 
                         // Broadcast section update packet
                         NewChunkHolder chunkHolder = ((LevelChunk)chunk).getChunkHolder(); // chunk should always be loaded so this cast should be fine
