@@ -112,6 +112,7 @@ public class IslandGridV2 {
         return !tiles.isEmpty() ? tiles.get(0) : getNextTileFromGridBounds();
     }
 
+    // TODO: create immutable copy if possible (?)
     public IndexedList<Island> getData() {
         return islands;
     }

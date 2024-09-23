@@ -86,10 +86,17 @@ public class InviteRegistry implements Iterable<IslandInvite> {
 
     // Returns number of purged invites
     public int purgeExpiredInvites() {
+
+        if(inviteTable.isEmpty()) {
+            return 0;
+        }
+
         int originalSize = inviteTable.size();
         inviteTable.values().removeIf(IslandInvite::isExpired);
-        System.out.println(inviteTable.values());
-        return originalSize - inviteTable.size();
+        
+        int purgedInvites = originalSize - inviteTable.size();
+        System.out.println("Purged " + inviteTable.size() + " invites");
+        return purgedInvites;
     }
 
     @NotNull
