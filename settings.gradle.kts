@@ -8,15 +8,20 @@ includeBuild("build-logic")
 
 include("core")
 
-// Include NMS modules
-val nmsExpected = true
-logger.lifecycle("NMS expected? $nmsExpected")
-
-if(nmsExpected) {
-    val nmsDir = file("nms").listFiles() ?: throw GradleException("No NMS module/directory was found!")
-    nmsDir.forEach {
-        include("nms:${it.name}")
-        logger.lifecycle("Included nms version: [name=${it.name}, path=\'${it.path}\']")
-    }
+// Modules to exclude if incomplete/erroneous
+val excludedNmsModules = Array<String>(0) {
+    ""
 }
 
+logger.lifecycle("NMS modules to exclude: ${excludedNmsModules.contentToString()}")
+
+
+val nmsDir: Array<File> = file("nms").listFiles() ?: throw GradleException("No NMS module/directory was found!")
+for (dir in nmsDir) {
+    if(!excludedNmsModules.contains(dir.name)) {
+        include("nms:${dir.name}")
+        logger.lifecycle("Included nms version: [name=${dir.name}, path=\'${dir.path}\']")
+        continue
+    }
+    logger.lifecycle("NMS module ${dir.name} not included")
+}

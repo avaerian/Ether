@@ -1,6 +1,7 @@
 import buildlogic.getLibrary
 import buildlogic.getVersion
 import buildlogic.libsCatalog
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
@@ -15,6 +16,13 @@ repositories {
 
 configurations.all {
     resolutionStrategy.force("net.fabricmc:tiny-remapper:${libsCatalog.getVersion("minTinyRemapper")}")
+}
+
+tasks.withType<ShadowJar> {
+    dependencies {
+        exclude("org.ow2.asm:asm")
+        //exclude("org.ow2.asm:asm-commons")
+    }
 }
 
 dependencies {

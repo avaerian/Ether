@@ -9,6 +9,8 @@ paperweight = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gra
 
 shadow = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "8.3.1" }
 
+asm = { module = "org.ow2.asm:asm", version.ref = "minAsm"}
+
 jooq = "org.jooq:jooq:3.19.9"
 hikariCP = "com.zaxxer:HikariCP:5.0.1"
 
