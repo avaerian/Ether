@@ -1,0 +1,58 @@
+[plugins]
+jmh = { id = "me.champeau.jmh", version = "0.7.2" } # for benchmarking
+#shadow = { id = "com.github.johnrengelman:shadow", version = "8.1.1" }
+#paperweight = { id = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin", version = "1.7.2" }
+
+[libraries]
+paperApi = { module = "io.papermc.paper:paper-api", version.ref = "paperApi" }
+paperweight = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin:1.7.2"
+
+shadow = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "8.3.1" }
+
+asm = { module = "org.ow2.asm:asm", version.ref = "minAsm"}
+
+jooq = "org.jooq:jooq:3.19.9"
+hikariCP = "com.zaxxer:HikariCP:5.0.1"
+
+sql-driver-sqlite     = { module = "org.xerial:sqlite-jdbc", version.ref = "sql-driver-sqlite" }
+sql-driver-postgresql = { module = "org.postgresql:postgresql", version.ref = "sql-driver-postgresql" }
+sql-driver-h2         = { module = "com.h2database:h2", version.ref = "sql-driver-h2" }
+sql-driver-mysql      = { module = "com.mysql:mysql-connector-j", version.ref = "sql-driver-mysql" }
+
+worldeditBukkit = "com.sk89q.worldedit:worldedit-bukkit:7.2.20"
+
+reflectionRemapper = "xyz.jpenilla:reflection-remapper:0.1.1"
+
+# TODO: review to handle properly
+# also provided by Spigot:
+guava    = { module = "com.google.guava:guava", version.ref = "guava" }
+gson     = { module = "com.google.code.gson:gson", version.ref = "gson" }
+fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
+
+jmh-core         = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmhImplementation" }
+jmh-annprocessor = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmhImplementation" }
+jmh-bytecode     = { module = "org.openjdk.jmh:jmh-generator-bytecode", version.ref = "jmhImplementation" }
+
+junit-jupiter-api    = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitImplementation" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitImplementation" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitImplementation" }
+
+[versions]
+paperApi = "1.20.2-R0.1-SNAPSHOT"
+
+jmhImplementation = "1.36"
+junitImplementation = "5.9.2"
+
+# Database drivers
+sql-driver-sqlite     = "3.43.0.0"
+sql-driver-postgresql = "42.6.0"
+sql-driver-h2         = "2.2.224"
+sql-driver-mysql      = "8.3.0"
+
+# Fixes for Java 21 support
+minAsm = "9.7"
+minTinyRemapper = "0.8.11"
+
+guava = "31.1-jre"
+gson = "2.10.1"
+fastutil = "8.5.6"

@@ -1,89 +1,53 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow") version("7.1.2") apply(false)
+    `kotlin-dsl`
+    `java-library`
     id("java")
-    id("io.papermc.paperweight.userdev") version("1.5.4") apply(false)
+    id("com.gradleup.shadow") version("8.3.1")
 }
+
+group = rootProject.group
+version = rootProject.version
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+// TODO: create a SourceSet "shade" for shadowJar to clarify shading?
 
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":nms:v1_20_R2", "reobf"))
 
-    implementation(project(":main"))
-    implementation(project(":v1_19_R1", "reobf"))
-
+    // shade in these dependencies as well
+    implementation(libs.reflectionRemapper)
 }
 
-allprojects {
+tasks.named<ShadowJar>("shadowJar") {
+    //archiveClassifier.set("implementation")
 
-    apply(plugin = "java")
-    apply(plugin = "com.github.johnrengelman.shadow")
-
-    java {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    group = "org.minerift.ether"
-    version = "1.0-SNAPSHOT"
-
-    tasks.withType<ShadowJar> {
-        archiveClassifier.set("") // SUPER IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        dependencies {
-            include(project(":main"))
-            include(project(":v1_19_R1"))
-            include(dependency("xyz.jpenilla:reflection-remapper"))
-        }
-    }
-}
-
-// Paper-API dependency for submodules
-subprojects {
-    repositories {
-        mavenCentral()
-        maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
-    }
+    //exclude("module-info.class")
+    exclude("*.properties") // TODO: review
+    archiveFileName.set("${project.name}-${project.version}.jar")
 
     dependencies {
-        compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
+        include(project(":core"))
+        include(project(":nms:v1_20_R2"))
+        include(dependency("xyz.jpenilla:reflection-remapper"))
     }
 }
 
-// Once more versions are implemented, this list will grow
-configure(subprojects.filter { listOf("v1_19_R1").contains(it.name) }) {
-    apply(plugin = "io.papermc.paperweight.userdev")
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        implementation(project(":main"))
-        implementation("xyz.jpenilla:reflection-remapper:0.1.1")
-    }
+tasks.withType<JavaCompile> {
+    options.release.set(21)
+    options.encoding = Charsets.UTF_8.name()
 }
 
-/*
-compileJava.options.encoding = 'UTF-8'
-
-tasks.withType<Test> {
-    //systemProperties = System.getProperties()
-    systemProperties.remove("java.endorsed.dirs")
+tasks.withType<Javadoc> {
+    options.encoding = Charsets.UTF_8.name()
 }
-
-tasks.create("runBinaryTests", Test::class) {
-    dependsOn("shadowJar")
-    val FAT_JAR_FILEPATH = "$projectDir/build/libs/${project.name}-$version-all.jar"
-    testClassesDirs += zipTree(FAT_JAR_FILEPATH)
-    classpath = project.files(FAT_JAR_FILEPATH, configurations.runtimeClasspath)
-    outputs.upToDateWhen { false }
-}
-
-task runBinaryTests(type: Test) {
-    testClassesDirs += zipTree($projectDir/fatjar.jar)
-    classpath = project.files( "$projectDir/fatjar.jar", configurations.runtime )
-    outputs.upToDateWhen { false }
-}
-*/
