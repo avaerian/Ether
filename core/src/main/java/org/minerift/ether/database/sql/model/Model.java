@@ -34,7 +34,10 @@ public abstract class Model<M, K> {
 
     private Fields<M, ?> fields;
 
-    private final List<Field<M, ?, ?>> prepFields = new ArrayList<>();
+    // TODO: use Builder pattern for creating fields to clean up this mess
+
+    @Deprecated
+    private final List<Field<M, ?, ?>> prepFields = new ArrayList<>(); // this is stupid
 
     public Model(String tableName, SQLDatabase db) {
         this.db = db;
@@ -108,7 +111,9 @@ public abstract class Model<M, K> {
     // NOTE: Ignores name case when finding field
     public Field<M, ?, ?> getField(String name) {
         // assumes all fields in model belong to model (no weird shit)
-        Field<M, ?, ?>[] fields = Reflect.of(this).getFields().filter(field -> field.isType(Field.class)).readAllTyped(this, Field.class);
+        Field<M, ?, ?>[] fields = Reflect.of(this).getFields()
+                .filter(field -> field.isType(Field.class)).readAllTyped(this, Field.class);
+
         for(Field<M, ?, ?> field : fields) {
             if(field.getName().equalsIgnoreCase(name)) {
                 return field;

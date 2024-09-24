@@ -12,14 +12,19 @@ import java.util.UUID;
 
 public class UserModel extends Model<EtherUser, UUID> {
 
-    public final Field<EtherUser, UUID, ?> USER_ID = createField("user_id", SQLDataType.UUID.notNull(), EtherUser::getUUID);
-    public final Field<EtherUser, Integer, ?>   ISLAND_ID = createField("island_id", SQLDataType.INTEGER.nullable(true), (user) -> {
+
+    // NOTE: fields are not associated with the Model
+    public final Field<EtherUser, UUID, ?> USER_ID
+            = createField("user_id", SQLDataType.UUID.notNull(), EtherUser::getUUID);
+    public final Field<EtherUser, Integer, ?> ISLAND_ID
+            = createField("island_id", SQLDataType.INTEGER.nullable(true), (user) -> {
         // read island id if present, else null
         Optional<Island> optIsland = user.getIsland();
         return optIsland.isPresent() ? optIsland.get().getId() : null;
     });
 
-    public final Field<EtherUser, String, ?>    ISLAND_ROLE = createField("island_role", SQLDataType.VARCHAR, (user) -> user.getIslandRole().name());
+    public final Field<EtherUser, String, ?> ISLAND_ROLE
+            = createField("island_role", SQLDataType.VARCHAR, (user) -> user.getIslandRole().name());
 
     public UserModel(SQLDatabase db) {
         super("users", db);
