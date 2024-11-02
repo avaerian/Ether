@@ -4,9 +4,9 @@ import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 import org.minerift.ether.Ether;
 import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.SQLDialect;
+import org.minerift.ether.database.nusql.SQLDialect;
 import org.minerift.ether.database.sql.SQLResult;
-import org.minerift.ether.database.sql.adapters.Adapters;
+import org.minerift.ether.database.nusql.adapters.Adapters;
 import org.minerift.ether.database.sql.model.Field;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.island.Island;
@@ -42,7 +42,8 @@ public class IslandInvitesModel extends Model<IslandInvite, UUID[]> {
             return null; // island invite is invalid for unknown islands // TODO: nulls should be ignored when reading this result (when reading into collection)
         }
 
-        return new IslandInvite(senderReceiver, island, expire);
+        //return new IslandInvite(senderReceiver, island, expire);
+        return IslandInvite.create(senderReceiver, island, expire);
     }
 
     @Override

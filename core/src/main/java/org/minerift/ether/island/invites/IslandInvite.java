@@ -7,6 +7,7 @@ import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.util.pair.UUIDPair;
 
+import java.security.SecureRandom;
 import java.util.UUID;
 
 public final class IslandInvite {
@@ -14,37 +15,47 @@ public final class IslandInvite {
     public static final int UNEXPIRABLE = -1;
     public static final int MANUALLY_EXPIRED = -2;
 
+    public static final SecureRandom INVITE_ID_GENERATOR = new SecureRandom();
+
+    private final int uniqueId;
     private final UUID sender;
     private final UUID receiver;
     private final Island island;
     private long expire;
 
-    public IslandInvite(UUID sender, UUID receiver, Island island, boolean expires) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.island = island;
-
+    public static IslandInvite create(UUID sender, UUID receiver, Island island, boolean expires) {
+        long expiration;
         if(expires) {
             final MainConfig config = Ether.getConfig(ConfigType.MAIN);
-            this.expire = System.currentTimeMillis() + config.getInviteInvalidateAfter();
+            expiration = System.currentTimeMillis() + config.getInviteInvalidateAfter();
         } else {
-            this.expire = UNEXPIRABLE;
+            expiration = UNEXPIRABLE;
         }
+        return create(sender, receiver, island, expiration);
     }
 
-    public IslandInvite(UUID sender, UUID receiver, Island island, long expireTimestamp) {
+    public static IslandInvite create(UUID sender, UUID receiver, Island island, long expireTimestamp) {
+        return new IslandInvite(INVITE_ID_GENERATOR.nextInt(), sender, receiver, island, expireTimestamp);
+    }
+
+    public static IslandInvite create(UUIDPair senderReceiver, Island island, boolean expires) {
+        return create(senderReceiver.getFirst(), senderReceiver.getSecond(), island, expires);
+    }
+
+    public static IslandInvite create(UUIDPair senderReceiver, Island island, long expireTimestamp) {
+        return create(senderReceiver.getFirst(), senderReceiver.getSecond(), island, expireTimestamp);
+    }
+
+    public IslandInvite(int uniqueId, UUID sender, UUID receiver, Island island, long expireTimestamp) {
+        this.uniqueId = uniqueId;
         this.sender = sender;
         this.receiver = receiver;
         this.island = island;
         this.expire = expireTimestamp;
     }
 
-    public IslandInvite(UUIDPair senderReceiver, Island island, boolean expires) {
-        this(senderReceiver.getFirst(), senderReceiver.getSecond(), island, expires);
-    }
-
-    public IslandInvite(UUIDPair senderReceiver, Island island, long expireTimestamp) {
-        this(senderReceiver.getFirst(), senderReceiver.getSecond(), island, expireTimestamp);
+    public int getInviteId() {
+        return uniqueId;
     }
 
     public UUID getSender() {
