@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.diff;
+package org.minerift.ether.database.diff;
 
 public enum DiffType {
     NOT_EXISTS,     // 00, if element doesn't exist in either set

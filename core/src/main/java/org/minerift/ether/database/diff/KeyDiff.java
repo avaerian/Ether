@@ -1,11 +1,11 @@
-package org.minerift.ether.database.sql.diff;
+package org.minerift.ether.database.diff;
 
 import com.google.common.collect.Sets;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.minerift.ether.util.Utils.bool2Int;
+import static org.minerift.ether.util.Utils.boolToInt;
 
 // Provides differences between key sets
 // Used for comparing local and db data / different versions of data
@@ -46,7 +46,7 @@ public class KeyDiff {
     }
 
     private static DiffType getDiffType(boolean inOld, boolean inNew) {
-        return TYPES[bool2Int(inOld) | (bool2Int(inNew) << 1)]; // this handles it properly
+        return TYPES[boolToInt(inOld) | (boolToInt(inNew) << 1)]; // this handles it properly
         //return TYPES[bool2Int(inOld) + (bool2Int(inNew) << 1)]; // hacky, but has the same effect
     }
 
