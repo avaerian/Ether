@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("com.gradleup.shadow")
     id("me.champeau.jmh") version("0.7.2")
@@ -11,14 +13,12 @@ repositories {
     maven ("https://maven.enginehub.org/repo/")
 }
 
-
-
 dependencies {
 
     //implementation("org.jooq:joor-java-8:0.9.15")
     compileOnly(libs.paperApi)
 
-    // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling
+    // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling ?
     // General libraries
     implementation(libs.guava)
     implementation(libs.gson)
@@ -43,6 +43,18 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+
+    // TODO: use shadow configuration?
+    configurations = listOf() // shade none of the dependencies
+
+    // debug
+    logger.lifecycle("Dependencies:")
+    project.configurations.runtimeClasspath.get().resolvedConfiguration.firstLevelModuleDependencies.forEach {
+        logger.lifecycle(it.name)
+    }
 }
 
 tasks.withType<Test> {
