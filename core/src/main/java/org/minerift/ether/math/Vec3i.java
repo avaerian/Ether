@@ -187,6 +187,11 @@ public class Vec3i {
             return this;
         }
 
+        @Override
+        public Vec3i.Mutable copy() {
+            return new Vec3i.Mutable(x, y, z);
+        }
+
         public Vec3i copyAsImmutable() {
             return new Vec3i(x, y, z);
         }
