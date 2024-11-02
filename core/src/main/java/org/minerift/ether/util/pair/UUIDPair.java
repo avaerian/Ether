@@ -2,7 +2,7 @@ package org.minerift.ether.util.pair;
 
 import java.util.UUID;
 
-public class UUIDPair extends SameTypePair<UUID> {
+public class UUIDPair extends Pair.SameType<UUID> {
     public UUIDPair(UUID first, UUID second) {
         super(first, second);
     }
