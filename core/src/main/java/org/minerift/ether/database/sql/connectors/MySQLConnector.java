@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
 import org.jooq.exception.DataAccessException;
-import org.minerift.ether.database.sql.DatabaseConnectionSettings;
+import org.minerift.ether.database.DatabaseConnectionSettings;
 import org.minerift.ether.database.sql.SQLAccess;
 import org.minerift.ether.database.sql.SQLDatabase;
 

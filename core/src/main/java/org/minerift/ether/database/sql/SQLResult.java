@@ -48,7 +48,7 @@ public class SQLResult<M> implements Iterable<Record> {
     }
 
     public <T, R> R readField(Field.FieldWithAdapter<M, T, R, ?> field, Record record) {
-        return field.adapter.adaptFrom(readField((Field<M, ? extends T, ?>) field, record));
+        return field.adapter.adaptFrom(readField((Field<M, T, ?>) field, record));
     }
 
     public <T, R> R readField(Field.FieldWithAdapter<M, T, R, ?> field, int idx) {

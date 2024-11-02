@@ -12,7 +12,7 @@ import org.minerift.ether.database.sql.op.dml.cache.RawQuery;
 
 import java.util.Collection;
 
-import static org.minerift.ether.database.sql.SQLUtils.EMPTY_BIND_VALS;
+import static org.minerift.ether.database.nusql.SQLUtils.EMPTY_BIND_VALS;
 
 // Selects all ids in a table
 public class DMLSelectAllIds extends DMLOp {

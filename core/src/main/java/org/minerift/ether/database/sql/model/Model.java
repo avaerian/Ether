@@ -8,22 +8,18 @@ import org.jooq.Table;
 import org.minerift.ether.Ether;
 import org.minerift.ether.database.sql.SQLDatabase;
 import org.minerift.ether.database.sql.SQLResult;
-import org.minerift.ether.database.sql.adapters.Adapter;
+import org.minerift.ether.database.nusql.adapters.Adapter;
 import org.minerift.ether.database.sql.fallback.Fallback;
 import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
-import org.minerift.ether.island.invites.IslandInvite;
-import org.minerift.ether.island.invites.IslandInviteManager;
-import org.minerift.ether.island.invites.IslandInvitesModel;
 import org.minerift.ether.util.IBuilder;
 import org.minerift.ether.util.reflect.Reflect;
-import org.minerift.ether.util.reflect.ReflectedFields;
 
 import java.util.*;
 import java.util.function.Function;
 
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
-import static org.minerift.ether.database.sql.SQLUtils.getPossibleFallback;
+import static org.minerift.ether.database.nusql.SQLUtils.getPossibleFallback;
 
 // Represents a database object model/table
 public abstract class Model<M, K> {

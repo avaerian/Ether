@@ -18,7 +18,7 @@ public class JsonFallback<T> extends Fallback<T, String> {
     private final Class<T> typeClazz;
 
     public JsonFallback(Class<T> typeClazz) {
-        super(SQLDataType.VARCHAR(255));
+        super(SQLDataType.VARCHAR);
         this.typeClazz = typeClazz;
     }
 

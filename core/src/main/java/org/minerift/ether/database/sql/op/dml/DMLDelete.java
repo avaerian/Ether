@@ -4,13 +4,11 @@ import org.jooq.BatchBindStep;
 import org.jooq.CloseableQuery;
 import org.minerift.ether.database.sql.SQLAccess;
 import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.SQLUtils;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
 import org.minerift.ether.database.sql.op.dml.cache.RawQuery;
 
 import java.util.Collection;
-import java.util.Map;
 
 import static org.jooq.impl.DSL.condition;
 

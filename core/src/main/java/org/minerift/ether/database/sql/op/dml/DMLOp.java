@@ -4,7 +4,7 @@ import org.jooq.BatchBindStep;
 import org.jooq.CloseableQuery;
 import org.minerift.ether.database.sql.SQLAccess;
 import org.minerift.ether.database.sql.SQLDatabase;
-import org.minerift.ether.database.sql.SQLUtils;
+import org.minerift.ether.database.nusql.SQLUtils;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
 import org.minerift.ether.database.sql.op.dml.cache.RawQuery;
@@ -35,6 +35,7 @@ public abstract class DMLOp {
 
     public <M, K> CloseableQuery getJooqQuery(SQLAccess access, Model<M, K> model, NamedBindValues<?> namedBindVals) {
         RawQuery rawQuery = queryFor(model);
+
         CloseableQuery query = access.dsl().query(rawQuery.getSql(), rawQuery.getEmptyBindOrder()).keepStatement(false);
         SQLUtils.bind(query, model, namedBindVals, rawQuery.getBindOrder());
         return query;

@@ -11,9 +11,12 @@ import org.jooq.conf.RenderQuotedNames;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DefaultConfiguration;
 import org.minerift.ether.Ether;
-import org.minerift.ether.database.sql.adapters.Adapters;
-import org.minerift.ether.database.sql.diff.DiffType;
-import org.minerift.ether.database.sql.diff.KeyDiff;
+import org.minerift.ether.database.DatabaseConnectionSettings;
+import org.minerift.ether.database.nusql.SQLDialect;
+import org.minerift.ether.database.nusql.SQLUtils;
+import org.minerift.ether.database.nusql.adapters.Adapters;
+import org.minerift.ether.database.diff.DiffType;
+import org.minerift.ether.database.diff.KeyDiff;
 import org.minerift.ether.database.sql.metadata.MetadataModel;
 import org.minerift.ether.database.sql.model.Model;
 import org.minerift.ether.database.sql.op.dml.*;
@@ -25,7 +28,7 @@ import org.minerift.ether.island.invites.IslandInvite;
 import org.minerift.ether.island.invites.IslandInvitesModel;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.util.pair.SameTypePair;
+import org.minerift.ether.util.pair.Pair;
 import org.minerift.ether.util.pair.UUIDPair;
 
 import java.sql.Connection;
@@ -92,7 +95,8 @@ public class SQLDatabase implements AutoCloseable {
 
         InviteRegistry inviteRegistry = new InviteRegistry();
 
-        IslandInvite randomInvite = new IslandInvite(UUID.randomUUID(), UUID.randomUUID(), islandsView.get(random.nextInt(GRID_SIZE)), System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
+        //IslandInvite randomInvite = new IslandInvite(UUID.randomUUID(), UUID.randomUUID(), islandsView.get(random.nextInt(GRID_SIZE)), System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
+        IslandInvite randomInvite = IslandInvite.create(UUID.randomUUID(), UUID.randomUUID(), islandsView.get(random.nextInt(GRID_SIZE)), System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
 
         db.access(false, (access) -> {
 
@@ -116,8 +120,8 @@ public class SQLDatabase implements AutoCloseable {
             // Get differences
             Set<UUIDPair> dbInviteKeys = access.selectAllIds(IslandInvitesModel.class, Adapters.PAIR_2_UUIDS);
 
-            System.out.println(Arrays.deepToString(dbInviteKeys.toArray(SameTypePair[]::new)));
-            System.out.println(Arrays.deepToString(inviteRegistry.getKeySet().toArray(SameTypePair[]::new)));
+            System.out.println(Arrays.deepToString(dbInviteKeys.toArray(Pair.SameType[]::new)));
+            System.out.println(Arrays.deepToString(inviteRegistry.getKeySet().toArray(Pair.SameType[]::new)));
             Map<DiffType, List<UUIDPair>> inviteDiffs = KeyDiff.partitionDiffs(dbInviteKeys, inviteRegistry.getKeySet());
             System.out.println(inviteDiffs);
 
@@ -204,7 +208,8 @@ public class SQLDatabase implements AutoCloseable {
         this.SELECT_ID_QUERY = new DMLSelectById(this);
 
         // Connect to db
-        this.dataSource = settings.getDialect().getDbConnector().connect(this, settings);
+        //this.dataSource = settings.getDialect().getDbConnector().connect(this, settings);
+        this.dataSource = null; // TODO: delete this whole class in favor of NuSQLDatabase
 
         try {
             SQLDbStartupScript.run(new SQLAccess(this, dataSource.getConnection()));

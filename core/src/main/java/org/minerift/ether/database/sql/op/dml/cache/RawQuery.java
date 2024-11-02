@@ -1,7 +1,7 @@
 package org.minerift.ether.database.sql.op.dml.cache;
 
 import org.jooq.Field;
-import org.minerift.ether.database.sql.SQLUtils;
+import org.minerift.ether.database.nusql.SQLUtils;
 
 import java.util.Set;
 

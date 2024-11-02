@@ -1,7 +1,7 @@
 package org.minerift.ether.database.sql.model;
 
 import org.jooq.DataType;
-import org.minerift.ether.database.sql.adapters.Adapter;
+import org.minerift.ether.database.nusql.adapters.Adapter;
 import org.minerift.ether.database.sql.fallback.Fallback;
 import org.minerift.ether.util.Utils;
 
