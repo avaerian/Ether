@@ -4,7 +4,7 @@ import org.jooq.Record;
 import org.jooq.impl.SQLDataType;
 import org.minerift.ether.database.sql.SQLDatabase;
 import org.minerift.ether.database.sql.SQLResult;
-import org.minerift.ether.database.sql.adapters.Adapters;
+import org.minerift.ether.database.nusql.adapters.Adapters;
 import org.minerift.ether.database.sql.model.Field;
 import org.minerift.ether.database.sql.model.Model;
 

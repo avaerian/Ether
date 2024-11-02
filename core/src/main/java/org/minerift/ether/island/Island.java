@@ -21,6 +21,8 @@ import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
 public class Island extends CanChange {
 
+    public static final int INVALID_ID = -1;
+
     // TODO: when loading islands/players from database, load EtherUser's first (null island),
     //       then load Island's (set island for users and attach as island members here)
     //       This may require a DatabaseReaderContext or something similar for handling data loading

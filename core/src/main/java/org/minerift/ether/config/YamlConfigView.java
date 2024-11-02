@@ -45,7 +45,7 @@ public class YamlConfigView {
             return Optional.empty();
         }
 
-        if(val.getClass().isAssignableFrom(expectedClazz)) {
+        if(val.getClass().isAssignableFrom(expectedClazz)) { // TODO: change to expectedClazz.isInstance(val) ?
             return Optional.of(expectedClazz.cast(val));
         }
         throw new ConfigFileReadException(String.format("Expected type %s for path %s, got type %s", expectedClazz.getName(), path, val.getClass().getName()));

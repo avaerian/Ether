@@ -1,7 +1,7 @@
 package org.minerift.ether.benchmark;
 
-import org.minerift.ether.database.sql.diff.DiffType;
-import org.minerift.ether.database.sql.diff.KeyDiff;
+import org.minerift.ether.database.diff.DiffType;
+import org.minerift.ether.database.diff.KeyDiff;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
