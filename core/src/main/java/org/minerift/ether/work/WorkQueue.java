@@ -14,7 +14,7 @@ public class WorkQueue {
     public static final int MAX_NANOS_PER_TICK = (int) (MAX_MILLIS_PER_TICK * 1E6);
 
     private BukkitTask bukkitTask;
-    private final Deque<TaskBatch> workloadDeque;
+    private final Deque<Task> workloadDeque;
 
     public WorkQueue() {
         this.workloadDeque = new ArrayDeque<>();
@@ -23,7 +23,7 @@ public class WorkQueue {
 
     public void start(BukkitTask task) {
         if(bukkitTask != null) {
-            throw new UnsupportedOperationException("WorkQueue has already been started");
+            throw new UnsupportedOperationException("Work queue has already been started");
         }
         this.bukkitTask = task;
     }
@@ -40,14 +40,14 @@ public class WorkQueue {
 
     public void close() {
         stop();
-        workloadDeque.forEach(op -> op.fail(TaskBatch.Status.QUEUE_SHUTDOWN));
+        workloadDeque.forEach(op -> op.fail(Task.Status.QUEUE_SHUTDOWN));
     }
 
-    public void enqueue(TaskBatch operation) {
+    public synchronized void enqueue(Task operation) {
         workloadDeque.add(operation);
     }
 
-    public TaskBatch getCurrentOperation() {
+    public Task getCurrentOperation() {
         return workloadDeque.peek();
     }
 
@@ -56,7 +56,7 @@ public class WorkQueue {
     private void tick() {
         final long stopTime = System.nanoTime() + MAX_NANOS_PER_TICK;
 
-        TaskBatch nextWork;
+        Task nextWork;
         while(System.nanoTime() <= stopTime && (nextWork = workloadDeque.peek()) != null) {
             // complete tasks for operation and poll next
             boolean finish = nextWork.completeNextTask();
