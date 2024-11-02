@@ -1,6 +1,7 @@
-package org.minerift.ether.database.sql;
+package org.minerift.ether.database;
 
 import com.google.common.net.HostAndPort;
+import org.minerift.ether.database.nusql.SQLDialect;
 
 public class DatabaseConnectionSettings {
 
