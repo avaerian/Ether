@@ -1,7 +1,5 @@
 package org.minerift.ether.database;
 
-import org.minerift.ether.database.bin.Ref;
-
 import java.util.UUID;
 
 public class DataType<T> {
@@ -147,7 +145,7 @@ public class DataType<T> {
         if(isArrayType()) {
             throw new UnsupportedOperationException("Type is already an array!");
         }
-        System.out.println(typeClazz.arrayType().getTypeName());
+        //System.out.println(typeClazz.arrayType().getTypeName()); // debug
         return new DataType<>(primitiveType, (Class<T[]>) typeClazz.arrayType(), nullable, length, arrayLength);
     }
 

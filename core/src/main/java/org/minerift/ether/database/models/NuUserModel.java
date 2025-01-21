@@ -25,7 +25,8 @@ public class NuUserModel extends Model<EtherUser, UUID> {
         NuIslandModel islandModel = ctx.getModel(NuIslandModel.class);
 
         ID = ctx.createField("uuid", DataType.UUIDv4, EtherUser::getUUID);
-        ISLAND_ID = ctx.createForeignField(islandModel.ISLAND_ID, // TODO: add Function<DataType<T>, DataType<T>> that allows us to add additional flags to type
+        ISLAND_ID = ctx.createForeignField(islandModel.ISLAND_ID,
+                (type) -> type.nullable(true),
                 (user) -> user.getIsland().map(Island::getId).orElse(null));
         ISLAND_ROLE = ctx.createField("island_role", DataType.VARCHAR(16).nullable(true),
                 (user) -> user.getIslandRole().toString());

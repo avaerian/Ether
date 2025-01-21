@@ -2,25 +2,22 @@ package org.minerift.ether.database;
 
 import org.jooq.Record;
 import org.minerift.ether.database.nusql.NuSQLResult;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 import org.minerift.ether.util.IBuilder;
 import org.minerift.ether.util.pair.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // obj represents modeled class
 public abstract class Model<MO, PK> {
     protected String tableName;
     protected Fields<MO> fields;
 
-    // For each field, get a list of all the classes that use it as a foreign field
-    protected List<Pair<Field<MO, ?, ?>, List<Class<? extends Model>>>> foreignFieldDependents;
+    // A list of native fields that reference a foreign field
+    protected List<Pair<Field<MO, ?, ?>, Field<?, ?, ?>>> foreignFieldRefs;
 
     public Model(DatabaseCreationContext dbCtx) {
-        this.foreignFieldDependents = new ArrayList<>(4); // not expecting too many foreign fields at all
+        this.foreignFieldRefs = Collections.emptyList(); // if any foreign field refs are added, this list is updated in the ModelCreationContext
         var ctx = new ModelCreationContext<>(dbCtx, this);
         createModel(ctx);
         if(tableName.isEmpty()) {
@@ -42,9 +39,9 @@ public abstract class Model<MO, PK> {
     }
 
     // NOTE: for SQL stuffs
-    public List<Class<? extends Model>> getForeignFieldDependencies(Field<MO, ?, ?> foreignField) {
-        for(var entry : foreignFieldDependents) {
-            if(entry.getFirst() == foreignField) {
+    public Field<?, ?, ?> getForeignFieldRef(Field<MO, ?, ?> field) {
+        for(var entry : foreignFieldRefs) {
+            if(entry.getFirst() == field) {
                 return entry.getSecond();
             }
         }

@@ -16,7 +16,9 @@ public class H2Connector implements NuSQLConnector {
         config.setJdbcUrl("jdbc:h2:~/" + settings.getDbName());
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());
-        config.addDataSourceProperty("cachePrepStmts", "true");
+        //config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("DATABASE_TO_UPPER", "false");
+        config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true");
 
         return config;
     }

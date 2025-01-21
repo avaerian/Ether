@@ -1,12 +1,20 @@
-package org.minerift.ether.database.sql;
+package org.minerift.ether.database.nusql;
 
-import org.minerift.ether.database.sql.model.Model;
+import org.minerift.ether.database.Model;
 
 import java.util.Set;
 
 public class SQLDbStartupScript {
 
-    public static void run(SQLAccess access) {
+    /**
+     * - Main priority now should be to fix up the issues with column inconsistencies/etc.
+     * - Remove old SQL API in favor of NuSQL
+     * - Push changes to GitHub
+     */
+
+
+
+    public static void run(NuSQLAccess access) {
 
         // TODO: upgraders will need to run before table creation is handled
 
@@ -14,8 +22,8 @@ public class SQLDbStartupScript {
         final Set<String> dbTables = access.getDatabaseTables();
         System.out.println("Tables: " + access.getDatabaseTables().toString()); // debug
         for(Model<?, ?> model : access.db().getModels()) {
-            System.out.println("Testing to see if table exists: " + model.TABLE_NAME);
-            if(!dbTables.contains(model.TABLE_NAME.toUpperCase())) {
+            System.out.println("Testing to see if table exists: " + model.getTableName());
+            if(!dbTables.contains(model.getTableName().toUpperCase())) {
                 access.createTable(model);
             }
         }

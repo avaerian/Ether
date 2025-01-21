@@ -1,9 +1,8 @@
 package org.minerift.ether.database.nusql;
 
-import com.google.common.annotations.Beta;
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.nusql.connectors.*;
-import org.minerift.ether.database.sql.fallback.JsonFallback;
+import org.minerift.ether.database.nusql.fallback.JsonFallback;
 
 import java.util.function.Supplier;
 
@@ -44,20 +43,11 @@ public enum SQLDialect {
     }
 
     // Returns a fallback (or null if supported) for arrays
-    @Deprecated
-    public <T> JsonFallback<T> getArraysFallback(org.jooq.DataType<T> type) {
+    // TODO: move fallback methods to different class?
+    public <T> JsonFallback<T> getArraysFallback(DataType<T> type) {
         return switch(this) {
             case POSTGRES, H2 -> null; // supported
             case MYSQL, SQLITE -> new JsonFallback<>(type.getType());
-        };
-    }
-
-    // TODO: move fallback methods to different class?
-    @Beta
-    public <T> org.minerift.ether.database.nusql.fallback.JsonFallback<T> getArraysFallback(DataType<T> type) {
-        return switch(this) {
-            case POSTGRES, H2 -> null; // supported
-            case MYSQL, SQLITE -> new org.minerift.ether.database.nusql.fallback.JsonFallback<>(type.getType());
         };
     }
 

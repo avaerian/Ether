@@ -30,8 +30,8 @@ public class NuIslandModel extends Model<Island, Integer> {
 
     @Override
     public Island.Builder readAsBuilder(NuSQLResult<Island> result, Record record) {
-        Island island = Island.builder().setDeleted(result.readField(IS_DELETED, record)).build();
-        return null;
+        var builder = Island.builder().setDeleted(result.readField(IS_DELETED, record));
+        return builder;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.minerift.ether.database.nusql.adapters.Adapter;
 import org.minerift.ether.util.pair.Pair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -54,33 +55,32 @@ public class ModelCreationContext<M extends Model<MO, ?>, MO> {
     }
 
     // The adapter, if any, is copied over as well, so no adapter needs to be inputted. The object field reader must return T or the complex type to get T
-    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
+    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<DataType<T>, DataType<T>> addedFlags, Function<MO, ?> objFieldReader) {
 
         Field<MO, T, F> result;
+        DataType<T> type = addedFlags == null ? parentField.requestedDataType : addedFlags.apply(parentField.requestedDataType);
         try {
             Field.FieldWithAdapter<?, C, T, F> complexField = parentField.asComplexField();
-            result = createField(parentField.getName(), parentField.requestedDataType, (Function<MO, C>)objFieldReader, complexField.adapter, complexField.fallback);
+            result = createField(parentField.getName(), type, (Function<MO, C>)objFieldReader, complexField.adapter, complexField.fallback);
         } catch (ClassCastException ex) {
-            result = createField(parentField.getName(), parentField.requestedDataType, (Function<MO, T>)objFieldReader, parentField.fallback);
+            result = createField(parentField.getName(), type, (Function<MO, T>)objFieldReader, parentField.fallback);
         }
 
         // NOTE: this is for resolving queries that may need to update multiple tables for an operation (i.e. delete op)
-        addForeignFieldDependency(getModel(parentField.creatorClazz), parentField, model.getClass());
+        addForeignFieldRef(result, parentField);
 
         return result;
     }
 
-    // NOTE: Parent -> Children
-    // This model is adding the field as a dependency of this model
-    // This is used to determine how foreign fields should be handled
-    // FMO -> foreign model object
-    private <FMO> void addForeignFieldDependency(Model<FMO, ?> model, Field<FMO, ?, ?> foreignField, Class<? extends Model> dependencyClazz) {
-        List<Class<? extends Model>> dependencies = model.getForeignFieldDependencies(foreignField);
-        if(dependencies == null) {
-            dependencies = new ArrayList<>();
-            model.foreignFieldDependents.add(new Pair<>(foreignField, dependencies));
+    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
+        return createForeignField(parentField, null, objFieldReader);
+    }
+
+    private void addForeignFieldRef(Field<MO, ?, ?> nativeField, Field<?, ?, ?> foreignField) {
+        if(model.foreignFieldRefs == Collections.EMPTY_LIST) {
+            model.foreignFieldRefs = new ArrayList<>(4); // not expecting too many foreign fields at all
         }
-        dependencies.add(dependencyClazz);
+        model.foreignFieldRefs.add(new Pair<>(nativeField, foreignField));
     }
 
     public <MODEL extends Model> MODEL getModel(Class<MODEL> modelClazz) {

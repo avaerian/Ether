@@ -12,9 +12,7 @@ import org.minerift.ether.database.DatabaseCreationContext;
 import org.minerift.ether.database.Field;
 import org.minerift.ether.database.Fields;
 import org.minerift.ether.database.nusql.fallback.NuFallback;
-import org.minerift.ether.database.sql.fallback.Fallback;
-import org.minerift.ether.database.sql.model.Model;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,18 +34,6 @@ public class SQLUtils {
             return false;
         }
         return true;
-    }
-
-    @Deprecated(forRemoval = true)
-    public static <T> Fallback<T, ?> getPossibleFallback(org.jooq.DataType<T> type, SQLDialect dialect) {
-        Preconditions.checkNotNull(type);
-        if(type.isArray()) {
-            return dialect.getArraysFallback(type);
-        }
-        /*else if (type.isUUID()) {
-            return dialect.supportsUUIDs(type);
-        }*/
-        return null;
     }
 
     public static <T> NuFallback<T, ?> getPossibleFallback(DataType<T> type, DatabaseCreationContext dbCtx) {
@@ -130,14 +116,6 @@ public class SQLUtils {
         }
     }
 
-    @Deprecated
-    public static <M> BatchBindStep bindToBatch(BatchBindStep batch, Model<M, ?> model, Collection<M> objs, String[] bindOrder) {
-        for(M obj : objs) {
-            batch.bind(model.dumpBindValues(obj, bindOrder));
-        }
-        return batch;
-    }
-
     public static <M> void bind(BatchBindStep batch, org.minerift.ether.database.Model<M, ?> model, Collection<M> objs, String[] bindOrder) {
         for(M obj : objs) {
             batch.bind(model.dumpOrderedBindValues(obj, bindOrder));
@@ -157,18 +135,6 @@ public class SQLUtils {
         return bindOrder.toArray(String[]::new);
     }
 
-    @Deprecated
-    public static void bind(Query query, Model<?, ?> model, NamedBindValues<?> bindVals, String[] bindOrder) {
-        for(int i = 0; i < bindOrder.length; i++) {
-            String column = bindOrder[i];
-            Object javaVal = bindVals.getFieldValue(column);
-            Object sqlVal = model.getField(column).readJavaAsSQLValue(javaVal); // fix: update java values to sql as appropriate
-            //System.out.println("javaVal: " + javaVal); // debug
-            //System.out.println("sqlVal: " + sqlVal); // debug
-            query.bind(i + 1, sqlVal);
-        }
-    }
-
     public static void bind(Query query, org.minerift.ether.database.Model<?, ?> model, NamedBindValues<?> bindVals, String[] bindOrder) {
         for(int i = 0; i < bindOrder.length; i++) {
             String column = bindOrder[i];
@@ -178,12 +144,6 @@ public class SQLUtils {
             //System.out.println("sqlVal: " + sqlVal); // debug
             query.bind(i + 1, sqlVal);
         }
-    }
-
-    // Binds an object's values to a parameterized query
-    @Deprecated
-    public static <M> void bind(Query query, Model<M, ?> model, M obj, String[] bindOrder) {
-        bind(query, model, model.dumpNamedBindValues_New(obj), bindOrder);
     }
 
     // Binds an object's values to a parameterized query

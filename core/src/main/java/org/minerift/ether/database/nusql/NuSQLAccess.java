@@ -4,11 +4,14 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.minerift.ether.database.Model;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.ddl.DDLCreateTable;
+import org.minerift.ether.database.nusql.op.ddl.DDLGetTables;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class NuSQLAccess implements AutoCloseable {
@@ -17,10 +20,13 @@ public class NuSQLAccess implements AutoCloseable {
     private final Connection conn;
     private final DSLContext dsl;
 
+    protected boolean committed;
+
     public NuSQLAccess(NuSQLDatabase db, Connection conn) {
         this.db = db;
         this.conn = conn;
         this.dsl = db.connConfig.derive(conn).dsl();
+        this.committed = false;
     }
 
     public NuSQLDatabase db() {
@@ -35,46 +41,92 @@ public class NuSQLAccess implements AutoCloseable {
         return dsl;
     }
 
+    public void commit() throws SQLException {
+        conn.commit();
+        this.committed = true;
+    }
+
+    public void rollback() throws SQLException {
+        conn.rollback();
+    }
+
+    private void markUncommitted() {
+        this.committed = false;
+    }
+
+    public Set<String> getDatabaseTables() {
+        return DDLGetTables.getDatabaseTables(this);
+    }
+
+    public void createTable(Model<?, ?> model) {
+        DDLCreateTable.createTableFromModel(this, model);
+    }
+
     public <MO, PK> int insert(Model<MO, PK> model, MO obj) {
+        markUncommitted();
         return db.insertQuery.createExecutableQuery(this, model, obj).execute();
     }
 
     public <MO, PK> int[] insert(Model<MO, PK> model, Collection<MO> objs) {
+        if(objs == null || objs.isEmpty()) {
+            return new int[0];
+        }
+        markUncommitted();
         return db.insertQuery.createExecutableBatch(this, model, objs).execute();
     }
 
     public <MO, PK> int update(Model<MO, PK> model, MO obj) {
+        markUncommitted();
         return db.updateQuery.createExecutableQuery(this, model, obj).execute();
     }
 
     public <MO, PK> int[] update(Model<MO, PK> model, Collection<MO> objs) {
+        if(objs == null || objs.isEmpty()) {
+            return new int[0];
+        }
+        markUncommitted();
         return db.updateQuery.createExecutableBatch(this, model, objs).execute();
     }
 
     public <MO, PK> int upsert(Model<MO, PK> model, MO obj) {
+        markUncommitted();
         return db.upsertQuery.createExecutableQuery(this, model, obj).execute();
     }
 
     public <MO, PK> int[] upsert(Model<MO, PK> model, Collection<MO> objs) {
+        if(objs == null || objs.isEmpty()) {
+            return new int[0];
+        }
+        markUncommitted();
         return db.upsertQuery.createExecutableBatch(this, model, objs).execute();
     }
 
     // TODO: for delete operations, add bool arg for deleting rows in depending tables for foreign fields
 
     public <MO, PK> int delete(Model<MO, PK> model, MO obj) {
+        markUncommitted();
         return db.deleteQuery.createExecutableQuery(this, model, obj).execute();
     }
 
     public <MO, PK> int[] delete(Model<MO, PK> model, Collection<MO> objs) {
+        if(objs == null || objs.isEmpty()) {
+            return new int[0];
+        }
+        markUncommitted();
         return db.deleteQuery.createExecutableBatch(this, model, objs).execute();
     }
 
     public <MO, PK> int deleteById(Model<MO, PK> model, PK id) {
+        markUncommitted();
         return db.deleteQuery.createExecutableQuery(this, model, NamedBindValues.of(model.getPrimaryKey(), id))
                 .execute();
     }
 
     public <MO, PK> int[] deleteByIds(Model<MO, PK> model, Collection<PK> ids) {
+        if(ids == null || ids.isEmpty()) {
+            return new int[0];
+        }
+        markUncommitted();
         return db.deleteQuery.createExecutableBatchIds(this, model, ids).execute();
     }
 

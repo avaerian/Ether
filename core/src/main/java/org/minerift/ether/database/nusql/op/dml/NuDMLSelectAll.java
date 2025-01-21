@@ -6,8 +6,7 @@ import org.jooq.ResultQuery;
 import org.minerift.ether.database.nusql.SQLDatabaseCreationContext;
 import org.minerift.ether.database.Model;
 import org.minerift.ether.database.nusql.NuSQLAccess;
-import org.minerift.ether.database.nusql.SQLUtils;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
 import static org.minerift.ether.database.nusql.SQLUtils.EMPTY_BIND_VALS;
 import static org.minerift.ether.database.nusql.SQLUtils.asJooqTable;

@@ -7,7 +7,7 @@ import org.minerift.ether.database.nusql.SQLDatabaseCreationContext;
 import org.minerift.ether.database.Model;
 import org.minerift.ether.database.nusql.NuSQLAccess;
 import org.minerift.ether.database.nusql.SQLUtils;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.metadata;
+package org.minerift.ether.database.models;
 
 public class Metadata {
 

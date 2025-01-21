@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.op.dml.bind;
+package org.minerift.ether.database.nusql.op.bind;
 
 import java.util.Map;
 

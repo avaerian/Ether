@@ -36,7 +36,7 @@ public class Field<MO, T, F> {
         this.requestedDataType = type;
         this.creatorClazz = getFieldCreator();
 
-        System.out.println(name + ": " + getSQLDataType().getName() + ", " + creatorClazz); // debug
+        //System.out.println(name + ": " + getSQLDataType().getName() + ", " + creatorClazz); // debug
 
         this.objFieldReader = objFieldReader;
         this.fallback = fallback;
@@ -44,7 +44,7 @@ public class Field<MO, T, F> {
 
     @Debug
     private Field(String name, DataType<T> type, Function<MO, ?> objFieldReader, NuFallback<T, F> fallback, Class<? extends Model> creatorClazz) {
-        this.name = name;
+        this.name = name.toUpperCase();
         this.creatorClazz = creatorClazz;
         this.requestedDataType = type;
 
@@ -62,6 +62,10 @@ public class Field<MO, T, F> {
 
     public DataType<?> getDataType() {
         return usesFallbackType() ? fallback.getDataType() : requestedDataType;
+    }
+
+    public Class<? extends Model> getOwner() {
+        return creatorClazz;
     }
 
     public T readField(MO obj) {

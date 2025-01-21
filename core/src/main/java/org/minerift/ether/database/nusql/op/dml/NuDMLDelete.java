@@ -5,7 +5,7 @@ import org.jooq.BatchBindStep;
 import org.minerift.ether.database.Field;
 import org.minerift.ether.database.Model;
 import org.minerift.ether.database.nusql.*;
-import org.minerift.ether.database.sql.op.dml.bind.NamedBindValues;
+import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
 import java.util.Collection;
 

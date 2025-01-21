@@ -48,7 +48,7 @@ public class NuSQLResult<MO> implements Iterable<MO> {
 
     public <T> T readField(Field<MO, T, ?> field, Record record) {
         Object sqlVal = record.get(asJooqField(field));
-        System.out.println("readField sqlVal: " + sqlVal); // debug
+        //System.out.println("readField sqlVal: " + sqlVal); // debug
         return field.readSQLAsJavaValue(sqlVal);
     }
 

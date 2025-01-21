@@ -3,29 +3,25 @@ package org.minerift.ether.database.nusql;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
-import org.minerift.ether.database.DatabaseConnectionSettings;
-import org.minerift.ether.database.DatabaseCreationContext;
-import org.minerift.ether.database.DatabaseException;
-import org.minerift.ether.database.Model;
+import org.minerift.ether.database.*;
 import org.minerift.ether.database.nusql.op.dml.*;
-import org.minerift.ether.database.sql.*;
 
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Map;
+import java.sql.SQLTimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-public class NuSQLDatabase implements AutoCloseable {
+public class NuSQLDatabase extends Database implements AutoCloseable {
 
     private final HikariDataSource dataSource;
     protected final Configuration connConfig;
-    private final String dbName;
     private final SQLDialect dialect;
-    private final Map<Class<? extends Model>, Model<?, ?>> models;
 
 
     protected final NuDMLInsert insertQuery;
@@ -38,7 +34,7 @@ public class NuSQLDatabase implements AutoCloseable {
 
     @SafeVarargs
     public NuSQLDatabase(DatabaseConnectionSettings settings, Function<DatabaseCreationContext, Model<?, ?>> ... modelCreators) throws DatabaseException {
-        this.dbName = settings.getDbName();
+        super(settings.getDbName());
         this.dialect = settings.getDialect();
 
         // TODO: refactor connection establishment into separate abstract method/class that can support this
@@ -70,17 +66,12 @@ public class NuSQLDatabase implements AutoCloseable {
             throw new RuntimeException(ex);
         }
 
-        /*
+
         try {
-            SQLDbStartupScript.run(new SQLAccess(this, dataSource.getConnection()));
+            SQLDbStartupScript.run(new NuSQLAccess(this, dataSource.getConnection()));
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to run database startup script", ex);
         }
-        */
-    }
-
-    public String getName() {
-        return dbName;
     }
 
     public SQLDialect getDialect() {
@@ -88,68 +79,79 @@ public class NuSQLDatabase implements AutoCloseable {
     }
 
     public interface SQLAccessFunction {
-        void accept(SQLAccess access) throws SQLException;
+        void accept(NuSQLAccess access) throws SQLException;
     }
 
+    public CompletableFuture<SQLException> access(SQLAccessFunction proc) {
+        return access(false, true, proc);
+    }
 
-    // NOTE: this impl restricts transactions to being simple, single layer (no transactions inside of transactions)
-    // This is fine for now, but may be a desireable feature in the future
-    // If a transaction, every command will be executed together
-    // If not a transaction, every command will be autocommitted
-    /*
-    // TODO: refactor this so that the NuSQLAccess proc can be run with a specific scheduler/run later (in effort to move towards a more reactive system?)
-    public void access(boolean transaction, SQLAccessFunction proc) {
+    public CompletableFuture<SQLException> accessSync(SQLAccessFunction proc) {
+        return access(false, false, proc);
+    }
+
+    // Flags: autocommit, async, autostart?
+    public CompletableFuture<SQLException> access(boolean autocommit, boolean async, SQLAccessFunction proc) {
         // Attempt to get connection and create SQLAccess layer
         Connection conn;
-        SQLAccess access;
+        NuSQLAccess access;
         try {
             conn = dataSource.getConnection(); // Need to test connection
             if(!SQLUtils.testConnection(conn, 10)) {
                 throw new SQLTimeoutException("Connection timed out!");
             }
-            access = new SQLAccess(this, conn);
+            access = new NuSQLAccess(this, conn);
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to get connection!", ex);
         }
 
         // Change settings for connection
-        boolean autocommit;
+        boolean oldAutocommit;
         try {
-            autocommit = conn.getAutoCommit();
-            conn.setAutoCommit(!transaction); // if transaction = true, autocommit = false
+            oldAutocommit = conn.getAutoCommit();
+            conn.setAutoCommit(autocommit);
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to update autocommit for connection!", ex);
         }
 
-        try {
-            // Attempt to execute SQL operations
-            proc.accept(access);
-            if(transaction) {
-                access.commit();
-            }
-        } catch (SQLException ex) {
-            // Attempt to rollback
-            if(transaction) {
-                ex.printStackTrace();
-                try {
-                    access.rollback();
-                } catch (SQLException ex2) {
-                    throw new RuntimeException("Failed to rollback changes!", ex2);
+        Supplier<SQLException> block = () -> {
+            try {
+                // Attempt to execute SQL operations
+                proc.accept(access);
+                if(!autocommit && !access.committed) {
+                    access.commit();
                 }
-            } else {
-                throw new RuntimeException("Failed to execute SQL operations!", ex);
+            } catch (SQLException ex) {
+                // Attempt to rollback
+                if(!autocommit) {
+                    ex.printStackTrace();
+                    try {
+                        access.rollback();
+                    } catch (SQLException ex2) {
+                        return new SQLException("Failed to rollback changes", ex2);
+                    }
+                } else {
+                    return new SQLException("Failed to execute SQL operations!", ex);
+                }
             }
-        }
 
-        // Reset autocommit back to original value and close connection
-        try {
-            conn.setAutoCommit(autocommit);
-            access.close();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to clean up resources!", ex);
+            // Reset autocommit back to original value and close connection
+            try {
+                conn.setAutoCommit(oldAutocommit);
+                access.close();
+            } catch (SQLException ex) {
+                return new SQLException("Failed to clean up resources!", ex);
+            }
+
+            return null; // no exception; everything completed successfully
+        };
+
+        if(async) {
+            return supplyAsync(block);
+        } else {
+            return completedFuture(block.get());
         }
     }
-    */
 
     public HikariDataSource getDataSource() {
         return dataSource;
@@ -160,14 +162,6 @@ public class NuSQLDatabase implements AutoCloseable {
     @Deprecated
     public DSLContext dsl() {
         return connConfig.dsl();
-    }
-
-    public <M extends Model> M getModel(Class<M> modelClazz) {
-        return (M) models.get(modelClazz);
-    }
-
-    public Collection<Model<?, ?>> getModels() {
-        return models.values();
     }
 
     @Override

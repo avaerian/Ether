@@ -30,8 +30,6 @@ public class SQLDatabaseCreationContext extends DatabaseCreationContext {
     protected final NuDMLSelectById selectByIdQuery;
     protected final NuDMLSelectAllIds selectAllIdsQuery;
 
-
-    // TODO: change Function varargs to something more understandable (change name but not functionality) ?
     @SafeVarargs
     public SQLDatabaseCreationContext(SQLDialect dialect, Function<DatabaseCreationContext, Model<?, ?>> ... models) {
         super(new LinkedHashMap<>(models.length));
