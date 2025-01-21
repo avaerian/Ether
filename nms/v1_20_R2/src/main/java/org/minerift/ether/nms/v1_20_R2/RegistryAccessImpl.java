@@ -9,9 +9,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
 import org.minerift.ether.nms.RegistryAccess;
 
-import static org.minerift.ether.nms.v1_20_R2.NativeTypeConversions.fromNative;
-import static org.minerift.ether.nms.v1_20_R2.NativeTypeConversions.toNative;
-
 public class RegistryAccessImpl implements RegistryAccess {
 
     @Override

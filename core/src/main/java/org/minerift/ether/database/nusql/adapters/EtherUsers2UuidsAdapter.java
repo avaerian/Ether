@@ -8,7 +8,7 @@ public class EtherUsers2UuidsAdapter implements Adapter<List<EtherUser>, UUID[]>
 
     @Override
     public UUID[] adaptTo(List<EtherUser> obj) {
-        return obj.stream().map(EtherUser::getUUID).toArray(UUID[]::new);
+        return obj.stream().map(EtherUser::getUUID).toArray(UUID[]::new); // TODO: address null users !!!!!!
     }
 
     @Override

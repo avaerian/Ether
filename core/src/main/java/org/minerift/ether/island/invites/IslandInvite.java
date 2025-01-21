@@ -23,6 +23,9 @@ public final class IslandInvite {
     private final Island island;
     private long expire;
 
+
+    // TODO: refactor from int id to UUIDv7 (something time based)
+
     public static IslandInvite create(UUID sender, UUID receiver, Island island, boolean expires) {
         long expiration;
         if(expires) {

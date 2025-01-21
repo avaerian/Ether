@@ -40,7 +40,7 @@ public class EtherUser extends CanChange {
     }
 
     public void setIsland(Integer islandId) {
-        if(!this.islandId.equals(islandId)) {
+        if(this.islandId == null || !this.islandId.equals(islandId)) {
             this.islandId = islandId;
             setChanged(true);
         }

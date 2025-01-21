@@ -1,6 +1,6 @@
 package org.minerift.ether.util.reflect;
 
-import org.minerift.ether.database.sql.model.PrimaryKey;
+import org.minerift.ether.debug.Debug;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -10,9 +10,10 @@ public class ReflectedField implements IReflectedElement {
 
     private final Field field;
 
+    @Debug
     public static void main(String[] args) throws NoSuchFieldException {
         final var reflectedField = new ReflectedField(ReflectedField.class.getDeclaredField("field"));
-        System.out.println(reflectedField.hasAnnotations(PrimaryKey.class, Deprecated.class));
+        System.out.println(reflectedField.hasAnnotations(Deprecated.class));
     }
 
     public ReflectedField(Field field) {

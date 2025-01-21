@@ -6,10 +6,10 @@ import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.island.IslandGridV2;
-import org.minerift.ether.island.invites.InviteRegistry;
-import org.minerift.ether.island.invites.IslandInviteManager;
 import org.minerift.ether.island.IslandManager;
+import org.minerift.ether.island.invites.IslandInviteManager;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
@@ -204,6 +204,7 @@ public class Ether {
     /**
      * Only to be used when debugging
      */
+    @org.minerift.ether.debug.Debug
     public static class Debug {
 
         public static void setIslandManager(IslandManager manager) {

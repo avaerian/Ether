@@ -55,9 +55,8 @@ public class Island extends CanChange {
         // TODO: figure out addTeamMember and handling/storing team members for islands
         this.members = builder.members.stream().map(EtherUser::getUUID).collect(Collectors.toSet());
         if(builder.owner != null) {
-            members.add(builder.owner.getUUID());
+            addTeamMember(builder.owner, IslandRole.OWNER);
         }
-        //addTeamMember(builder.owner, IslandRole.OWNER);
 
         this.blChunkZX = builder.bottomLeftChunkBound;
         this.trChunkZX = builder.topRightChunkBound;
