@@ -2,7 +2,7 @@ package org.minerift.ether.database.bin.sections;
 
 import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.database.DataType;
-import org.minerift.ether.database.bin.Ref;
+import org.minerift.ether.database.Ref;
 import org.minerift.ether.util.Utils;
 
 import java.util.LinkedList;
@@ -68,7 +68,7 @@ public abstract class Section {
             dataEntries.add(entry);
         }*/
 
-        onAdd
+        //onAdd
         return this;
     }
 
@@ -163,7 +163,7 @@ public abstract class Section {
 
         public int getByteSize() {
             if(!isArray()) {
-                return type.getByteSize(data);
+                //return type.getByteSize(data); // TODO
             }
 
             int size = getArrayLength();
@@ -171,7 +171,7 @@ public abstract class Section {
             Ref element = new Ref();
             for(int i = 0; i < size; i++) {
                 element.set(getArrayElement(data.get(), i));
-                bytes += type.getByteSize(element);
+                //bytes += type.getByteSize(element); // TODO
             }
             return bytes;
         }

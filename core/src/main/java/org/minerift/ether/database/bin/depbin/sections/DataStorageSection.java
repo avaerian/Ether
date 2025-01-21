@@ -1,7 +1,7 @@
-package org.minerift.ether.database.nubin.sections;
+package org.minerift.ether.database.bin.depbin.sections;
 
-import org.minerift.ether.database.nubin.reader.ReaderContext;
-import org.minerift.ether.database.nubin.writer.WriterContext;
+import org.minerift.ether.database.bin.depbin.reader.ReaderContext;
+import org.minerift.ether.database.bin.depbin.writer.WriterContext;
 
 import java.nio.ByteBuffer;
 

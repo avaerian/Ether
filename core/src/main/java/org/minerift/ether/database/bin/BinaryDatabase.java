@@ -10,7 +10,7 @@ import org.minerift.ether.database.bin.writer.BinaryWriterContext;
 import java.io.File;
 import java.io.IOException;
 
-import static org.minerift.ether.database.bin.Ref.ref;
+import static org.minerift.ether.database.Ref.ref;
 
 public class BinaryDatabase {
 

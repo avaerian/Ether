@@ -1,23 +1,21 @@
-package org.minerift.ether.database.nubin.writer;
+package org.minerift.ether.database.bin.depbin.writer;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.Database;
-import org.minerift.ether.database.bin.Ref;
-import org.minerift.ether.database.nubin.Context;
-import org.minerift.ether.database.nubin.sections.DataStorageSection;
-import org.minerift.ether.database.nubin.sections.HeaderSection;
-import org.minerift.ether.database.nubin.sections.Section;
-import org.minerift.ether.database.nubin.sections.data.Table;
+import org.minerift.ether.database.bin.depbin.sections.DataStorageSection;
+import org.minerift.ether.database.bin.depbin.sections.Section;
+import org.minerift.ether.database.bin.depbin.sections.TablesSection;
+import org.minerift.ether.database.Ref;
+import org.minerift.ether.database.bin.depbin.Context;
+import org.minerift.ether.database.bin.depbin.sections.HeaderSection;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class WriterContext implements Context {
 
@@ -31,9 +29,9 @@ public class WriterContext implements Context {
     private int bytesToAllocate;
 
     public HeaderSection header;
+    public TablesSection tableInfo;
     public DataStorageSection records;
 
-    public Map<String, Table> tables;
     public Database db; // TODO
 
 
@@ -55,15 +53,47 @@ public class WriterContext implements Context {
                 //.register(DataType.UUIDv4, null)
                 .build();
         this.entriesToWrite = new LinkedList<>();
-
-        this.tables = new HashMap<>();
     }
 
-    public <T> void write(DataType<T> type, Ref<T> ref) {
-
+    public <T> WriterContext write(DataType<T> type, Ref<T> ref) {
+        return write(type, ref, null);
     }
 
-    public <T> void write(DataType<T> type, T data) {
+    public <T> WriterContext write(DataType<T> type, T data) {
+        return write(type, data, null);
+    }
+
+    public <T> WriterContext write(DataType<T> type, Ref<T> ref, Ref arraySize) {
+        WriteEntry<T> entry = new WriteEntry<>(type, ref, arraySize);
+        write(entry);
+        return this;
+    }
+
+    public <T> WriterContext write(DataType<T> type, T data, Ref arraySize) {
+        WriteEntry<T> entry = new WriteEntry<>(type, data, arraySize);
+        write(entry);
+        return this;
+    }
+
+    protected void write(WriteEntry<?> entry) {
+        entriesToWrite.add(entry);
+    }
+
+    // Adds the last write entry size to the size ref
+    @Deprecated
+    public void referenceSize(Ref<?> size) {
+        int byteSize = entriesToWrite.getLast().getByteSize();
+        Object sizeVal = size.get();
+        switch (sizeVal) {
+            case Byte b -> ((Ref<Byte>)size).set((byte)(b + byteSize));
+            case Short s -> ((Ref<Short>)size).set((short)(s + byteSize));
+            case Integer i -> ((Ref<Integer>)size).set(i + byteSize);
+            case Long l -> ((Ref<Long>)size).set(l + byteSize);
+            default -> throw new IllegalStateException("Unexpected type: " + sizeVal.getClass());
+        }
+    }
+
+    public void pushSection() {
 
     }
 

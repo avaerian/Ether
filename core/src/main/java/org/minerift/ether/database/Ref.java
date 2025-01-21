@@ -1,4 +1,4 @@
-package org.minerift.ether.database.bin;
+package org.minerift.ether.database;
 
 public class Ref<T> {
 

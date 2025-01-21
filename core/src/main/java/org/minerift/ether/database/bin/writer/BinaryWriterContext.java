@@ -2,8 +2,7 @@ package org.minerift.ether.database.bin.writer;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.bin.BinaryContext;
-import org.minerift.ether.database.bin.Ref;
-import org.minerift.ether.database.nubin.writer.EncoderRegistry;
+import org.minerift.ether.database.Ref;
 import org.minerift.ether.util.Utils;
 
 import java.io.File;
@@ -22,7 +21,7 @@ public class BinaryWriterContext extends BinaryContext {
     public static final int EXPECTING_SECTION_SIZE = -1;
     public static final int ON_STANDBY_SECTION_SIZE = -2;
 
-    private final EncoderRegistry encoders;
+    //private final EncoderRegistry encoders;
     private final RandomAccessFile file;
     private final FileChannel channel;
     protected ByteBuffer currentBuffer;
@@ -228,7 +227,7 @@ public class BinaryWriterContext extends BinaryContext {
 
         public int getByteSize() {
             if(!isArray()) {
-                return type.getByteSize(data);
+                return type.getByteSize(data.get());
             }
 
             int size = getArrayLength();
@@ -236,7 +235,7 @@ public class BinaryWriterContext extends BinaryContext {
             Ref element = new Ref();
             for(int i = 0; i < size; i++) {
                 element.set(getArrayElement(data.get(), i));
-                bytes += type.getByteSize(element);
+                // TODO: bytes += type.getByteSize(element);
             }
             return bytes;
         }

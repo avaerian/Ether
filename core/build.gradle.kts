@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.fastutil)
+    implementation(libs.netty.buffer)
 
     // SQL libraries
     implementation(libs.jooq)

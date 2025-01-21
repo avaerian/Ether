@@ -1,6 +1,7 @@
 package org.minerift.ether.database.bin;
 
 import org.minerift.ether.database.DataType;
+import org.minerift.ether.database.Ref;
 
 public abstract class BinaryContext {
 

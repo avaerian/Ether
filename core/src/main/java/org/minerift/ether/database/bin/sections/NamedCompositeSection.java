@@ -1,7 +1,7 @@
 package org.minerift.ether.database.bin.sections;
 
 import org.minerift.ether.database.DataType;
-import org.minerift.ether.database.bin.Ref;
+import org.minerift.ether.database.Ref;
 import org.minerift.ether.util.UnreachableException;
 
 import java.util.LinkedHashMap;

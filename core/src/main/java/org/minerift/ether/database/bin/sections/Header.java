@@ -1,6 +1,6 @@
 package org.minerift.ether.database.bin.sections;
 
-import org.minerift.ether.database.bin.Ref;
+import org.minerift.ether.database.Ref;
 
 public class Header {
     public Ref<byte[]> magic;

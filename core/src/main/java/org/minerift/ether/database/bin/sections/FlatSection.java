@@ -1,7 +1,7 @@
 package org.minerift.ether.database.bin.sections;
 
 import org.minerift.ether.database.DataType;
-import org.minerift.ether.database.bin.Ref;
+import org.minerift.ether.database.Ref;
 
 public class FlatSection extends Section {
 
@@ -47,5 +47,10 @@ public class FlatSection extends Section {
     @Override
     public Section getSubsection(int idx) {
         throw new UnsupportedOperationException("Flat section unable to add sections");
+    }
+
+    @Override
+    public Section addSubsection(Section subsection) {
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package org.minerift.ether.database.nubin.writer;
+package org.minerift.ether.database.bin.depbin.writer;
 
 import com.google.common.collect.ImmutableMap;
 import org.minerift.ether.database.DataType;
