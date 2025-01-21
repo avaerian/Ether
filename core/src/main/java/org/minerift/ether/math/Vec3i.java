@@ -4,12 +4,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;
 
-// TODO: ensure serialization works for both mutable and immutable types
 // Immutable (by default) Vec3 of ints
-public class Vec3i {
+public class Vec3i implements Serializable {
 
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
 

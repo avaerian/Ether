@@ -1,16 +1,10 @@
 package org.minerift.ether.math;
 
-import org.minerift.ether.world.ChunkCoords;
-
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 // Immutable by default (use Vec2i.Mutable for mutable operations)
-public class Vec2i {
+public class Vec2i implements Serializable {
 
     public final static Vec2i ZERO = new Vec2i(0, 0);
 

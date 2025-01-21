@@ -2,10 +2,12 @@ package org.minerift.ether.math;
 
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 
 // Immutable (by default) Vec3 of doubles
-public class Vec3d {
+public class Vec3d implements Serializable {
 
     protected double x, y, z;
 
@@ -44,6 +46,19 @@ public class Vec3d {
     @Override
     public String toString() {
         return String.format("(%f, %f, %f)", x, y, z);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vec3d vec3d = (Vec3d) o;
+        return x == vec3d.x && y == vec3d.y && z == vec3d.z;
     }
 
     public static class Mutable extends Vec3d {
