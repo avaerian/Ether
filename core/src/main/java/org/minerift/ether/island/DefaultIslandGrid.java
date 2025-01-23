@@ -10,23 +10,22 @@ import org.minerift.ether.util.IndexedList;
 import java.util.Optional;
 import java.util.logging.Level;
 
-public class IslandGridV2 {
+public class DefaultIslandGrid implements IslandGrid {
 
     // All islands on the grid, including deleted islands
     private final IndexedList<Island> islands;
 
-    public IslandGridV2() {
+    public DefaultIslandGrid() {
         this.islands = new IndexedList<>(Island::getId, Island::isDeleted);
     }
 
-    public IslandGridV2(int initialSize) {
+    public DefaultIslandGrid(int initialSize) {
         this.islands = new IndexedList<>(initialSize, Island::getId, Island::isDeleted);
     }
 
+    @Override
     public void registerIsland(Island island) {
-
         Preconditions.checkNotNull(island, "Cannot register null island!");
-
         try {
             islands.add(island);
         } catch (UnsupportedOperationException ex) {
@@ -34,14 +33,14 @@ public class IslandGridV2 {
         }
     }
 
-
-    // Returns an island from index, deleted or not
-    public Optional<Island> getIslandAt(int idx) {
-        return getIslandAt(idx, false);
+    @Override
+    public void unregisterIsland(int id) {
+        islands.set(id, null);
     }
 
     // Returns an island from index
     // If activeOnly, return the island only if active (not deleted)
+    @Override
     public Optional<Island> getIslandAt(int idx, boolean activeOnly) {
         Island island = idx < islands.size() ? islands.get(idx) : null;
         if(island != null && activeOnly && island.isDeleted()) {
@@ -50,38 +49,44 @@ public class IslandGridV2 {
         return Optional.ofNullable(island);
     }
 
-    // Returns an island at a given tile, deleted or not
-    public Optional<Island> getIslandAt(Vec2i tile) {
-        return getIslandAt(GridAlgorithm.computeTileId(tile), false);
-    }
-
-    // Returns an island at a given tile
-    // If activeOnly, return the island only if active
-    public Optional<Island> getIslandAt(Vec2i tile, boolean activeOnly) {
-        return getIslandAt(GridAlgorithm.computeTileId(tile), activeOnly);
-    }
-
-    // Returns whether a tile has an island, deleted or not, present
+    @Override
     public boolean isTileOccupied(Vec2i tile) {
         return getIslandAt(tile).isPresent();
     }
 
-    // Returns whether a tile has an active island (not deleted)
-    public boolean hasActiveIslandAtTile(Vec2i tile) {
-        final Optional<Island> island = getIslandAt(tile);
+    @Override
+    public boolean hasActiveIslandAt(int id) {
+        final Optional<Island> island = getIslandAt(id);
         return island.isPresent() && !island.get().isDeleted();
     }
 
-    // Get a list of islands that can be reoccupied
+    @Override
+    public int getIslandCount(boolean activeOnly) {
+        int sum = 0;
+        for(int i = 0; i < islands.size(); i++) {
+            Island island = islands.get(i);
+            // if activeOnly and the island is not null or deleted, add 1
+            // if not activeOnly and island is not null, add 1
+            if(island != null) {
+                if(activeOnly && island.isDeleted()) {
+                    continue;
+                }
+                sum++;
+            }
+        }
+        return sum;
+    }
+
+    @Override
     public ImmutableList<Island> getPurgedIslandsView() {
         return islands.stream()
                 .filter((island) -> island != null && island.isDeleted())
                 .collect(ImmutableList.toImmutableList());
     }
 
+    @Override
     public ImmutableList<Vec2i> getAvailableTiles() {
-        ImmutableList.Builder<Vec2i> builder = ImmutableList.builder();
-        //ImmutableList.Builder<Vec2i> builder = ImmutableList.builderWithExpectedSize(islands.size());
+        ImmutableList.Builder<Vec2i> builder = ImmutableList.builderWithExpectedSize(islands.size());
         for(int i = 0; i < islands.size(); i++) {
             Island island = islands.get(i);
             if(island == null || island.isDeleted()) {
@@ -91,11 +96,12 @@ public class IslandGridV2 {
         return builder.build();
     }
 
+    @Override
     public ImmutableList<Island> getIslandsView() {
         return islands.getImmutableView();
     }
 
-    // Returns the next available tile that can be occupied
+    @Override
     public Vec2i getNextTile() {
         for(int i = 0; i < islands.size(); i++) {
             Island island = islands.get(i);
@@ -112,7 +118,6 @@ public class IslandGridV2 {
         return !tiles.isEmpty() ? tiles.get(0) : getNextTileFromGridBounds();
     }
 
-    // TODO: create immutable copy if possible (?)
     public IndexedList<Island> getData() {
         return islands;
     }
