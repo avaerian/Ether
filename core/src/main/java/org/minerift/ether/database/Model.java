@@ -1,9 +1,7 @@
 package org.minerift.ether.database;
 
-import org.jooq.Record;
-import org.minerift.ether.database.nusql.NuSQLResult;
 import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.util.pair.Pair;
 
 import java.util.*;
@@ -70,8 +68,8 @@ public abstract class Model<MO, PK> {
 
     protected abstract void createModel(ModelCreationContext<Model<MO, PK>, MO> ctx);
 
-    public abstract IBuilder<MO> readAsBuilder(NuSQLResult<MO> result, Record record);
-    public abstract MO readRecord(NuSQLResult<MO> result, Record record);
+    public abstract IBuilder<MO> readAsBuilder(Record<MO> record);
+    public abstract MO readRecord(Record<MO> record);
 
     public abstract Field<MO, PK, ?> getPrimaryKey();
 

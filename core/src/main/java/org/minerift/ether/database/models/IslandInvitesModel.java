@@ -1,10 +1,9 @@
 package org.minerift.ether.database.models;
 
-import org.jooq.Record;
 import org.minerift.ether.database.*;
-import org.minerift.ether.database.nusql.NuSQLResult;
+import org.minerift.ether.database.Record;
 import org.minerift.ether.island.invites.IslandInvite;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 
 import java.util.UUID;
 
@@ -44,19 +43,19 @@ public class IslandInvitesModel extends Model<IslandInvite, Integer> {
         NuIslandModel islandModel = ctx.getModel(NuIslandModel.class);
 
         INVITE_ID = ctx.createField("invite_id", DataType.INT, IslandInvite::getInviteId); // TODO: temporary until refactor to UUIDv7
-        SENDER = ctx.createField("sender", DataType.UUIDv4, IslandInvite::getSender);
-        RECEIVER = ctx.createField("receiver", DataType.UUIDv4, IslandInvite::getReceiver);
+        SENDER = ctx.createField("sender", DataType.UUID, IslandInvite::getSender);
+        RECEIVER = ctx.createField("receiver", DataType.UUID, IslandInvite::getReceiver);
         EXPIRE_TIMESTAMP = ctx.createField("expire", DataType.BIGINT.notNull(), IslandInvite::getExpireTimestamp);
         ISLAND_ID = ctx.createForeignField(islandModel.ISLAND_ID, (invite) -> invite.getIsland().getId());
     }
 
     @Override
-    public IBuilder<IslandInvite> readAsBuilder(NuSQLResult<IslandInvite> result, Record record) {
+    public IBuilder<IslandInvite> readAsBuilder(Record<IslandInvite> record) {
         throw new UnsupportedOperationException("No builder for IslandInvite");
     }
 
     @Override
-    public IslandInvite readRecord(NuSQLResult<IslandInvite> result, Record record) {
+    public IslandInvite readRecord(Record<IslandInvite> record) {
         return null;
     }
 

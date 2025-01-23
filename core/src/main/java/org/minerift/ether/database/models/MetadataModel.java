@@ -1,9 +1,8 @@
 package org.minerift.ether.database.models;
 
-import org.jooq.Record;
+import org.minerift.ether.database.Record;
 import org.minerift.ether.database.*;
-import org.minerift.ether.database.nusql.NuSQLResult;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 
 // Stores database metadata and global session info
 public class MetadataModel extends Model<Metadata, Integer> {
@@ -24,13 +23,14 @@ public class MetadataModel extends Model<Metadata, Integer> {
         DB_VERSION = ctx.createField("db_version", DataType.INT.notNull(), Metadata::getDbVersion);
     }
 
+    @Deprecated
     @Override
-    public IBuilder<Metadata> readAsBuilder(NuSQLResult<Metadata> result, Record record) {
+    public IBuilder<Metadata> readAsBuilder(Record<Metadata> record) {
         throw new UnsupportedOperationException("No builder for metadata");
     }
 
     @Override
-    public Metadata readRecord(NuSQLResult<Metadata> result, Record record) {
+    public Metadata readRecord(Record<Metadata> record) {
         return null;
     }
 

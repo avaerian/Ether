@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-public class NuSQLDatabase extends Database implements AutoCloseable {
+public class NuSQLDatabase extends Database {
 
     private final HikariDataSource dataSource;
     protected final Configuration connConfig;
@@ -78,31 +78,20 @@ public class NuSQLDatabase extends Database implements AutoCloseable {
         return dialect;
     }
 
-    public interface SQLAccessFunction {
-        void accept(NuSQLAccess access) throws SQLException;
-    }
-
-    public CompletableFuture<SQLException> access(SQLAccessFunction proc) {
-        return access(false, true, proc);
-    }
-
-    public CompletableFuture<SQLException> accessSync(SQLAccessFunction proc) {
-        return access(false, false, proc);
-    }
-
     // Flags: autocommit, async, autostart?
-    public CompletableFuture<SQLException> access(boolean autocommit, boolean async, SQLAccessFunction proc) {
+    @Override
+    public CompletableFuture<DatabaseException> access(boolean autocommit, boolean async, DbAccessFunction proc) {
         // Attempt to get connection and create SQLAccess layer
         Connection conn;
         NuSQLAccess access;
         try {
             conn = dataSource.getConnection(); // Need to test connection
             if(!SQLUtils.testConnection(conn, 10)) {
-                throw new SQLTimeoutException("Connection timed out!");
+                throw new SQLTimeoutException("Connection timed out");
             }
             access = new NuSQLAccess(this, conn);
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to get connection!", ex);
+            throw new RuntimeException("Failed to get connection", ex);
         }
 
         // Change settings for connection
@@ -111,27 +100,27 @@ public class NuSQLDatabase extends Database implements AutoCloseable {
             oldAutocommit = conn.getAutoCommit();
             conn.setAutoCommit(autocommit);
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to update autocommit for connection!", ex);
+            throw new RuntimeException("Failed to update autocommit for connection", ex);
         }
 
-        Supplier<SQLException> block = () -> {
+        Supplier<DatabaseException> block = () -> {
             try {
                 // Attempt to execute SQL operations
                 proc.accept(access);
                 if(!autocommit && !access.committed) {
                     access.commit();
                 }
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 // Attempt to rollback
                 if(!autocommit) {
                     ex.printStackTrace();
                     try {
                         access.rollback();
-                    } catch (SQLException ex2) {
-                        return new SQLException("Failed to rollback changes", ex2);
+                    } catch (DatabaseException ex2) {
+                        return ex2;
                     }
                 } else {
-                    return new SQLException("Failed to execute SQL operations!", ex);
+                    return ex;
                 }
             }
 
@@ -140,7 +129,7 @@ public class NuSQLDatabase extends Database implements AutoCloseable {
                 conn.setAutoCommit(oldAutocommit);
                 access.close();
             } catch (SQLException ex) {
-                return new SQLException("Failed to clean up resources!", ex);
+                return new DatabaseException("Failed to clean up resources", ex);
             }
 
             return null; // no exception; everything completed successfully
@@ -174,97 +163,4 @@ public class NuSQLDatabase extends Database implements AutoCloseable {
      * - Synchronously create query and bind every object to it (Islands, Users, Island Invites, etc.)
      * - Asynchronously execute query and handle appropriately
      */
-
-
-    // Playground for testing NuSQLDatabase
-    /*
-    public static void main(String[] args) throws Exception {
-
-        // TODO: use jOOQ to see supported data types for dialects
-        //SQLDataType.UUID
-
-        DatabaseConnectionSettings postgresSettings = DatabaseConnectionSettings.builder()
-                .setDialect(SQLDialect.POSTGRES)
-                .setAddress(HostAndPort.fromHost("localhost"))
-                .setDbName("ether")
-                .setUsername("postgres")
-                .setPassword(HIDDEN)
-                .build();
-
-        DatabaseConnectionSettings h2Settings = DatabaseConnectionSettings.builder()
-                .setDialect(SQLDialect.H2)
-                .setDbName("ether")
-                .setUsername("root")
-                .setPassword("")
-                .build();
-
-        DatabaseConnectionSettings sqliteSettings = DatabaseConnectionSettings.builder()
-                .setDialect(SQLDialect.SQLITE)
-                .setDbName("ether")
-                .setUsername("root")
-                .setPassword("")
-                .build();
-
-        NuSQLDatabase db = new NuSQLDatabase(sqliteSettings, IslandModel::new, IslandInvitesModel::new);
-
-        IslandModel model = db.getModel(IslandModel.class);
-        IslandInvitesModel invitesModel = db.getModel(IslandInvitesModel.class);
-
-        Random random = new Random();
-
-        final int GRID_SIZE = 100;
-        IslandGridV2 grid = new IslandGridV2();
-        for(int i = 0; i < GRID_SIZE; i++) {
-            final Island island = Island.builder()
-                    .setTile(GridAlgorithm.computeTile(i), true)
-                    .setOwner(EtherUser.builder().setUUID(UUID.randomUUID()).build())
-                    .setDeleted(random.nextBoolean())
-                    .build();
-            grid.registerIsland(island);
-        }
-
-        Ether.Debug.setIslandGrid(grid);
-        Ether.Debug.setLogger(Logger.getGlobal());
-        var islandsView = grid.getData();
-
-        InviteRegistry inviteRegistry = new InviteRegistry();
-
-        IslandInvite randomInvite = new IslandInvite(UUID.randomUUID(), UUID.randomUUID(), islandsView.get(random.nextInt(GRID_SIZE)), System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1));
-
-        db.access(false, (access) -> {
-
-            access.insert(IslandInvitesModel.class, randomInvite);
-            //access.update(MetadataModel.class, (Metadata)null);
-
-            // Read and register all invites
-            SQLResult<IslandInvite> invitesResult = access.selectAll(IslandInvitesModel.class);
-            for(Record record : invitesResult) {
-                IslandInvite invite = invitesResult.readRecord(record);
-                inviteRegistry.register(invite);
-                System.out.println(invite);
-                System.out.println(invite.isExpired());
-                //if(invite.isExpired()) {
-                //    access.deleteById(IslandInvitesModel.class, invitesModel.SENDER_RECEIVER.readField(invite));
-                //}
-            }
-
-            inviteRegistry.purgeExpiredInvites();
-
-            // Get differences
-            Set<UUIDPair> dbInviteKeys = access.selectAllIds(IslandInvitesModel.class, Adapters.PAIR_2_UUIDS);
-
-            System.out.println(Arrays.deepToString(dbInviteKeys.toArray(SameTypePair[]::new)));
-            System.out.println(Arrays.deepToString(inviteRegistry.getKeySet().toArray(SameTypePair[]::new)));
-            Map<DiffType, List<UUIDPair>> inviteDiffs = KeyDiff.partitionDiffs(dbInviteKeys, inviteRegistry.getKeySet());
-            System.out.println(inviteDiffs);
-
-            // Remove deleted ids
-            if(!inviteDiffs.getOrDefault(DiffType.DELETED, Collections.emptyList()).isEmpty()) {
-                access.deleteByIds(IslandInvitesModel.class, inviteDiffs.get(DiffType.DELETED).stream().map(UUIDPair::toArray).collect(Collectors.toList()));
-            }
-        });
-
-        db.close();
-    }
-    */
 }
