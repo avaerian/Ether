@@ -1,7 +1,7 @@
 package org.minerift.ether.util.newnbt;
 
 import org.minerift.ether.Secrets;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.util.newnbt.tags.Tag;
 import org.minerift.ether.util.newnbt.tags.container.CollectionTagBuilder;
 import org.minerift.ether.util.newnbt.token.Token;

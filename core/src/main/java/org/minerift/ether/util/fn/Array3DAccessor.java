@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.fn;
 
 public interface Array3DAccessor<T> {
 

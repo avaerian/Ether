@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.fn;
 
 @FunctionalInterface
 public interface IntBiConsumer<T> {

@@ -3,7 +3,7 @@ package org.minerift.ether.database.bin.depbin.writer;
 import com.google.common.collect.ImmutableMap;
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.PrimitiveType;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.util.pair.Pair;
 
 import java.util.EnumMap;

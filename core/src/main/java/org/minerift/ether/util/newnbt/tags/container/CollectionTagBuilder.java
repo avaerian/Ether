@@ -1,6 +1,6 @@
 package org.minerift.ether.util.newnbt.tags.container;
 
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.util.newnbt.tags.Tag;
 
 @Deprecated

@@ -11,7 +11,7 @@ import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.world.ChunkCoords;
 
 import java.util.*;

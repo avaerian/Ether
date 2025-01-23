@@ -2,7 +2,7 @@ package org.minerift.ether.math;
 
 import com.google.common.collect.AbstractIterator;
 import org.jetbrains.annotations.Nullable;
-import org.minerift.ether.util.Array3DAccessor;
+import org.minerift.ether.util.fn.Array3DAccessor;
 
 public class Array3DIterator<E> extends AbstractIterator<E> {
 

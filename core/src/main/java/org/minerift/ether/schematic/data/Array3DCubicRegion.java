@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.data;
 
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.math.Array3DIterator;
-import org.minerift.ether.util.Array3DAccessor;
+import org.minerift.ether.util.fn.Array3DAccessor;
 
 import java.util.Iterator;
 

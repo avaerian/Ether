@@ -8,7 +8,7 @@ import org.minerift.ether.util.CanChange;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandPermission;
 import org.minerift.ether.island.IslandRole;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 
 import java.util.Optional;
 import java.util.UUID;
