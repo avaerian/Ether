@@ -8,7 +8,7 @@ import org.minerift.ether.database.diff.KeyDiff;
 import org.minerift.ether.database.models.NuIslandModel;
 import org.minerift.ether.database.models.NuUserModel;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.IslandGridV2;
+import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
@@ -34,7 +34,7 @@ public class NuSQLPlayground {
 
         DatabaseConnectionSettings postgresSettings = DatabaseConnectionSettings.builder()
                 .setDialect(SQLDialect.POSTGRES)
-                .setAddress(HostAndPort.fromHost("localhost"))
+                .setUrl(HostAndPort.fromHost("localhost"))
                 .setDbName("ether")
                 .setUsername("postgres")
                 .setPassword(HIDDEN)
@@ -42,6 +42,7 @@ public class NuSQLPlayground {
 
         DatabaseConnectionSettings h2Settings = DatabaseConnectionSettings.builder()
                 .setDialect(SQLDialect.H2)
+                .setUrl("C:\\Users\\avaer\\Desktop\\")
                 .setDbName("ether")
                 .setUsername("root")
                 .setPassword("")
@@ -49,6 +50,7 @@ public class NuSQLPlayground {
 
         DatabaseConnectionSettings sqliteSettings = DatabaseConnectionSettings.builder()
                 .setDialect(SQLDialect.SQLITE)
+                .setUrl("C:\\Users/avaer\\Desktop/")
                 .setDbName("ether")
                 .setUsername("root")
                 .setPassword("")
@@ -59,13 +61,13 @@ public class NuSQLPlayground {
                 .setDbName("ether")
                 .setUsername("root")
                 .setPassword("password")
-                .setAddress(HostAndPort.fromHost("localhost"))
+                .setUrl(HostAndPort.fromHost("localhost"))
                 .build();
 
         Random random = new Random();
 
         final int GRID_SIZE = 100;
-        IslandGridV2 grid = new IslandGridV2();
+        DefaultIslandGrid grid = new DefaultIslandGrid();
         UserManager users = new UserManager();
         for(int i = 0; i < GRID_SIZE; i++) {
             final EtherUser user = EtherUser.builder().setUUID(UUID.randomUUID()).build();
@@ -81,8 +83,11 @@ public class NuSQLPlayground {
         Ether.Debug.setIslandGrid(grid);
         Ether.Debug.setUserManager(users);
 
-        try(NuSQLDatabase db = new NuSQLDatabase(h2Settings, NuIslandModel::new, NuUserModel::new)) {
+        try(NuSQLDatabase db = new NuSQLDatabase(postgresSettings, NuIslandModel::new, NuUserModel::new)) {
             var result = db.access((access) -> {
+
+                access.selectAll(NuUserModel.class).streamField(db.getModel(NuUserModel.class).ISLAND_ROLE).forEach(System.out::println);
+
                 Set<Integer> oldIslandIds = access.selectAllIds(NuIslandModel.class).collect(Collectors.toSet());
                 Set<Integer> newIslandIds = grid.getIslandsView().stream().map(Island::getId).collect(Collectors.toSet());
                 var islands_diffs = KeyDiff.partitionDiffs(oldIslandIds, newIslandIds);

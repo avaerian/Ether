@@ -83,7 +83,7 @@ public class Field<MO, T, F> {
 
     // Reads java field value as SQL value (either SQL fallback or original type)
     public Object readJavaAsSQLValue(Object javaVal) {
-        return usesFallbackType() ? fallback.adaptTo((T) javaVal) : javaVal;
+        return usesFallbackType() && requestedDataType.getType().isInstance(javaVal) ? fallback.adaptTo((T) javaVal) : javaVal;
     }
 
     // Takes SQL data and converts it from fallback to proper SQL data type, if appropriate
