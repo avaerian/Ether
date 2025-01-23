@@ -2,6 +2,8 @@ package org.minerift.ether.config.main;
 
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.database.Database;
+import org.minerift.ether.database.nusql.SQLDialect;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -20,8 +22,13 @@ public class MainConfig extends Config<MainConfig> {
     // I plan on adding permissions to this and allowing for different tiers
     private int tileAccessibleAreaBlocks;
 
-    // This will be in milliseconds
-    private long inviteInvalidateAfter;
+    private long inviteInvalidateAfter; // this will be in milliseconds
+
+    private Database.Type dbType;
+    private SQLDialect sqlDialect;
+    private String sqlUrl; // optional, depending on dialect
+    private String sqlUsername;
+    private String sqlPassword;
 
     // Default values for config
     public MainConfig() {
@@ -29,10 +36,41 @@ public class MainConfig extends Config<MainConfig> {
         setTileHeight(90);
         setTileAccessibleAreaBlocks(180); // default value for now; this is subject to change
         setInviteInvalidateAfter(TimeUnit.MINUTES.toMillis(2));
+
+        setPersistMethod(Database.Type.SQL);
+        setSqlDialect(SQLDialect.H2);
+        setSqlUrl("");
+        setSqlUsername("root");
+        setSqlPassword("");
+
         setChanged(false);
     }
 
     // Getters
+    public Database.Type getPersistMethod() {
+        return dbType;
+    }
+
+    public SQLDialect getSqlDialect() {
+        return sqlDialect;
+    }
+
+    public String getSqlUrl() {
+        return sqlUrl;
+    }
+
+    public boolean hasSqlUrl() {
+        return sqlUrl != null && !sqlUrl.isBlank();
+    }
+
+    public String getSqlUsername() {
+        return sqlUsername;
+    }
+
+    public String getSqlPassword() {
+        return sqlPassword;
+    }
+
     public int getTileLengthChunks() {
         return tileLengthChunks;
     }
@@ -54,6 +92,29 @@ public class MainConfig extends Config<MainConfig> {
     }
 
     // Setters
+    public void setPersistMethod(Database.Type dbType) {
+        this.dbType = dbType;
+    }
+
+    public void setSqlDialect(SQLDialect sqlDialect) {
+        this.sqlDialect = sqlDialect;
+        setChanged(true);
+    }
+
+    public void setSqlUrl(String sqlUrl) {
+        this.sqlUrl = sqlUrl;
+        setChanged(true);
+    }
+
+    public void setSqlUsername(String sqlUsername) {
+        this.sqlUsername = sqlUsername;
+        setChanged(true);
+    }
+
+    public void setSqlPassword(String sqlPassword) {
+        this.sqlPassword = sqlPassword;
+        setChanged(true);
+    }
 
     public void setInviteInvalidateAfter(long ms) {
         this.inviteInvalidateAfter = ms;

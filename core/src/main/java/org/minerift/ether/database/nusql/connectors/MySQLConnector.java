@@ -16,7 +16,7 @@ public class MySQLConnector implements NuSQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:mysql://" + settings.getAddress());
+        config.setJdbcUrl("jdbc:mysql://" + settings.getUrl());
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());
         config.addDataSourceProperty("cachePrepStmts", "true");

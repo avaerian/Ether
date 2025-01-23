@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.minerift.ether.database.DatabaseConnectionSettings;
 import org.minerift.ether.database.nusql.NuSQLDatabase;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 
@@ -13,7 +14,7 @@ public class SQLiteConnector implements NuSQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:sqlite:" + settings.getDbName() + ".db");
+        config.setJdbcUrl("jdbc:sqlite:" + settings.getUrl() + File.separatorChar + settings.getDbName() + ".db");
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());
         config.addDataSourceProperty("cachePrepStmts", "true");

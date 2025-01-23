@@ -10,7 +10,7 @@ public class DatabaseConnectionSettings {
     }
 
     private final SQLDialect dialect;
-    private final HostAndPort address;
+    private final String url;
     private final String username;
     private final String password;
     private final String dbName;
@@ -18,7 +18,7 @@ public class DatabaseConnectionSettings {
 
     private DatabaseConnectionSettings(Builder builder) {
         this.dialect    = builder.dialect;
-        this.address    = builder.address;
+        this.url        = builder.url;
         this.username   = builder.username;
         this.password   = builder.password;
         this.dbName     = builder.dbName;
@@ -28,8 +28,8 @@ public class DatabaseConnectionSettings {
         return dialect;
     }
 
-    public HostAndPort getAddress() {
-        return address;
+    public String getUrl() {
+        return url;
     }
 
     public String getUsername() {
@@ -47,20 +47,32 @@ public class DatabaseConnectionSettings {
     public static class Builder {
 
         private SQLDialect dialect;
-        private HostAndPort address;
+        private String url;
         private String username;
         private String password;
         private String dbName;
 
-        private Builder() {}
+        private Builder() {
+            this.dialect = null;
+            this.url = "";
+            this.username = "";
+            this.password = "";
+            this.dbName = "";
+        }
 
         public Builder setDialect(SQLDialect dialect) {
             this.dialect = dialect;
             return this;
         }
 
-        public Builder setAddress(HostAndPort address) {
-            this.address = address;
+        public Builder setUrl(String url) {
+            this.url = url;
+            return this;
+        }
+
+        @Deprecated
+        public Builder setUrl(HostAndPort addr) {
+            this.url = addr.toString();
             return this;
         }
 

@@ -16,7 +16,7 @@ public class PostgreSQLConnector implements NuSQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         final HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:postgresql://" + settings.getAddress().toString() + "/");
+        config.setJdbcUrl("jdbc:postgresql://" + settings.getUrl().toString() + "/");
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());
         config.addDataSourceProperty("cachePrepStmts", "true");

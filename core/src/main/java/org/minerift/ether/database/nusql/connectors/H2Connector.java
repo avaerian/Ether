@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.minerift.ether.database.DatabaseConnectionSettings;
 import org.minerift.ether.database.nusql.NuSQLDatabase;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 
@@ -13,7 +14,11 @@ public class H2Connector implements NuSQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:h2:~/" + settings.getDbName());
+        // TODO: review connecting via TCP -> https://www.h2database.com/html/tutorial.html
+        //config.setJdbcUrl("jdbc:h2:~/" + settings.getDbName());
+
+        // TODO: implement unit tests for different JDBC urls with embedded dbs (?)
+        config.setJdbcUrl("jdbc:h2:" + settings.getUrl() + File.separatorChar + settings.getDbName());
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());
         //config.addDataSourceProperty("cachePrepStmts", "true");
