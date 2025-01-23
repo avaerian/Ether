@@ -7,10 +7,10 @@ import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.DefaultDataType;
-import org.minerift.ether.database.DataType;
-import org.minerift.ether.database.DatabaseCreationContext;
-import org.minerift.ether.database.Field;
-import org.minerift.ether.database.Fields;
+import org.jooq.impl.SQLDataType;
+import org.minerift.ether.database.*;
+import org.minerift.ether.database.nusql.fallback.EnumOrdinalFallback;
+import org.minerift.ether.database.nusql.fallback.EnumStrFallback;
 import org.minerift.ether.database.nusql.fallback.NuFallback;
 import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
 
@@ -26,21 +26,11 @@ public class SQLUtils {
 
     public static final String[] EMPTY_BIND_VALS = new String[0];
 
-    // TODO: refactor in favor of getPossibleFallback
-    @Deprecated(forRemoval = true)
-    public static <T> boolean isDataTypeSupported(DataType<T> type, SQLDialect dialect) {
-        Preconditions.checkNotNull(type);
-        if(type.isArrayType() && dialect.getArraysFallback(type) != null) {
-            return false;
-        }
-        return true;
-    }
-
     public static <T> NuFallback<T, ?> getPossibleFallback(DataType<T> type, DatabaseCreationContext dbCtx) {
         if(dbCtx instanceof SQLDatabaseCreationContext sqlCtx) {
             return getPossibleFallback(type, sqlCtx.dialect());
         }
-        return null; // only two types of databases at the moment, so safe to assume that if database creation ctx is binary then no fallbacks
+        return null; // only two types of databases at the moment, so safe to assume if database creation ctx is binary then no fallbacks
     }
 
     @Beta
@@ -48,6 +38,13 @@ public class SQLUtils {
         Preconditions.checkNotNull(type);
         if(type.isArrayType()) {
             return dialect.getArraysFallback(type);
+        }
+        if(type.isEnumType()) {
+            return switch(type.getPrimitiveType()) {
+                case ENUM_ORDINAL -> new EnumOrdinalFallback<>((DataType<? extends Enum>)type);
+                case ENUM_STR -> new EnumStrFallback<>((DataType<? extends Enum>)type);
+                default -> throw new IllegalStateException("Unexpected value: " + type.getPrimitiveType());
+            };
         }
         /*else if (type.isUUID()) {
             return dialect.supportsUUIDs(type);
@@ -86,7 +83,7 @@ public class SQLUtils {
         return jooqFields;
     }
 
-    public static Table<Record> asJooqTable(org.minerift.ether.database.Model<?, ?> model) {
+    public static Table<Record> asJooqTable(Model<?, ?> model) {
         return asJooqTable(model.getTableName());
     }
 
@@ -116,7 +113,7 @@ public class SQLUtils {
         }
     }
 
-    public static <M> void bind(BatchBindStep batch, org.minerift.ether.database.Model<M, ?> model, Collection<M> objs, String[] bindOrder) {
+    public static <M> void bind(BatchBindStep batch, Model<M, ?> model, Collection<M> objs, String[] bindOrder) {
         for(M obj : objs) {
             batch.bind(model.dumpOrderedBindValues(obj, bindOrder));
         }
@@ -135,7 +132,7 @@ public class SQLUtils {
         return bindOrder.toArray(String[]::new);
     }
 
-    public static void bind(Query query, org.minerift.ether.database.Model<?, ?> model, NamedBindValues<?> bindVals, String[] bindOrder) {
+    public static void bind(Query query, Model<?, ?> model, NamedBindValues<?> bindVals, String[] bindOrder) {
         for(int i = 0; i < bindOrder.length; i++) {
             String column = bindOrder[i];
             Object javaVal = bindVals.getFieldValue(column);
@@ -147,7 +144,7 @@ public class SQLUtils {
     }
 
     // Binds an object's values to a parameterized query
-    public static <M> void bind(Query query, org.minerift.ether.database.Model<M, ?> model, M obj, String[] bindOrder) {
+    public static <M> void bind(Query query, Model<M, ?> model, M obj, String[] bindOrder) {
         bind(query, model, model.dumpNamedBindValues(obj), bindOrder);
     }
 }

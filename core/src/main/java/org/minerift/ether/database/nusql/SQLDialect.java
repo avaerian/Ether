@@ -2,7 +2,9 @@ package org.minerift.ether.database.nusql;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.nusql.connectors.*;
+import org.minerift.ether.database.nusql.fallback.EnumStrFallback;
 import org.minerift.ether.database.nusql.fallback.JsonFallback;
+import org.minerift.ether.util.Utils;
 
 import java.util.function.Supplier;
 
@@ -14,7 +16,6 @@ public enum SQLDialect {
 
     ;
 
-    // TODO: move to static method in converter class for jOOQ types to decouple SQL from current database API
     public static SQLDialect adapt(org.jooq.SQLDialect dialect) {
         return switch (dialect) {
             case MYSQL      -> MYSQL;
@@ -25,6 +26,11 @@ public enum SQLDialect {
         };
     }
 
+    // For convienence
+    public static SQLDialect valueOfSilent(String str) {
+        return Utils.valueOfSilent(SQLDialect.class, str.toUpperCase());
+    }
+
     private final org.jooq.SQLDialect dialect;
     private final Supplier<NuSQLConnector> dbConnector;
     SQLDialect(org.jooq.SQLDialect dialect, Supplier<NuSQLConnector> dbConnector) {
@@ -32,7 +38,6 @@ public enum SQLDialect {
         this.dbConnector = dbConnector;
     }
 
-    // TODO: move to static method in converter class for jOOQ types to decouple SQL from current database API
     public org.jooq.SQLDialect asJooqDialect() {
         return switch (this) {
             case MYSQL -> org.jooq.SQLDialect.MYSQL;
@@ -43,9 +48,8 @@ public enum SQLDialect {
     }
 
     // Returns a fallback (or null if supported) for arrays
-    // TODO: move fallback methods to different class?
     public <T> JsonFallback<T> getArraysFallback(DataType<T> type) {
-        return switch(this) {
+        return switch (this) {
             case POSTGRES, H2 -> null; // supported
             case MYSQL, SQLITE -> new JsonFallback<>(type.getType());
         };

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class DataType<T> {
 
-    public static final DataType<UUID> UUIDv4 = new DataType<>(PrimitiveType.UUIDv4, UUID.class);
+    public static final DataType<UUID> UUID = new DataType<>(PrimitiveType.UUID, UUID.class);
     public static final DataType<Boolean> BOOL = new DataType<>(PrimitiveType.BOOLEAN, Boolean.class);
     public static final DataType<Byte> BYTE = new DataType<>(PrimitiveType.BYTE, Byte.class);
     public static final DataType<Short> SHORT = new DataType<>(PrimitiveType.SHORT, Short.class);
@@ -54,6 +54,14 @@ public class DataType<T> {
         return VARCHAR.length(length);
     }
 
+    public static <E extends Enum<E>> DataType<E> ENUM_ORDINAL(Class<E> enumClazz) {
+        return new DataType<>(PrimitiveType.ENUM_ORDINAL, enumClazz);
+    }
+
+    public static <E extends Enum<E>> DataType<E> ENUM_STR(Class<E> enumClazz) {
+        return new DataType<>(PrimitiveType.ENUM_STR, enumClazz, false, 255);
+    }
+
     @Deprecated
     public static DataType<String> STRING(int length) {
         return VARCHAR(length);
@@ -72,8 +80,8 @@ public class DataType<T> {
     protected static final int VALUE_NOT_SET = -1;
 
     protected final PrimitiveType primitiveType;
-    protected final Class<?> baseTypeClazz;
-    protected final Class<T> typeClazz;
+    protected final Class<?> baseTypeClazz; // for arrays; the base type of an array
+    protected final Class<T> typeClazz; // the actual type
     protected final boolean nullable;
     protected final int length;
     protected final int arrayLength;
@@ -153,10 +161,6 @@ public class DataType<T> {
         return array(VALUE_NOT_SET);
     }
 
-    public boolean isArrayType() {
-        return typeClazz.isArray(); // TODO: better checks here?
-    }
-
     public Class<T> getType() {
         return typeClazz;
     }
@@ -179,9 +183,15 @@ public class DataType<T> {
         return primitiveType == PrimitiveType.BINARY || primitiveType == PrimitiveType.VARBINARY;
     }
 
+    public boolean isEnumType() {
+        return primitiveType == PrimitiveType.ENUM_ORDINAL
+                || primitiveType == PrimitiveType.ENUM_STR;
+    }
+
     /**
-     * Identify whether the data type is an integer type. This identifies any type that is an integer and not just an INT16
-     * @return if type is an integer
+     * Identify whether the data type is an integer type.
+     * This identifies any math integer type, not just an I32.
+     * @return if type is an math integer
      */
     public boolean isIntegerType() {
         return primitiveType == PrimitiveType.BYTE
@@ -198,13 +208,20 @@ public class DataType<T> {
         return primitiveType == PrimitiveType.CHAR || primitiveType == PrimitiveType.VARCHAR;
     }
 
+    public boolean isArrayType() {
+        return typeClazz.isArray();
+    }
+
+    // TODO: documentation
     public boolean isDynamicallySizedType() {
         return primitiveType == PrimitiveType.VARCHAR || primitiveType == PrimitiveType.VARBINARY;
     }
 
+    // TODO: review this
+    @Deprecated
     public int getByteSize(T data) {
         return switch (primitiveType) {
-            case UUIDv4 -> 4;
+            case UUID -> 4;
             case BOOLEAN, BYTE -> 1;
             case SHORT -> Short.BYTES;
             case INTEGER -> Integer.BYTES;
@@ -220,6 +237,8 @@ public class DataType<T> {
             case VARBINARY -> Integer.BYTES + ((byte[])data).length;
 
             // TODO: handle these later
+            case ENUM_ORDINAL -> 0;
+            case ENUM_STR -> 0;
             case CLOB -> 0;
             case BLOB -> 0;
             case DATE -> 0;
