@@ -12,7 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class SpongeSchematic implements Schematic {
+@Deprecated
+public class DeprecatedSpongeSchematic implements Schematic {
 
     private int width, height, length;
     private Vec3i offset;
@@ -20,11 +21,11 @@ public class SpongeSchematic implements Schematic {
     private List<BiomeArchetype> biomes;
     private List<EntityArchetype> entities;
 
-    public static SpongeSchematic.Builder builder() {
-        return new SpongeSchematic.Builder();
+    public static DeprecatedSpongeSchematic.Builder builder() {
+        return new DeprecatedSpongeSchematic.Builder();
     }
 
-    private SpongeSchematic(SpongeSchematic.Builder builder) {
+    private DeprecatedSpongeSchematic(DeprecatedSpongeSchematic.Builder builder) {
         this.width = builder.getWidth();
         this.height = builder.getHeight();
         this.length = builder.getLength();
@@ -99,8 +100,8 @@ public class SpongeSchematic implements Schematic {
             this.entities = Collections.emptyList();
         }
 
-        public SpongeSchematic build() {
-            return new SpongeSchematic(this);
+        public DeprecatedSpongeSchematic build() {
+            return new DeprecatedSpongeSchematic(this);
         }
 
         // GETTERS

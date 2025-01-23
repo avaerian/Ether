@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.types.SpongeSchematic;
+import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.IntTag;
@@ -22,7 +22,7 @@ public class ReadBlockStatesStep implements IReaderStep {
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
 
-        final SpongeSchematic.Builder builder = ctx.builder;
+        final DeprecatedSpongeSchematic.Builder builder = ctx.builder;
         final NBTSectionView rootView = ctx.rootView;
 
         final short width = builder.getWidth();

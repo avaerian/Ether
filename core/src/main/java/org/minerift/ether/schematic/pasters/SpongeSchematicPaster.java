@@ -7,13 +7,13 @@ import org.bukkit.block.Biome;
 import org.minerift.ether.Ether;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.SpongeSchematic;
+import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
 import org.minerift.ether.math.Vec3i;
 
-public class SpongeSchematicPaster implements ISchematicPaster<SpongeSchematic> {
+public class SpongeSchematicPaster implements ISchematicPaster<DeprecatedSpongeSchematic> {
 
     @Override
-    public void paste(SpongeSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
+    public void paste(DeprecatedSpongeSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
 
         final World world = Bukkit.getWorld(worldName);
         Preconditions.checkNotNull(world, String.format("World %s could not be found!", worldName));

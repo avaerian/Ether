@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.readers.sponge;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.types.SpongeSchematic;
+import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
 import org.minerift.ether.util.nbt.NBTInputStream;
 import org.minerift.ether.util.nbt.NBTSectionView;
 import org.minerift.ether.util.nbt.tags.CompoundTag;
@@ -17,7 +17,7 @@ public class SchematicReaderContext implements AutoCloseable {
     private final CompoundTag head;
 
     public final NBTSectionView rootView;
-    public final SpongeSchematic.Builder builder;
+    public final DeprecatedSpongeSchematic.Builder builder;
 
     public static SchematicReaderContext from(File file) throws SchematicFileReadException {
         try {
@@ -34,7 +34,7 @@ public class SchematicReaderContext implements AutoCloseable {
         this.nbt = new NBTInputStream(new FileInputStream(file));
         this.head = (CompoundTag) nbt.readTag();
         this.rootView = new NBTSectionView(head);
-        this.builder = SpongeSchematic.builder();
+        this.builder = DeprecatedSpongeSchematic.builder();
     }
 
     @Override

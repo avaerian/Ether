@@ -3,12 +3,12 @@ package org.minerift.ether.schematic.readers.sponge;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.readers.ISchematicReader;
 import org.minerift.ether.schematic.readers.sponge.steps.*;
-import org.minerift.ether.schematic.types.SpongeSchematic;
+import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
 
 import java.io.File;
 import java.io.IOException;
 
-public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> {
+public class SpongeSchematicReader implements ISchematicReader<DeprecatedSpongeSchematic> {
 
     public static class ReadStages {
         public final static IReaderStep INIT             = new ReadInitStep();
@@ -22,7 +22,7 @@ public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> 
     }
 
     @Override
-    public SpongeSchematic read(File file) throws SchematicFileReadException {
+    public DeprecatedSpongeSchematic read(File file) throws SchematicFileReadException {
 
         final SchematicReaderContext ctx = SchematicReaderContext.from(file);
 
@@ -33,7 +33,7 @@ public class SpongeSchematicReader implements ISchematicReader<SpongeSchematic> 
         ReadStages.BIOMES.read(ctx);
         ReadStages.ENTITIES.read(ctx);
 
-        SpongeSchematic schem = ctx.builder.build();
+        DeprecatedSpongeSchematic schem = ctx.builder.build();
 
         try {
             ctx.close();
