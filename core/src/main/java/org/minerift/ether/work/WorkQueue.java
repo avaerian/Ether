@@ -7,7 +7,7 @@ import org.minerift.ether.Ether;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-// A work queue that distributes work over multiple ticks
+// A work queue that distributes work over multiple ticks synchronously
 public class WorkQueue {
 
     public static final double MAX_MILLIS_PER_TICK = 15;

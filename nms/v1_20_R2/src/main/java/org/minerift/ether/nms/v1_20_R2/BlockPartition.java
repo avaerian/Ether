@@ -17,7 +17,7 @@ import static java.lang.Math.min;
 // Benefit to this implementation is when blocks are being partitioned
 // into sections and chunks, the chunks aren't loaded yet.
 // When setting blocks from the partition, chunks should be loaded
-public class BlockPartition {
+public class BlockPartition { // TODO: move this to core
 
     // Chunk, Section, ChunkSectionChanges
     private final Map<ChunkCoords, Int2ObjectMap<ChunkSectionChanges>> partition;

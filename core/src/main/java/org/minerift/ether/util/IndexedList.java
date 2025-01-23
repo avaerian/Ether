@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 // Represents a resizable list with an indexer function
 // Primary use is for IslandGrid
 public class IndexedList<T> implements Iterable<T> {
-    private ArrayList<T> buffer; // TODO: create ResizeableArray for better buffer resize handling?
+    private ArrayList<T> buffer;
     private Function<T, Integer> index;
     private Predicate<T> canReplace;
 
@@ -58,6 +58,10 @@ public class IndexedList<T> implements Iterable<T> {
 
     public T get(int idx) {
         return buffer.get(idx);
+    }
+
+    public T set(int idx, T val) {
+        return buffer.set(idx, val);
     }
 
     public T remove(T t) {

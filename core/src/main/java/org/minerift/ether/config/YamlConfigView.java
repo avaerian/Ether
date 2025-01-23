@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 // Wrapper class for the YamlConfiguration Bukkit API
+// TODO: desirable to decouple from Bukkit for config unit testing
 public class YamlConfigView {
     private final YamlConfiguration yamlConfig;
     private final ConfigurationSection head;
@@ -52,6 +53,10 @@ public class YamlConfigView {
     }
 
     public void set(String path, Object obj) {
+        Object existing = head.get(path, null);
+        if(existing != null && existing.equals(obj)) {
+            return;
+        }
         head.set(path, obj);
     }
 
@@ -60,7 +65,7 @@ public class YamlConfigView {
         try {
             yamlConfig.save(file);
         } catch (IOException ex) {
-            throw (ConfigFileWriteException) ex;
+            throw new ConfigFileWriteException("Failed to save config", ex);
         }
     }
 

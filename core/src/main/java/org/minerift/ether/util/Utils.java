@@ -5,16 +5,32 @@ import com.google.common.escape.Escapers;
 import com.google.errorprone.annotations.DoNotCall;
 import org.minerift.ether.database.PrimitiveType;
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.util.fn.IntBiConsumer;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Supplier;
 
+// TODO: review + clean up all the broken/dead methods
 public class Utils {
 
     private Utils() {
         throw new IllegalStateException();
+    }
+
+    /**
+     * Takes the String name and attempts to return the enum Type.
+     * If the name is invalid, fail silently and return null.
+     * @param str raw string of the enum
+     * @return translated string into enum
+     */
+    public static <E extends Enum<E>> E valueOfSilent(Class<E> enumClazz, String str) {
+        try {
+            return Enum.valueOf(enumClazz, str);
+        } catch (IllegalArgumentException ignore) {
+            return null;
+        }
     }
 
     public static int boolToInt(boolean b) {

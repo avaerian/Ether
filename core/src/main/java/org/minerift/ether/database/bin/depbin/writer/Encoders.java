@@ -20,7 +20,7 @@ public class Encoders {
     }
 
     protected static void writeInt(WriterContext ctx, DataType<Integer> type, int data) {
-        ctx.currentBuffer.putInt(unknownIntToInt16(data));
+        ctx.currentBuffer.putInt(data);
     }
 
     protected static void writeLong(WriterContext ctx, DataType<Long> type, long data) {
