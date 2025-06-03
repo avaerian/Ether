@@ -2,11 +2,16 @@ package org.minerift.ether.database.nusql;
 
 import com.google.common.net.HostAndPort;
 import org.minerift.ether.Ether;
+import org.minerift.ether.database.Database;
 import org.minerift.ether.database.DatabaseConnectionSettings;
+import org.minerift.ether.database.DatabaseCreationContext;
+import org.minerift.ether.database.Model;
 import org.minerift.ether.database.diff.DiffType;
 import org.minerift.ether.database.diff.KeyDiff;
 import org.minerift.ether.database.models.NuIslandModel;
 import org.minerift.ether.database.models.NuUserModel;
+import org.minerift.ether.database.nusql.op.ddl.DDLGetColumns;
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
@@ -16,14 +21,16 @@ import org.minerift.ether.user.UserManager;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.minerift.ether.Secrets.HIDDEN;
 
 @SuppressWarnings("Duplicates")
+@Debug
 public class NuSQLPlayground {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) throws Exception {
 
         SQLDatabaseCreationContext dbCtx = new SQLDatabaseCreationContext(SQLDialect.POSTGRES, NuIslandModel::new, NuUserModel::new);
 
@@ -84,6 +91,8 @@ public class NuSQLPlayground {
         Ether.Debug.setUserManager(users);
 
         try(NuSQLDatabase db = new NuSQLDatabase(postgresSettings, NuIslandModel::new, NuUserModel::new)) {
+            db.getModels().forEach(model -> System.out.println(model.getTableName() + " : " + model.getForeignFields()));
+
             var result = db.access((access) -> {
 
                 access.selectAll(NuUserModel.class).streamField(db.getModel(NuUserModel.class).ISLAND_ROLE).forEach(System.out::println);
@@ -129,6 +138,36 @@ public class NuSQLPlayground {
 
             result.get();
         }
+
+        System.out.println("\nPostgreSQL");
+        Database db = new NuSQLDatabase(postgresSettings, NuIslandModel::new, NuUserModel::new);
+        db.accessSync(access -> {
+            access.db().getModels().forEach(model -> DDLGetColumns.getTableColumns((NuSQLAccess) access, model));
+        });
+        db.close();
+
+        System.out.println("\nH2");
+        db = new NuSQLDatabase(h2Settings, NuIslandModel::new, NuUserModel::new);
+        db.accessSync(access -> {
+            access.db().getModels().forEach(model -> DDLGetColumns.getTableColumns((NuSQLAccess) access, model));
+        });
+        db.close();
+
+        System.out.println("\nSQLite");
+        db = new NuSQLDatabase(sqliteSettings, NuIslandModel::new, NuUserModel::new);
+        db.accessSync(access -> {
+            access.db().getModels().forEach(model -> DDLGetColumns.getTableColumns((NuSQLAccess) access, model));
+
+            //((NuSQLAccess)access).dsl().resultQuery("PRAGMA function_list;").fetchStream().forEach(System.out::println);
+        });
+        db.close();
+
+        System.out.println("\nMySQL");
+        db = new NuSQLDatabase(mysqlSettings, NuIslandModel::new, NuUserModel::new);
+        db.accessSync(access -> {
+            access.db().getModels().forEach(model -> DDLGetColumns.getTableColumns((NuSQLAccess) access, model));
+        });
+        db.close();
     }
 
 }

@@ -10,7 +10,7 @@ public abstract class Result<MO> implements Iterable<Record<MO>> {
 
     protected final @Nullable Model<MO, ?> model;
 
-    public Result(Model<MO, ?> model) {
+    public Result(@Nullable Model<MO, ?> model) {
         this.model = model;
     }
 

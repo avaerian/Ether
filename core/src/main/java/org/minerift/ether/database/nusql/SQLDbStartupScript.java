@@ -28,6 +28,7 @@ public class SQLDbStartupScript {
             }
         }
         System.out.println("Tables: " + access.getDatabaseTables().toString()); // debug
+        access.db().getModels().forEach(model -> System.out.println(model.getForeignFields()));
 
 
         // TODO: get rows for each table and create rows that don't exist

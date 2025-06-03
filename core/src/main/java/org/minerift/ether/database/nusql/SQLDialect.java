@@ -2,7 +2,6 @@ package org.minerift.ether.database.nusql;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.nusql.connectors.*;
-import org.minerift.ether.database.nusql.fallback.EnumStrFallback;
 import org.minerift.ether.database.nusql.fallback.JsonFallback;
 import org.minerift.ether.util.Utils;
 

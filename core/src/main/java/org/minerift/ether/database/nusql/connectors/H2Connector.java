@@ -18,6 +18,7 @@ public class H2Connector implements NuSQLConnector {
         //config.setJdbcUrl("jdbc:h2:~/" + settings.getDbName());
 
         // TODO: implement unit tests for different JDBC urls with embedded dbs (?)
+        config.setDriverClassName("org.h2.Driver");
         config.setJdbcUrl("jdbc:h2:" + settings.getUrl() + File.separatorChar + settings.getDbName());
         config.setUsername(settings.getUsername());
         config.setPassword(settings.getPassword());

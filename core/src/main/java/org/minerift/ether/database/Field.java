@@ -3,6 +3,7 @@ package org.minerift.ether.database;
 import org.minerift.ether.database.nusql.fallback.NuFallback;
 import org.minerift.ether.database.nusql.adapters.Adapter;
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.util.Note;
 import org.minerift.ether.util.Utils;
 
 import java.util.function.Function;
@@ -62,6 +63,11 @@ public class Field<MO, T, F> {
 
     public DataType<?> getDataType() {
         return usesFallbackType() ? fallback.getDataType() : requestedDataType;
+    }
+
+    // TODO: actual docs; this returns the original type. getDataType() returns the type in use
+    public DataType<T> getRequestedDataType() {
+        return requestedDataType;
     }
 
     public Class<? extends Model> getOwner() {

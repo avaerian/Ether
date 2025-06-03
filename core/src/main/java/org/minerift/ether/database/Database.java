@@ -13,10 +13,12 @@ public abstract class Database implements AutoCloseable {
 
     protected final String dbName;
     protected Map<Class<? extends Model>, Model<?, ?>> models;
+    protected Map<String, Class<? extends Model>> tableNamesToModels;
 
     public Database(String dbName) {
         this.dbName = dbName;
         this.models = Collections.emptyMap();
+        this.tableNamesToModels = Collections.emptyMap();
     }
 
     public enum Type {
@@ -52,12 +54,19 @@ public abstract class Database implements AutoCloseable {
         return (M) models.get(modelClazz);
     }
 
+    public Model<?, ?> getModel(String tableName) {
+        return getModel(getModelClass(tableName));
+    }
+
     public Collection<Model<?, ?>> getModels() {
         return models.values();
+    }
+
+    public Class<? extends Model> getModelClass(String tableName) {
+        return tableNamesToModels.get(tableName);
     }
 
     public Map<Class<? extends Model>, Model<?, ?>> getModelsMap() {
         return models;
     }
-
 }
