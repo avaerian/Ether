@@ -10,16 +10,14 @@ import java.util.*;
 public abstract class Model<MO, PK> {
     protected String tableName;
     protected Fields<MO> fields;
-
-    // A list of native fields that reference a foreign field
-    protected List<Pair<Field<MO, ?, ?>, Field<?, ?, ?>>> foreignFieldRefs;
+    protected ForeignFields<MO> foreignFields;
 
     public Model(DatabaseCreationContext dbCtx) {
-        this.foreignFieldRefs = Collections.emptyList(); // if any foreign field refs are added, this list is updated in the ModelCreationContext
+        this.foreignFields = new ForeignFields<>(this);
         var ctx = new ModelCreationContext<>(dbCtx, this);
         createModel(ctx);
-        if(tableName.isEmpty()) {
-            // TODO: throw exception
+        if(tableName.isBlank()) {
+            throw new IllegalStateException("Table name cannot be empty!");
         }
         this.fields = new Fields<>(this, ctx.getFields());
     }
@@ -36,14 +34,8 @@ public abstract class Model<MO, PK> {
         return fields;
     }
 
-    // NOTE: for SQL stuffs
-    public Field<?, ?, ?> getForeignFieldRef(Field<MO, ?, ?> field) {
-        for(var entry : foreignFieldRefs) {
-            if(entry.getFirst() == field) {
-                return entry.getSecond();
-            }
-        }
-        return null;
+    public ForeignFields<MO> getForeignFields() {
+        return foreignFields;
     }
 
     // NOTE: for SQL stuffs
@@ -66,7 +58,7 @@ public abstract class Model<MO, PK> {
         return bindVals;
     }
 
-    protected abstract void createModel(ModelCreationContext<Model<MO, PK>, MO> ctx);
+    protected abstract void createModel(ModelCreationContext<MO> ctx);
 
     public abstract IBuilder<MO> readAsBuilder(Record<MO> record);
     public abstract MO readRecord(Record<MO> record);

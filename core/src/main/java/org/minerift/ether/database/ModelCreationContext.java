@@ -7,18 +7,17 @@ import org.minerift.ether.util.pair.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Function;
 
 import static org.minerift.ether.database.nusql.SQLUtils.getPossibleFallback;
 
-public class ModelCreationContext<M extends Model<MO, ?>, MO> {
+public class ModelCreationContext<MO> {
 
     private final DatabaseCreationContext dbCtx;
-    private final M model;
+    private final Model<MO, ?> model;
     private final ImmutableMap.Builder<String, Field<MO, ?, ?>> fields;
 
-    protected ModelCreationContext(DatabaseCreationContext dbCtx, M model) {
+    protected ModelCreationContext(DatabaseCreationContext dbCtx, Model<MO, ?> model) {
         this.dbCtx = dbCtx;
         this.model = model;
         this.fields = ImmutableMap.builder();
@@ -67,20 +66,14 @@ public class ModelCreationContext<M extends Model<MO, ?>, MO> {
         }
 
         // NOTE: this is for resolving queries that may need to update multiple tables for an operation (i.e. delete op)
-        addForeignFieldRef(result, parentField);
+        Model parentModel = getModel(parentField.getOwner());
+        parentModel.foreignFields.addDependent(parentField, model, result);
 
         return result;
     }
 
     public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
         return createForeignField(parentField, null, objFieldReader);
-    }
-
-    private void addForeignFieldRef(Field<MO, ?, ?> nativeField, Field<?, ?, ?> foreignField) {
-        if(model.foreignFieldRefs == Collections.EMPTY_LIST) {
-            model.foreignFieldRefs = new ArrayList<>(4); // not expecting too many foreign fields at all
-        }
-        model.foreignFieldRefs.add(new Pair<>(nativeField, foreignField));
     }
 
     public <MODEL extends Model> MODEL getModel(Class<MODEL> modelClazz) {
