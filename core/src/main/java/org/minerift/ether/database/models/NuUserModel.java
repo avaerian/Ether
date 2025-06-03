@@ -19,7 +19,7 @@ public class NuUserModel extends Model<EtherUser, UUID> {
     }
 
     @Override
-    protected void createModel(ModelCreationContext<Model<EtherUser, UUID>, EtherUser> ctx) {
+    protected void createModel(ModelCreationContext<EtherUser> ctx) {
         ctx.setTableName("users");
 
         NuIslandModel islandModel = ctx.getModel(NuIslandModel.class);

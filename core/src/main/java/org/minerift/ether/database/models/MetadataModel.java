@@ -16,9 +16,10 @@ public class MetadataModel extends Model<Metadata, Integer> {
     }
 
     @Override
-    protected void createModel(ModelCreationContext<Model<Metadata, Integer>, Metadata> ctx) {
+    protected void createModel(ModelCreationContext<Metadata> ctx) {
         ctx.setTableName("metadata");
 
+        // TODO: consider allowing _rowid_ as a possible PK in db API
         ID = ctx.createField("id", DataType.INT, (ignore) -> 0); // TODO: switch to byte?
         DB_VERSION = ctx.createField("db_version", DataType.INT.notNull(), Metadata::getDbVersion);
     }

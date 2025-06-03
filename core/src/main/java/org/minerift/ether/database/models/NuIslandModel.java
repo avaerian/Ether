@@ -19,7 +19,7 @@ public class NuIslandModel extends Model<Island, Integer> {
     }
 
     @Override
-    protected void createModel(ModelCreationContext<Model<Island, Integer>, Island> ctx) {
+    protected void createModel(ModelCreationContext<Island> ctx) {
         ctx.setTableName("islands");
         ISLAND_ID   = ctx.createField("island_id", DataType.INT.notNull(), Island::getId);
         COORDS      = ctx.createField("coords", DataType.BIGINT.notNull(), Island::getTile, Adapters.VEC2I_2_LONG);

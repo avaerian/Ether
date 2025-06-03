@@ -37,7 +37,7 @@ public class IslandInvitesModel extends Model<IslandInvite, Integer> {
     }*/
 
     @Override
-    protected void createModel(ModelCreationContext<Model<IslandInvite, Integer>, IslandInvite> ctx) {
+    protected void createModel(ModelCreationContext<IslandInvite> ctx) {
         ctx.setTableName("island_invites");
 
         NuIslandModel islandModel = ctx.getModel(NuIslandModel.class);
