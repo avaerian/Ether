@@ -9,7 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;
 
 // Immutable (by default) Vec3 of ints
-public class Vec3i implements Serializable {
+public class Vec3i implements Vec3<Vec3i>, Serializable {
 
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
 
@@ -17,6 +17,14 @@ public class Vec3i implements Serializable {
 
     public static Vec3i fromString(String str) {
         return Maths.strToVec3i(str);
+    }
+
+    public static Vec3i min(Vec3i vec1, Vec3i vec2) {
+        return new Vec3i(
+                Math.min(vec1.getX(), vec2.getX()),
+                Math.min(vec1.getY(), vec2.getY()),
+                Math.min(vec1.getZ(), vec2.getZ())
+        );
     }
 
     public Vec3i(int x, int y, int z) {
@@ -32,18 +40,51 @@ public class Vec3i implements Serializable {
         this.z = xyz[2];
     }
 
+    @Override
     public int getX() {
         return x;
     }
 
+    @Override
     public int getY() {
         return y;
     }
 
+    @Override
     public int getZ() {
         return z;
     }
 
+    @Override
+    public double getXd() {
+        return x;
+    }
+
+    @Override
+    public double getYd() {
+        return y;
+    }
+
+    @Override
+    public double getZd() {
+        return z;
+    }
+
+    @Override
+    public Vec3d asVec3d() {
+        return new Vec3d(x, y, z);
+    }
+
+    @Override
+    public Vec3i asVec3i() {
+        return this;
+    }
+
+    public int[] getXYZ() {
+        return new int[] { x, y, z };
+    }
+
+    @Override
     public Vec3i copy() {
         return new Vec3i(x, y, z);
     }
@@ -52,6 +93,8 @@ public class Vec3i implements Serializable {
         return this instanceof Mutable ? (Mutable) this : new Mutable(this);
     }
 
+    // TODO: for removal; already in MinecraftVersion
+    @Deprecated
     public boolean isGreaterThan(Vec3i other, boolean orEqualTo) {
 
         if(equals(other)) return orEqualTo;
@@ -63,6 +106,8 @@ public class Vec3i implements Serializable {
         );
     }
 
+    // TODO: for removal; already in MinecraftVersion
+    @Deprecated
     public boolean isLessThan(Vec3i other, boolean orEqualTo) {
 
         if(equals(other)) return orEqualTo;
