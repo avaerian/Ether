@@ -16,17 +16,18 @@ import org.bukkit.craftbukkit.v1_20_R2.CraftChunk;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.minerift.ether.Ether;
 import org.minerift.ether.work.TaskBatch;
-import org.minerift.ether.world.ChunkGetter;
+import org.minerift.ether.world.BukkitChunkGetter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class PartitionPaster {
 
     public static void paste(World world, BlockPartition partition) {
         final int chunksPartitioned = partition.getChunkCount();
         final AtomicInteger chunksUpdated = new AtomicInteger();
-        final ChunkGetter chunkGetter = ChunkGetter.ASYNC;
+        final BukkitChunkGetter chunkGetter = BukkitChunkGetter.ASYNC;
 
         TaskBatch operation = new TaskBatch();
 
@@ -39,7 +40,7 @@ public class PartitionPaster {
                     for(ChunkSectionChanges sectionChanges : sections.values()) {
                         // Apply blocks
                         LevelChunkSection section = chunk.getSection(sectionChanges.sectionIdx);
-                        NMSBridgeImpl.applyBlocksToSection(chunk, section, sectionChanges.blocks);
+                        DeprecatedNMSBridgeImpl.applyBlocksToSection(chunk, section, sectionChanges.blocks);
 
                         // Prepare packet data
                         ChunkSectionChanges.PacketData packetData = sectionChanges.computePacketData();

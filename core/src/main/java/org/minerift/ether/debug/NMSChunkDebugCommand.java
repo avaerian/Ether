@@ -9,8 +9,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
-import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
 
 public class NMSChunkDebugCommand implements CommandExecutor {
 
@@ -39,7 +38,7 @@ public class NMSChunkDebugCommand implements CommandExecutor {
         Player plr = (Player) sender;
         World world = plr.getWorld();
         //NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
-        final NMSAccess nmsAccess = Ether.getNMS();
+        final DeprecatedNMSAccess nmsAccess = Ether.getDeprecatedNMS();
 
         int centerX = plr.getChunk().getX();
         int centerZ = plr.getChunk().getZ();

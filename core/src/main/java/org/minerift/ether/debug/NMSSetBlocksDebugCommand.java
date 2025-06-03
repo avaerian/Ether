@@ -10,7 +10,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
 import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.world.BlockArchetype;
@@ -47,7 +47,7 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
 
         plr.sendMessage("Setting blocks...");
         //NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
-        final NMSAccess nmsAccess = Ether.getNMS();
+        final DeprecatedNMSAccess nmsAccess = Ether.getDeprecatedNMS();
 
         // Get cuboid and translate to player pos
         List<BlockArchetype> cuboid = getTestCuboid(width, height, length);
@@ -93,7 +93,7 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
             for(int y = 0; y < height; y++) {
                 for(int z = 0; z < length; z++) {
                     final BlockData randomBlockData = BLOCK_DATA[random.nextInt(BLOCK_DATA.length)];
-                    blocks.add(new BlockArchetype(randomBlockData.getAsString(true), new Vec3i(x,y,z)));
+                    blocks.add(new BlockArchetype(new Vec3i(x,y,z), randomBlockData.getAsString(true)));
                 }
             }
         }

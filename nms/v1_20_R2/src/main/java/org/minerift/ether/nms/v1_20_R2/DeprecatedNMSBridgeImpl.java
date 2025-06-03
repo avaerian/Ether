@@ -35,7 +35,8 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.minerift.ether.Ether;
-import org.minerift.ether.nms.NMSBridge;
+import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.nms.DeprecatedNMSBridge;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.util.reflect.ReflectedObject;
 import org.minerift.ether.work.TaskBatch;
@@ -50,14 +51,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class NMSBridgeImpl implements NMSBridge {
+@Deprecated
+public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
+
+    public DeprecatedNMSBridgeImpl() {
+        ReflectionMappings.class.getClass(); // load class and fields for reflection
+        System.out.println("frozen registry obfuscated field: " + ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME);
+        ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME));
+        System.out.println("Biome Registry Frozen? " + (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME));
+    }
 
     @Override
-    public void bootstrap() {
-        ReflectionMappings.class.getClass(); // load class and fields for reflection
-        System.out.println("frozen registry obfuscated field: " + ReflectionMappings.FROZEN_REGISTRY_FIELD);
-        ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME));
-        System.out.println("Biome Registry Frozen? " + (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD));
+    public NativeTypeConversionsImpl getConverter() {
+        return NativeTypeConversionsImpl.inst();
     }
 
     private void fastClearSingleChunk(ChunkPos pos, World world, boolean clearEntities) {
@@ -68,7 +74,7 @@ public class NMSBridgeImpl implements NMSBridge {
     // Does not perform lighting updates
     private void fastClearSingleChunk(Chunk chunk, boolean clearEntities) {
 
-        final LevelChunk nmsChunk = NativeTypeConversions.toNativeChunk(chunk);
+        final LevelChunk nmsChunk = getConverter().asNativeChunk(chunk);
         final ServerLevel level = nmsChunk.level;
         final LevelChunk emptyChunk = new LevelChunk(level, nmsChunk.getPos());
 
@@ -134,6 +140,11 @@ public class NMSBridgeImpl implements NMSBridge {
         fastClearChunksLogic(e1, e2, pos -> {
             e1.getWorld().getChunkAtAsync(pos.x, pos.z, true, chunk -> fastClearSingleChunk(chunk, clearEntities));
         });
+    }
+
+    @Override
+    public void testSetSectionBlock(int cx, int sy, int cz, Vec3i chunkPos, Vec3i arrayPos) {
+        //((BlockState)null).
     }
 
     private void fastSetBlocksLogic(List<BlockArchetype> blocks, World world, DeprecatedGetChunkFunction getChunkFunc) {
@@ -209,7 +220,8 @@ public class NMSBridgeImpl implements NMSBridge {
                     chunk.setUnsaved(true);
 
                     // Completed successfully
-                    return true;
+                    //return true;
+                    return null; // FIXME: needed for Void generic; revise WorkQueue impl
                 });
             }
         });
@@ -353,7 +365,7 @@ public class NMSBridgeImpl implements NMSBridge {
         private DeprecatedChunkSectionChanges lastSectionChanges = null;
 
         private void partitionSingleBlock(BlockArchetype block, Chunk bukkitChunk) {
-            final LevelChunk chunk = NativeTypeConversions.toNativeChunk(bukkitChunk);
+            final LevelChunk chunk = NativeTypeConversionsImpl.inst().asNativeChunk(bukkitChunk);
             final LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(block.getY()));
             final SectionPos pos = SectionPos.of(block.getX() >> 4, block.getY() >> 4, block.getZ() >> 4);
 
@@ -380,6 +392,7 @@ public class NMSBridgeImpl implements NMSBridge {
         }
     }
 
+    @Deprecated
     public static void applyBlocksToSection(ChunkAccess chunk, LevelChunkSection section, List<BlockArchetype> blocks) {
         section.acquire();
         try {
@@ -396,7 +409,7 @@ public class NMSBridgeImpl implements NMSBridge {
                 final int z = SectionPos.sectionRelative(block.getZ());
 
                 // Set block
-                BlockState state = NativeTypeConversions.toNative(block, Blocks.AIR.defaultBlockState());
+                BlockState state = NativeTypeConversionsImpl.inst().asNativeBlockState(block, Blocks.AIR.defaultBlockState());
                 BlockState oldState = section.setBlockState(x, y, z, state, false);
 
                 // Remove old block entity, if needed
@@ -412,7 +425,7 @@ public class NMSBridgeImpl implements NMSBridge {
 
                         // Load NBT data
                         if(block instanceof BlockEntityArchetype blockEntityArchetype) {
-                            CompoundTag nbt = (CompoundTag) NativeTypeConversions.toNative(blockEntityArchetype.getNBTData());
+                            CompoundTag nbt = (CompoundTag) NativeTypeConversionsImpl.inst().asNativeTag(blockEntityArchetype.getNBTData());
                             blockEntity.load(nbt);
                             blockEntity.setChanged();
                         }
@@ -436,8 +449,8 @@ public class NMSBridgeImpl implements NMSBridge {
             throw new IllegalArgumentException("Chunks are not in the same world!");
         }
 
-        final LevelChunk nmsChunk1 = NativeTypeConversions.toNativeChunk(e1);
-        final LevelChunk nmsChunk2 = NativeTypeConversions.toNativeChunk(e2);
+        final LevelChunk nmsChunk1 = getConverter().asNativeChunk(e1);
+        final LevelChunk nmsChunk2 = getConverter().asNativeChunk(e2);
 
         final ServerLevel serverLevel = nmsChunk1.level;
         final ServerChunkCache serverChunkCache = serverLevel.getChunkSource();
@@ -461,7 +474,7 @@ public class NMSBridgeImpl implements NMSBridge {
         // Attempt to spawn entity
         //EntityType.loadEntityRecursive() // this spawns the entities that can be spawned and logs failed entities
         EntityType.byString(entityArchetype.getType()).ifPresent(type -> {
-            final net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) NativeTypeConversions.toNative(entityArchetype.getNbtData());
+            final net.minecraft.nbt.CompoundTag nbt = (net.minecraft.nbt.CompoundTag) getConverter().asNativeTag(entityArchetype.getNbtData());
             final Entity entity = type.create(level);
             if(entity != null) {
                 entity.load(nbt);
@@ -502,7 +515,7 @@ public class NMSBridgeImpl implements NMSBridge {
 
         final Map<BlockState, int[]> stateCounts = new HashMap<>();
 
-        final LevelChunk chunk = NativeTypeConversions.toNativeChunk(location.getChunk());
+        final LevelChunk chunk = getConverter().asNativeChunk(location.getChunk());
         for(LevelChunkSection section : chunk.getSections()) {
             section.getStates().forEachLocation((state, loc) -> {
                 int[] count = stateCounts.computeIfAbsent(state, (ignore) -> new int[1]);
@@ -533,8 +546,8 @@ public class NMSBridgeImpl implements NMSBridge {
         final Chunk e1 = world.getChunkAt(centerX - radius, centerZ - radius);
         final Chunk e2 = world.getChunkAt(centerX + radius, centerZ + radius);
 
-        final ChunkPos p1 = NativeTypeConversions.toNativeChunkAccess(e1).getPos();
-        final ChunkPos p2 = NativeTypeConversions.toNativeChunkAccess(e2).getPos();
+        final ChunkPos p1 = getConverter().asNativeChunkAccess(e1).getPos();
+        final ChunkPos p2 = getConverter().asNativeChunkAccess(e2).getPos();
 
         ChunkPos.rangeClosed(p1, p2).forEach(pos -> {
             final LevelChunk chunk = level.getChunk(pos.x, pos.z);
@@ -558,7 +571,7 @@ public class NMSBridgeImpl implements NMSBridge {
         //Biome biome = level.getBiome().value();
 
         System.out.println(biome == null ? "null" : biome.toString());
-        return NativeTypeConversions.fromNative(biome);
+        return getConverter().asNamespacedKey(biome);
     }
 
     private static LevelChunkSection getChunkSectionAt(Location loc) {
@@ -567,13 +580,13 @@ public class NMSBridgeImpl implements NMSBridge {
 
     private static LevelChunkSection getChunkSectionAt(int x, int y, int z, World world) {
         final Chunk bukkitChunk = world.getChunkAt(x >> 4, z >> 4);
-        final LevelChunk chunk = NativeTypeConversions.toNativeChunk(bukkitChunk);
+        final LevelChunk chunk = NativeTypeConversionsImpl.inst().asNativeChunk(bukkitChunk);
         return chunk.getSection(chunk.getSectionIndex(y));
     }
 
 
     // Get the neighboring chunks for a single chunk
-    private static Set<ChunkPos> getNeighboringChunks(Chunk chunk) {
+    private Set<ChunkPos> getNeighboringChunks(Chunk chunk) {
         return getNeighboringChunks(chunk, chunk);
     }
 
@@ -586,8 +599,8 @@ public class NMSBridgeImpl implements NMSBridge {
         }
 
         // Get original bounds
-        ChunkPos p1 = NativeTypeConversions.toNativeChunkAccess(e1).getPos();
-        ChunkPos p2 = NativeTypeConversions.toNativeChunkAccess(e2).getPos();
+        ChunkPos p1 = NativeTypeConversionsImpl.inst().asNativeChunkAccess(e1).getPos();
+        ChunkPos p2 = NativeTypeConversionsImpl.inst().asNativeChunkAccess(e2).getPos();
 
         return getNeighboringChunks(p1, p2);
     }
@@ -635,7 +648,7 @@ public class NMSBridgeImpl implements NMSBridge {
                 mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
 
                 positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
-                states[index] = NativeTypeConversions.toNative(block);
+                states[index] = NativeTypeConversionsImpl.inst().asNativeBlockState(block);
             }
 
             this.positions = new ShortArraySet(positions);

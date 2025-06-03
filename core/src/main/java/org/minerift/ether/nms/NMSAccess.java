@@ -1,128 +1,44 @@
 package org.minerift.ether.nms;
 
-import org.bukkit.*;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.inventory.ItemStack;
-import org.minerift.ether.math.Vec3d;
-import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.world.BlockArchetype;
+import org.bukkit.World;
+import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.world.EntityArchetype;
+import org.minerift.ether.world.EntityLoadException;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public class NMSAccess {
+public interface NMSAccess { // TODO: refactor to abstract class?
 
-    private String implVersion;
-    private final NMSBridge bridge;
-    private final RegistryAccess registryAccess;
-    public NMSAccess() {
-        this.implVersion = getImplVersion();
+    // TODO: reconsider
+    default Chunk getChunkAt(World world, int chunkX, int chunkZ) {
+        return Chunk.of(world.getChunkAt(chunkX, chunkZ));
+    }
 
-        // Attempt to load bridge
+    // TODO: reconsider
+    default CompletableFuture<Chunk> getChunkAtAsync(World world, int chunkX, int chunkZ) {
+        return world.getChunkAtAsync(chunkX, chunkZ)
+                .thenApply(Chunk::of);
+    }
+
+    void addEntity(World world, EntityArchetype entity) throws EntityLoadException;
+
+    default boolean tryAddEntity(World world, EntityArchetype entity) {
         try {
-            this.bridge         = loadNmsImpl(NMSBridge.class, "NMSBridgeImpl");
-            this.registryAccess = loadNmsImpl(RegistryAccess.class, "RegistryAccessImpl");
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException ex) {
-            throw new RuntimeException(ex);
+            addEntity(world, entity);
+            return true;
+        } catch(EntityLoadException ex) {
+            // TODO: proper logging
+            System.out.println("Failed to add entity: " + entity.getType());
+            ex.printStackTrace();
+            return false;
         }
-
-        bridge.bootstrap();
     }
 
-    public void clearChunk(Chunk chunk, boolean clearEntities) {
-        bridge.fastClearChunk(chunk, clearEntities);
-    }
+    RegistryAccess registryAccess();
+    NativeTypeConversions getConverter();
 
-    public void clearChunks(Chunk e1, Chunk e2, boolean clearEntities) {
-        bridge.fastClearChunks(e1, e2, clearEntities);
-    }
+    //void relightChunks(Set<Vec2i> chunks); // TODO: remove? may not be needed
 
-    public void clearChunksAsync(Chunk e1, Chunk e2, boolean clearEntities) {
-        bridge.fastClearChunksAsync(e1, e2, clearEntities);
-    }
 
-    public void setBlocks(List<BlockArchetype> blocks, World world) {
-        bridge.fastSetBlocks(blocks, world);
-    }
 
-    public void setBlocksAsync(List<BlockArchetype> blocks, World world) {
-        bridge.fastSetBlocksAsync(blocks, world);
-    }
-
-    public void setBlocksAsyncLazy(List<BlockArchetype> blocks, World world) {
-        bridge.fastSetBlocksAsyncLazy(blocks, world);
-    }
-
-    public void testIslandScanIdea(Location location) {
-        bridge.testIslandScanIdea(location);
-    }
-
-    public void testIslandScanIdeaFullChunk(Location location) {
-        bridge.testIslandScanIdeaFullChunk(location);
-    }
-
-    public void testIslandScanIdeaMultiChunk(Location location, int diameter) {
-        bridge.testIslandScanIdeaMultiChunk(location, diameter);
-    }
-
-    public void spawnEntity(EntityArchetype entityArchetype, World world) {
-        bridge.spawnEntity(entityArchetype, world);
-    }
-
-    public void testNewPartitionPaster(List<BlockArchetype> blocks, World world) {
-        bridge.testNewPartitionPaster(blocks, world);
-    }
-
-    public NamespacedKey getBiomeKey(World world, int x, int y, int z) {
-        return bridge.getBiomeAt(world, x, y, z);
-    }
-
-    public NamespacedKey getBiomeKey(Location loc) {
-        return getBiomeKey(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-    }
-
-    public NamespacedKey getBiomeKey(World world, Vec3i pos) {
-        return getBiomeKey(world, pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public NamespacedKey getBiomeKey(World world, Vec3d pos) {
-        return getBiomeKey(world, (int)pos.getX(), (int)pos.getY(), (int)pos.getZ());
-    }
-
-    public NamespacedKey getNamespacedKey(ItemStack item) {
-        return registryAccess.getNamespacedKey(item);
-    }
-
-    public NamespacedKey getNamespacedKey(BlockState blockState) {
-        return registryAccess.getNamespacedKey(blockState);
-    }
-
-    public NamespacedKey getNamespacedKey(BlockData blockData) {
-        return registryAccess.getNamespacedKey(blockData);
-    }
-
-    public NamespacedKey getDimNamespacedKey(World world) {
-        return registryAccess.getDimNamespacedKey(world);
-    }
-
-    private String getImplVersion() {
-        if(implVersion == null) {
-            String version = Bukkit.getServer().getClass().getPackageName();
-            implVersion = version.substring(version.lastIndexOf('.') + 2);
-        }
-        return implVersion;
-    }
-
-    // Assumes that the implVersion is already loaded appropriately
-    private <T> T loadNmsImpl(Class<T> iface, String implName) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return loadNmsImpl(iface, implName, implVersion);
-    }
-
-    private <T> T loadNmsImpl(Class<T> iface, String implName, String version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> clazz = Class.forName("org.minerift.ether.nms.v" + version + "." + implName);
-        return iface.cast(clazz.getConstructor().newInstance());
-    }
 }

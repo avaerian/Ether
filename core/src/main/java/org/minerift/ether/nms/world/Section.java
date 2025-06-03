@@ -1,0 +1,98 @@
+package org.minerift.ether.nms.world;
+
+import org.bukkit.entity.Player;
+import org.minerift.ether.math.Vec3;
+import org.minerift.ether.nms.BiomeNotFoundException;
+import org.minerift.ether.nms.BlockStateNotFoundException;
+import org.minerift.ether.nms.NativeTypeConversions;
+import org.minerift.ether.world.BlockArchetype;
+
+import static java.lang.String.format;
+
+public interface Section<NBS, NC, NCS, NB> {
+
+    void acquire();
+
+    void release();
+
+    NBS getNativeBlockState(int x, int y, int z);
+
+    default BlockState<?> getBlockState(int x, int y, int z) {
+        return getConverter().asBlockState(getNativeBlockState(x, y, z));
+    }
+
+    default BlockState<?> getBlockState(Vec3<?> pos) {
+        return getBlockState(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    NBS setBlockState(int x, int y, int z, NBS state);
+
+    default NBS setBlockState(BlockArchetype block) throws BlockStateNotFoundException {
+        // TODO: switch BlockArchetype to use BlockState instead of string id
+        return setBlockState(block.getX(), block.getY(), block.getZ(), block.getData());
+    }
+
+    default NBS setBlockState(int x, int y, int z, String id) throws BlockStateNotFoundException {
+        NBS state = getConverter().asNativeBlockState(id);
+        NBS old = setBlockState(x, y, z, state);
+        return old;
+    }
+
+    default BlockState<?> setBlockState(int x, int y, int z, BlockState<?> state) {
+        NBS oldNative = setBlockState(x, y, z, (NBS)state.asNative());
+        BlockState<NBS> old = getConverter().asBlockState(oldNative);
+        return old;
+    }
+
+    NB getNativeBiome(int biomeX, int biomeY, int biomeZ);
+
+    default Biome<?> getBiome(int biomeX, int biomeY, int biomeZ) {
+        try {
+            return getConverter().asBiome(getNativeBiome(biomeX, biomeY, biomeZ));
+        } catch (BiomeNotFoundException ex) {
+            throw new RuntimeException(format("Unexpected unidentifiable biome at %d, %d, %d", biomeX, biomeY, biomeZ), ex);
+        }
+    }
+
+    void setBiome(int biomeX, int biomeY, int biomeZ, NB biome);
+
+    default void setBiome(int biomeX, int biomeY, int biomeZ, Biome<?> biome) {
+        setBiome(biomeX, biomeY, biomeZ, (NB) biome.asNative());
+    }
+
+    void updateSectionChanges(int sectionIndex, ChunkSectionChanges changes);
+
+    default void sendSectionUpdatesPacket(Player plr, ChunkSectionChanges changes) {
+        sendSectionUpdatesPacket(plr, changes, true);
+    }
+
+    void sendSectionUpdatesPacket(Player plr, ChunkSectionChanges changes, boolean modifyBlocks);
+
+    void broadcastSectionUpdatesPacket(ChunkSectionChanges changes, boolean modifyBlocks);
+    default void broadcastSectionUpdatesPacket(ChunkSectionChanges changes) {
+        broadcastSectionUpdatesPacket(changes, true);
+    }
+
+    NCS asNative();
+
+    NativeTypeConversions<NBS, NC, NCS, NB> getConverter();
+
+    // TODO: move to Maths class
+    static int sectionRelative(int i) {
+        return i & 15;
+    }
+
+    static short sectionRelativePos(int x, int y, int z) {
+        return (short) ((x & 15) << 8 | (z & 15) << 4 | y & 15);
+    }
+
+    // TODO: review these based on NMS version
+    boolean hasOnlyAir();
+    boolean isRandomlyTicking();
+    boolean isRandomlyTickingBlocks();
+    boolean isRandomlyTickingFluids();
+
+    int getSpecialCollidingBlocks();
+    int bottomBlockY();
+
+}
