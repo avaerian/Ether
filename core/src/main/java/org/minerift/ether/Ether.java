@@ -17,6 +17,8 @@ import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.island.invites.IslandInviteManager;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
+import org.minerift.ether.nms.NMS;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
@@ -42,6 +44,7 @@ public class Ether {
     private static File pluginDir;
 
     private static Database db;
+    @Deprecated private static DeprecatedNMSAccess depNmsAccess;
     private static NMSAccess nmsAccess;
     private static WorkQueue workQueue;
 
@@ -97,7 +100,9 @@ public class Ether {
         workQueue.start();
 
         // Load NMS access
-        nmsAccess = new NMSAccess();
+        depNmsAccess = new DeprecatedNMSAccess(); // TODO: remove
+        nmsAccess = NMS.createAccess();
+
 
         // Load managers
         //islandManager = new IslandManager(); // This needs to be delayed until islands are loaded
@@ -146,7 +151,7 @@ public class Ether {
             workQueue.close();
             workQueue = null;
 
-            nmsAccess = null;
+            depNmsAccess = null;
         }
 
         if(db != null) {
@@ -221,7 +226,12 @@ public class Ether {
         return isUsingWorldEdit;
     }
 
-    public static NMSAccess getNMS() {
+    public static DeprecatedNMSAccess getDeprecatedNMS() {
+        ensure(depNmsAccess != null, () -> new UnsupportedOperationException("depNmsAccess is not loaded!"));
+        return depNmsAccess;
+    }
+
+    public static NMSAccess getNms() {
         ensure(nmsAccess != null, () -> new UnsupportedOperationException("nmsAccess is not loaded!"));
         return nmsAccess;
     }
