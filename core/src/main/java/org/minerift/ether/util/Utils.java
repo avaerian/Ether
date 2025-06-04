@@ -1,5 +1,7 @@
 package org.minerift.ether.util;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.google.errorprone.annotations.DoNotCall;
@@ -7,16 +9,24 @@ import org.minerift.ether.database.PrimitiveType;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.fn.IntBiConsumer;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Supplier;
 
 // TODO: review + clean up all the broken/dead methods
+@SuppressWarnings("Duplicates")
 public class Utils {
+
+    public static final BiMap<?, ?> EMPTY_BIMAP = ImmutableBiMap.of();
 
     private Utils() {
         throw new IllegalStateException();
+    }
+
+    public static <K, V> BiMap<K, V> emptyBiMap() {
+        return (BiMap<K, V>) EMPTY_BIMAP;
     }
 
     /**
@@ -170,6 +180,8 @@ public class Utils {
         };
     }
 
+    @Deprecated
+    @Note("Use Array.get(Object, int) instead")
     public static Object getArrayElement(Object array, int index) {
         return switch (array) {
             case byte[] bytes -> bytes[index];

@@ -1,8 +1,7 @@
-package org.minerift.ether.database.nubin;
+package org.minerift.ether.util.io;
 
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.util.io.Endianness;
 
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -141,8 +140,8 @@ public class DynBuf {
         short result = 0;
         int shift = endianByteInitPos[SHORT];
 
-        result |= (short) ((buf[cursor++] & 0xFF) << shift);
-        result |= (short) ((buf[cursor++] & 0xFF) << (shift += endianByteShift));
+        result |= (short) (((buf[cursor++] & 0xFF) << shift)
+                | ((buf[cursor++] & 0xFF) << (shift += endianByteShift)));
         
         return result;
     }
@@ -164,10 +163,15 @@ public class DynBuf {
         int result = 0;
         int shift = endianByteInitPos[INT];
 
-        result |= (buf[cursor++] & 0xFF) << shift;
+        result |= (buf[cursor++] & 0xFF) << shift
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+
+        /*result |= (buf[cursor++] & 0xFF) << shift;
         result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+        result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);*/
 
         return result;
     }
@@ -289,15 +293,24 @@ public class DynBuf {
     public long readLong() {
         long result = 0;
         int shift = endianByteInitPos[LONG];
-        
-        result |= (long) (buf[cursor++] & 0xFF) << shift;
+
+        result |= (long) (buf[cursor++] & 0xFF) << shift
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+         | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+
+        /*result |= (long) (buf[cursor++] & 0xFF) << shift;
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
         result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);*/
         
         return result;
     }
@@ -320,10 +333,10 @@ public class DynBuf {
         int result = 0;
         int shift = endianByteInitPos[FLOAT];
 
-        result |= (buf[cursor++] & 0xFF) << shift;
-        result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+        result |= (buf[cursor++] & 0xFF) << shift
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (buf[cursor++] & 0xFF) << (shift += endianByteShift);
 
         return Float.intBitsToFloat(result);
     }
@@ -350,19 +363,19 @@ public class DynBuf {
         long result = 0;
         int shift = endianByteInitPos[DOUBLE];
 
-        result |= (long) (buf[cursor++] & 0xFF) << shift;
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
-        result |= (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
+        result |= (long) (buf[cursor++] & 0xFF) << shift
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift)
+        | (long) (buf[cursor++] & 0xFF) << (shift += endianByteShift);
 
         return Double.longBitsToDouble(result);
     }
 
-    // TODO: allow for storing bytes with specific endianness (NOTE: allow other primitives to be written with specific endianness as well?)
+    // TODO: allow for storing bytes with specific endianness?
     public DynBuf writeVarInt(int num) {
         // 0 -> (2^7 - 1)
         // 0100 0101 1011 0011
