@@ -11,7 +11,7 @@ import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.Schematic;
+import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.user.EtherUser;
 
 import java.io.File;

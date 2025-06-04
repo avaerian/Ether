@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.collect;
 
 import java.util.ArrayList;
 import java.util.Collections;

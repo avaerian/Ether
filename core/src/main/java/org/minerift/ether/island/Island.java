@@ -84,7 +84,7 @@ public class Island extends CanChange {
         Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
         Vec3i.Mutable trBlock = getTopRightBlock().asMutable().subtract(offset, 0, offset);
 
-        return Maths.inRangeInclusive(blBlock, trBlock, loc);
+        return Maths.inRangeInclusiveI(blBlock, trBlock, loc);
     }
 
     public List<EtherUser> getTeamMembers() {

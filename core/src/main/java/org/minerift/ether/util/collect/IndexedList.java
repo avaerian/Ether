@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.collect;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;

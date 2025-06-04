@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.util.IndexedList;
+import org.minerift.ether.util.collect.IndexedList;
 
 import java.util.Optional;
 import java.util.logging.Level;

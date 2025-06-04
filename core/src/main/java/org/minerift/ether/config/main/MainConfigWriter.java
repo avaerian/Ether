@@ -23,7 +23,7 @@ public class MainConfigWriter extends IConfigWriter<MainConfig> {
             view.set(TILE_ACCESSIBLE_AREA_PATH, config.getTileAccessibleAreaBlocks());
 
             // Database settings
-            view.set(PERSIST_METHOD, config.getPersistMethod());
+            view.set(PERSIST_METHOD, config.getPersistMethod().name());
             switch(config.getPersistMethod()) {
                 case SQL -> {
                     view.set(SQL_DIALECT, config.getSqlDialect().name());
