@@ -1,5 +1,6 @@
 package org.minerift.ether.util.fn;
 
+@Deprecated
 public interface Array3DAccessor<T> {
 
     static <T> Array3DAccessor<T> xyz() {
