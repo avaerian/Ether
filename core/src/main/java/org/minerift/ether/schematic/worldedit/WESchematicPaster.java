@@ -1,4 +1,4 @@
-package org.minerift.ether.schematic.pasters;
+package org.minerift.ether.schematic.worldedit;
 
 import com.google.common.base.Preconditions;
 import com.sk89q.worldedit.EditSession;
@@ -13,10 +13,10 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.WorldEditSchematic;
+import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.math.Vec3i;
 
-public class WESchematicPaster implements ISchematicPaster<WorldEditSchematic> {
+public class WESchematicPaster implements SchematicPaster<WorldEditSchematic> {
 
     @Override
     public void paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {

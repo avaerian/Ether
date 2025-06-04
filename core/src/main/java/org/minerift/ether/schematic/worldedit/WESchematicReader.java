@@ -1,16 +1,16 @@
-package org.minerift.ether.schematic.readers.worldedit;
+package org.minerift.ether.schematic.worldedit;
 
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.ISchematicReader;
-import org.minerift.ether.schematic.types.WorldEditSchematic;
+import org.minerift.ether.schematic.SchematicReader;
+import org.minerift.ether.schematic.worldedit.WorldEditSchematic;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class WESchematicReader implements ISchematicReader<WorldEditSchematic> {
+public class WESchematicReader implements SchematicReader<WorldEditSchematic> {
 
     @Override
     public WorldEditSchematic read(File file) throws SchematicFileReadException {

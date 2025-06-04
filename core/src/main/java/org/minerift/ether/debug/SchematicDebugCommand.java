@@ -1,7 +1,5 @@
 package org.minerift.ether.debug;
 
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.Schematic;
+import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.math.Vec3i;
 

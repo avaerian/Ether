@@ -1,10 +1,11 @@
-package org.minerift.ether.schematic.types;
+package org.minerift.ether.schematic.worldedit;
 
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.pasters.WESchematicPaster;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.schematic.Schematic;
+import org.minerift.ether.schematic.SchematicType;
 
 public class WorldEditSchematic implements Schematic {
 
@@ -41,6 +42,11 @@ public class WorldEditSchematic implements Schematic {
     @Override
     public int getLength() {
         return clipboard.getDimensions().getZ();
+    }
+
+    @Override
+    public Vec3i getDimensions() {
+        return new Vec3i(getWidth(), getHeight(), getLength());
     }
 
     @Override
