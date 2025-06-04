@@ -9,6 +9,8 @@ import java.io.*;
 // Writes a Config object to its file
 public abstract class IConfigWriter<T extends Config<T>> {
 
+
+    // FIXME: refactor to allow file to be a directory
     public void write(T config, File file) throws ConfigFileWriteException {
         // If a file doesn't exist, load default resource
         if(file != null && !file.exists()) {

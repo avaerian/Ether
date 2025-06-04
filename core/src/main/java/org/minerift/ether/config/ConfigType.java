@@ -18,7 +18,7 @@ public class ConfigType<T extends Config<T>> {
 
     static {
         MAIN       = new ConfigType<>("MainConfig (config.yml)", MainConfig.class, new MainConfigReader(), new MainConfigWriter(), MainConfig::new, Ether.getPluginFile("config.yml"));
-        ISLAND_SPECS_LIST = new ConfigType<>("Island Specs List (island_specs.yml)", IslandSpecsConfig.class, new IslandSpecsReader(), new IslandSpecsWriter(), IslandSpecsConfig::new, Ether.getPluginFile("island_specs.yml"));
+        ISLAND_SPECS_LIST = new ConfigType<>("Island Specs List (island_specs.yml)", IslandSpecsConfig.class, new IslandSpecsReader(), new IslandSpecsWriter(), IslandSpecsConfig::new, Ether.getPluginFile("island_specs"));
     }
 
     private final String name;
