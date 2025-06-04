@@ -1,9 +1,11 @@
-package org.minerift.ether.util.newnbt.tags.container;
+package org.minerift.ether.util.nunbt.tags.container;
 
-import org.minerift.ether.util.newnbt.tags.Tag;
+import org.minerift.ether.util.nunbt.tags.Tag;
 
 import java.util.Map;
 
+// TODO: for removal after committing for archiving
+@Deprecated(forRemoval = true)
 public class RootEntryTag extends CompoundTag {
 
     public RootEntryTag() {

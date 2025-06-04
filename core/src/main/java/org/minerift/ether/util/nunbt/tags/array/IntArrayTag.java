@@ -1,0 +1,81 @@
+package org.minerift.ether.util.nunbt.tags.array;
+
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import org.minerift.ether.util.nunbt.NbtTraverser;
+import org.minerift.ether.util.nunbt.TagCodec;
+import org.minerift.ether.util.nunbt.snbt.Snbt;
+import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nunbt.tags.TagType;
+
+import java.util.Arrays;
+
+public final class IntArrayTag extends ArrayTag<int[]> {
+    public IntArrayTag(String name, int[] value) {
+        super(name, value);
+    }
+
+    @Override
+    public TagType getType() {
+        return TagType.INT_ARRAY;
+    }
+
+    @Override
+    public IntArrayTag copy() {
+        return new IntArrayTag(name, value);
+    }
+
+    @Override
+    public IntArrayTag copy(boolean copyArray) {
+        return new IntArrayTag(name, copyArray ? value.clone() : value);
+    }
+
+    @Override
+    public String toString() {
+        return "IntArrayTag{" +
+                "value=" + Arrays.toString(value) +
+                ", name='" + name + '\'' +
+                '}';
+    }
+
+    public static class Codec implements TagCodec<IntArrayTag> {
+        @Override
+        public IntArrayTag readTag(NbtTraverser nbt, String name) {
+            int len = nbt.readInt();
+            int[] ints = new int[len];
+            nbt.buffer.asIntBuffer().get(ints);
+            nbt.skip(Integer.BYTES * len); // move forward in main buffer
+            return new IntArrayTag(name, ints);
+        }
+
+        @Override
+        public IntArrayTag readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException {
+            snbt.nextIf("[");
+            if(snbt.nextIf("]")) {
+                return new IntArrayTag(name, new int[0]);
+            }
+
+            IntList ints = new IntArrayList();
+            do {
+                ints.add(snbt.expectInt());
+                if(snbt.nextIf("]")) {
+                    break;
+                }
+            } while(snbt.nextIf(","));
+            return new IntArrayTag(name, ints.toIntArray());
+        }
+
+        @Override
+        public void writeTag(NbtTraverser nbt, IntArrayTag tag) {
+            nbt.writeInt(tag.getValue().length);
+            nbt.writeIntArray(tag.getValue());
+        }
+
+        @Override
+        public int skip(NbtTraverser nbt) {
+            int len = nbt.readInt();
+            nbt.skip(Integer.BYTES * len);
+            return Integer.BYTES + (Integer.BYTES * len);
+        }
+    }
+}

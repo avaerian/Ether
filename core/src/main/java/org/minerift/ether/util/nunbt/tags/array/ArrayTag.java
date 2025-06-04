@@ -1,6 +1,6 @@
-package org.minerift.ether.util.newnbt.tags.array;
+package org.minerift.ether.util.nunbt.tags.array;
 
-import org.minerift.ether.util.newnbt.tags.Tag;
+import org.minerift.ether.util.nunbt.tags.Tag;
 
 public sealed abstract class ArrayTag<T> extends Tag<T> permits ByteArrayTag, IntArrayTag, LongArrayTag {
 
@@ -20,6 +20,8 @@ public sealed abstract class ArrayTag<T> extends Tag<T> permits ByteArrayTag, In
     public void setValue(T value) {
         this.value = value;
     }
+
+    public abstract Tag<T> copy(boolean copyArray);
 
     @Override
     public String toString() {

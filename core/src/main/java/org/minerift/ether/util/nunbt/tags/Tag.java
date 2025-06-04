@@ -1,6 +1,4 @@
-package org.minerift.ether.util.newnbt.tags;
-
-import org.minerift.ether.util.newnbt.NBT;
+package org.minerift.ether.util.nunbt.tags;
 
 public abstract class Tag<V> {
 
@@ -22,9 +20,16 @@ public abstract class Tag<V> {
         this.name = name;
     }
 
-    public abstract NBT.TagType getType();
+    public boolean is(TagType type) {
+        return type == getType();
+    }
+
+    public abstract TagType getType();
 
     public abstract V getValue();
     public abstract void setValue(V value);
+
+    // TODO
+    public abstract Tag<V> copy();
 
 }
