@@ -1,14 +1,13 @@
-package org.minerift.ether.schematic.readers.sponge;
+package org.minerift.ether.schematic.sponge.reader;
 
 import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.readers.ISchematicReader;
-import org.minerift.ether.schematic.readers.sponge.steps.*;
-import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
+import org.minerift.ether.schematic.SchematicReader;
+import org.minerift.ether.schematic.sponge.reader.steps.*;
+import org.minerift.ether.schematic.sponge.SpongeSchematic;
 
 import java.io.File;
-import java.io.IOException;
 
-public class SpongeSchematicReader implements ISchematicReader<DeprecatedSpongeSchematic> {
+public class SpongeSchematicReader implements SchematicReader<SpongeSchematic> {
 
     public static class ReadStages {
         public final static IReaderStep INIT             = new ReadInitStep();
@@ -22,25 +21,18 @@ public class SpongeSchematicReader implements ISchematicReader<DeprecatedSpongeS
     }
 
     @Override
-    public DeprecatedSpongeSchematic read(File file) throws SchematicFileReadException {
+    public SpongeSchematic read(File file) throws SchematicFileReadException {
 
         final SchematicReaderContext ctx = SchematicReaderContext.from(file);
 
         ReadStages.INIT.read(ctx);
         ReadStages.METADATA.read(ctx);
-        ReadStages.BLOCK_ENTITIES.read(ctx);
         ReadStages.BLOCK_STATES.read(ctx);
+        ReadStages.BLOCK_ENTITIES.read(ctx);
         ReadStages.BIOMES.read(ctx);
         ReadStages.ENTITIES.read(ctx);
 
-        DeprecatedSpongeSchematic schem = ctx.builder.build();
-
-        try {
-            ctx.close();
-        } catch (IOException ex) {
-            // Context failed to close; this should be notified
-            throw new RuntimeException("Failed to close schematic reader context!", ex);
-        }
+        SpongeSchematic schem = ctx.builder.build();
 
         return schem;
     }

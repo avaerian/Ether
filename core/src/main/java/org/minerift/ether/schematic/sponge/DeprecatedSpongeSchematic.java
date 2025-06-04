@@ -1,8 +1,9 @@
-package org.minerift.ether.schematic.types;
+package org.minerift.ether.schematic.sponge;
 
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
+import org.minerift.ether.schematic.Schematic;
+import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.world.BiomeArchetype;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
@@ -42,7 +43,7 @@ public class DeprecatedSpongeSchematic implements Schematic {
 
     @Override
     public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
-        getType().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
+        getType().getPaster(DeprecatedSpongeSchematicPaster.class).paste(this, pos, worldName, options);
     }
 
     @Override

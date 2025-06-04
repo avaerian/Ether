@@ -1,16 +1,17 @@
-package org.minerift.ether.schematic.pasters;
+package org.minerift.ether.schematic.sponge;
 
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.minerift.ether.Ether;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.DeprecatedSpongeSchematic;
+import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.math.Vec3i;
 
-public class SpongeSchematicPaster implements ISchematicPaster<DeprecatedSpongeSchematic> {
+@Deprecated(forRemoval = true)
+public class DeprecatedSpongeSchematicPaster implements SchematicPaster<DeprecatedSpongeSchematic> {
 
     @Override
     public void paste(DeprecatedSpongeSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
@@ -27,14 +28,14 @@ public class SpongeSchematicPaster implements ISchematicPaster<DeprecatedSpongeS
 
         // Lazily set blocks
         schem.getBlocks().forEach(block -> block.getPos().add(worldPasteLoc)); // translate to proper pos
-        final NMSAccess nmsAccess = Ether.getNMS();
+        final DeprecatedNMSAccess nmsAccess = Ether.getDeprecatedNMS();
         //nmsAccess.setBlocksAsyncLazy(schem.getBlocks(), world);
         nmsAccess.testNewPartitionPaster(schem.getBlocks(), world);
 
         // Set biomes
         if(options.copyBiomes) {
             schem.getBiomes().forEach(biomeArchetype -> {
-                biomeArchetype.getPos().add(worldPasteLoc); // translate to proper pos
+                biomeArchetype.getPosMut().add(worldPasteLoc); // translate to proper pos
                 final Biome biome = biomeArchetype.getBiome();
                 final Vec3i biomePos = biomeArchetype.getPos();
                 world.setBiome(biomePos.getX(), biomePos.getY(), biomePos.getZ(), biome);

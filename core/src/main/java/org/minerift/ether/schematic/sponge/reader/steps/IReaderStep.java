@@ -1,6 +1,6 @@
-package org.minerift.ether.schematic.readers.sponge.steps;
+package org.minerift.ether.schematic.sponge.reader.steps;
 
-import org.minerift.ether.schematic.readers.sponge.SchematicReaderContext;
+import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.schematic.SchematicFileReadException;
 
 public interface IReaderStep {

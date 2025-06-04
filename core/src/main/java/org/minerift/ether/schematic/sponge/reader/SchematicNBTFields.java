@@ -1,4 +1,4 @@
-package org.minerift.ether.schematic.readers.sponge;
+package org.minerift.ether.schematic.sponge.reader;
 
 public class SchematicNBTFields {
     public static final String NBT_VERSION = "Version";
