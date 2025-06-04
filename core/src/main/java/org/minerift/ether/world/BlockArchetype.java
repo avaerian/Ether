@@ -3,18 +3,18 @@ package org.minerift.ether.world;
 import org.minerift.ether.math.Vec3i;
 
 // Represents a single block ready for world placement
-public class BlockArchetype {
+public class BlockArchetype implements Archetype {
 
-    protected final String id;
+    protected final String data;
     protected final Vec3i.Mutable pos;
 
-    public BlockArchetype(String id, Vec3i pos) {
-        this.id = id;
+    public BlockArchetype(Vec3i pos, String data) {
         this.pos = pos.asMutable();
+        this.data = data;
     }
 
-    public String getId() {
-        return id;
+    public String getData() {
+        return data;
     }
 
     public Vec3i.Mutable getPos() {
@@ -47,6 +47,6 @@ public class BlockArchetype {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s", pos, id);
+        return String.format("%s -> %s", pos, data);
     }
 }

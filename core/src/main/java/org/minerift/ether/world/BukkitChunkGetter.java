@@ -5,13 +5,13 @@ import org.bukkit.World;
 
 import java.util.function.Consumer;
 
-public interface ChunkGetter {
+public interface BukkitChunkGetter {
 
     void accept(World world, int chunkX, int chunkZ, Consumer<Chunk> cb);
 
-    ChunkGetter SYNC = (world, x, z, cb) -> cb.accept(world.getChunkAt(x, z));
+    BukkitChunkGetter SYNC = (world, x, z, cb) -> cb.accept(world.getChunkAt(x, z));
 
-    ChunkGetter ASYNC = World::getChunkAtAsync;
+    BukkitChunkGetter ASYNC = World::getChunkAtAsync;
 
     // Purpose of these two methods is to allow for additional chunk getter methods
     // while trying to avoid conflicts in API changes

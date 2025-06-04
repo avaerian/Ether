@@ -3,21 +3,36 @@ package org.minerift.ether.world;
 import org.bukkit.block.Biome;
 import org.minerift.ether.math.Vec3i;
 
-public class BiomeArchetype {
+public class BiomeArchetype implements Archetype/*<Vec3i>*/ {
 
-    private final Biome biome; // TODO: switch to String/NamespacedKey for custom biomes?
-    private final Vec3i.Mutable pos;
+    private String biomeId;
+    private Vec3i pos;
 
-    public BiomeArchetype(Biome biome, Vec3i pos) {
-        this.biome = biome;
+    public BiomeArchetype(Vec3i pos, String biomeId) {
+        this.biomeId = biomeId;
         this.pos = pos.asMutable();
     }
 
+    // NOTE: doesn't support custom biomes
     public Biome getBiome() {
-        return biome;
+        return BiomesList.getBiome(biomeId);
     }
 
-    public Vec3i.Mutable getPos() {
+    public String getBiomeId() {
+        return biomeId;
+    }
+
+    //@Override
+    public Vec3i getPos() {
         return pos;
+    }
+
+    public Vec3i.Mutable getPosMut() {
+        return pos.asMutable();
+    }
+
+    //@Override
+    public void setPos(Vec3i newPos) {
+        this.pos = newPos;
     }
 }
