@@ -6,15 +6,26 @@ import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.config.main.MainConfig;
-import org.minerift.ether.island.IslandGridV2;
-import org.minerift.ether.island.invites.InviteRegistry;
-import org.minerift.ether.island.invites.IslandInviteManager;
+import org.minerift.ether.database.Database;
+import org.minerift.ether.database.DatabaseConnectionSettings;
+import org.minerift.ether.database.DatabaseException;
+import org.minerift.ether.database.Result;
+import org.minerift.ether.database.models.NuIslandModel;
+import org.minerift.ether.database.models.NuUserModel;
+import org.minerift.ether.database.nusql.NuSQLDatabase;
+import org.minerift.ether.island.DefaultIslandGrid;
+import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandManager;
+import org.minerift.ether.island.invites.IslandInviteManager;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
+import org.minerift.ether.nms.NMS;
 import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
 
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +43,8 @@ public class Ether {
     private static Logger logger;
     private static File pluginDir;
 
+    private static Database db;
+    @Deprecated private static DeprecatedNMSAccess depNmsAccess;
     private static NMSAccess nmsAccess;
     private static WorkQueue workQueue;
 
@@ -87,14 +100,39 @@ public class Ether {
         workQueue.start();
 
         // Load NMS access
-        nmsAccess = new NMSAccess();
+        depNmsAccess = new DeprecatedNMSAccess(); // TODO: remove
+        nmsAccess = NMS.createAccess();
+
 
         // Load managers
-        islandManager = new IslandManager();
-        inviteManager = new IslandInviteManager();
+        //islandManager = new IslandManager(); // This needs to be delayed until islands are loaded
+        inviteManager = new IslandInviteManager(); // This needs to be delayed until invites are loaded
         userManager = new UserManager();
 
         stopwatch.stop();
+
+        // Connect to database and load data
+        var login = DatabaseConnectionSettings.builder()
+                .setDbName("ether")
+                .setUrl(Ether.getPluginDir().getAbsolutePath())
+                .setDialect(config.getSqlDialect())
+                .setUsername(config.getSqlUsername())
+                .setPassword(config.getSqlPassword())
+                .build();
+
+        db = new NuSQLDatabase(login, NuIslandModel::new, NuUserModel::new);
+        try {
+            DatabaseException result = db.accessSync((access) -> {
+                var islandModel = access.getModel(NuIslandModel.class);
+
+                Result<EtherUser> usersResult = access.selectAll(NuUserModel.class);
+                Result<Island> islandsResult = access.selectAll(NuIslandModel.class);
+
+                //islandsResult.streamBuilders().
+            }).get();
+        } catch (InterruptedException | ExecutionException ex) {
+            throw new RuntimeException("Unexpected", ex);
+        }
 
         // ** code for plugin command registration has been moved to EtherPlugin **
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
@@ -113,7 +151,18 @@ public class Ether {
             workQueue.close();
             workQueue = null;
 
-            nmsAccess = null;
+            depNmsAccess = null;
+        }
+
+        if(db != null) {
+            try {
+                db.close();
+            } catch (DatabaseException ex) {
+                // handle here, if anything's needed
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            db = null;
         }
 
         logger = null;
@@ -149,6 +198,11 @@ public class Ether {
         return new File(getPluginDir(), path);
     }
 
+    public static Database getDatabase() {
+        ensure(db != null, () -> new UnsupportedOperationException("db is not loaded!"));
+        return db;
+    }
+
     public enum Directory {
         SCHEMATICS("schems"),
 
@@ -172,7 +226,12 @@ public class Ether {
         return isUsingWorldEdit;
     }
 
-    public static NMSAccess getNMS() {
+    public static DeprecatedNMSAccess getDeprecatedNMS() {
+        ensure(depNmsAccess != null, () -> new UnsupportedOperationException("depNmsAccess is not loaded!"));
+        return depNmsAccess;
+    }
+
+    public static NMSAccess getNms() {
         ensure(nmsAccess != null, () -> new UnsupportedOperationException("nmsAccess is not loaded!"));
         return nmsAccess;
     }
@@ -204,13 +263,14 @@ public class Ether {
     /**
      * Only to be used when debugging
      */
+    @org.minerift.ether.debug.Debug
     public static class Debug {
 
         public static void setIslandManager(IslandManager manager) {
             islandManager = manager;
         }
 
-        public static void setIslandGrid(IslandGridV2 grid) {
+        public static void setIslandGrid(DefaultIslandGrid grid) {
             setIslandManager(new IslandManager(grid));
         }
 

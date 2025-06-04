@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 // TODO: refactor into individual NBT Tag classes
+@Deprecated(forRemoval = true)
 public class NBTSectionView {
 
     private final CompoundTag head;

@@ -1,9 +1,7 @@
 package org.minerift.ether.world;
 
 import com.google.common.base.Objects;
-import org.minerift.ether.math.Maths;
-import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.math.*;
 
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -25,6 +23,31 @@ public class ChunkCoords {
             this.incrX = pos1.x < pos2.x ? 1 : -1;
             this.incrZ = pos1.z < pos2.z ? 1 : -1;
         }
+    }
+
+    // FIXME: Refactor to Vec2i
+    public static Vec2i getChunkAt(int blockX, int blockZ) {
+        return new Vec2i(blockX >> 4, blockZ >> 4);
+    }
+
+    public static Vec2i getChunkAt(Vec3<?> blockPos) {
+        return getChunkAt(blockPos.getX(), blockPos.getZ());
+    }
+
+    public static Vec3i getBlockAt(int chunkX, int chunkZ) {
+        return getBlockAt(chunkX, chunkZ, 0);
+    }
+
+    public static Vec3i getBlockAt(int chunkX, int chunkZ, int y) {
+        return new Vec3i(chunkX << 4, y, chunkZ << 4);
+    }
+
+    public static Vec3i getBlockAt(Vec2<?> chunkPos, int y) {
+        return getBlockAt(chunkPos.getX(), chunkPos.getZ(), y);
+    }
+
+    public static Vec3i getBlockAt(Vec2<?> chunkPos) {
+        return getBlockAt(chunkPos.getX(), chunkPos.getZ(), 0);
     }
 
     public static Stream<ChunkCoords> getNeighboringChunks(ChunkCoords pos1, ChunkCoords pos2) {
@@ -118,5 +141,13 @@ public class ChunkCoords {
     // Intended for converting between generic and native ChunkPos types
     public <T> T asNativeType(BiFunction<Integer, Integer, T> makeNativeFunc) {
         return makeNativeFunc.apply(x, z);
+    }
+
+    @Override
+    public String toString() {
+        return "ChunkCoords{" +
+                "x=" + x +
+                ", z=" + z +
+                '}';
     }
 }

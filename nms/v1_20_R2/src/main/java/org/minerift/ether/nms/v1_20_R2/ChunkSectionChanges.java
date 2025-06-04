@@ -11,9 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.minerift.ether.nms.v1_20_R2.NativeTypeConversions.toNative;
-
 // TODO: refactor into core code instead of version-specific NMS impl
+@Deprecated
 public class ChunkSectionChanges {
 
     public static final int BLOCKS_PER_SECTION = 16 * 16 * 16; // 4096
@@ -36,7 +35,7 @@ public class ChunkSectionChanges {
                 mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
 
                 positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
-                states[index] = NativeTypeConversions.toNative(block);
+                states[index] = NativeTypeConversionsImpl.inst().asNativeBlockState(block);
             }
 
             this.positions = new ShortArraySet(positions);

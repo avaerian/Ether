@@ -11,7 +11,7 @@ import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.world.ChunkCoords;
 
 import java.util.*;
@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
 public class Island extends CanChange {
+
+    public static final int INVALID_ID = -1;
 
     // TODO: when loading islands/players from database, load EtherUser's first (null island),
     //       then load Island's (set island for users and attach as island members here)
@@ -53,9 +55,8 @@ public class Island extends CanChange {
         // TODO: figure out addTeamMember and handling/storing team members for islands
         this.members = builder.members.stream().map(EtherUser::getUUID).collect(Collectors.toSet());
         if(builder.owner != null) {
-            members.add(builder.owner.getUUID());
+            addTeamMember(builder.owner, IslandRole.OWNER);
         }
-        //addTeamMember(builder.owner, IslandRole.OWNER);
 
         this.blChunkZX = builder.bottomLeftChunkBound;
         this.trChunkZX = builder.topRightChunkBound;
@@ -83,7 +84,7 @@ public class Island extends CanChange {
         Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
         Vec3i.Mutable trBlock = getTopRightBlock().asMutable().subtract(offset, 0, offset);
 
-        return Maths.inRangeInclusive(blBlock, trBlock, loc);
+        return Maths.inRangeInclusiveI(blBlock, trBlock, loc);
     }
 
     public List<EtherUser> getTeamMembers() {

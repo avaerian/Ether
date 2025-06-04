@@ -7,7 +7,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.DeprecatedNMSAccess;
 
 public class NMSBlockScanDebugCommand implements CommandExecutor {
 
@@ -28,7 +28,7 @@ public class NMSBlockScanDebugCommand implements CommandExecutor {
         }
 
         //final NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
-        final NMSAccess nmsAccess = Ether.getNMS();
+        final DeprecatedNMSAccess nmsAccess = Ether.getDeprecatedNMS();
 
         switch (mode) {
             case "SEC" -> nmsAccess.testIslandScanIdea(plr.getLocation());

@@ -1,0 +1,26 @@
+package org.minerift.ether.schematic.data;
+
+import org.minerift.ether.nms.world.Biome;
+import org.minerift.ether.world.BiomeArchetype;
+
+public class BiomeVolume extends Volume<Biome<?>, BiomeArchetype> {
+    public static BiomeVolume.Builder builder() {
+        return new BiomeVolume.Builder();
+    }
+
+    public BiomeVolume(Array3DOrder order, byte[] data, BytePalette<Biome<?>> palette, int width, int height, int length) {
+        super(order, data, palette, width, height, length, BiomeArchetype::new);
+    }
+
+    @Deprecated
+    protected BiomeVolume(int width, int height, int length) {
+        super(width, height, length, BiomeArchetype::new);
+    }
+
+    public static class Builder extends Volume.Builder<BiomeVolume, BiomeVolume.Builder, Biome<?>, BiomeArchetype> {
+        @Override
+        public BiomeVolume build() {
+            return new BiomeVolume(order, data, palette, width, height, length);
+        }
+    }
+}

@@ -1,25 +1,23 @@
 package org.minerift.ether.util.reflect;
 
 import com.google.common.primitives.Primitives;
-import com.google.common.reflect.Reflection;
-import org.minerift.ether.database.sql.model.PrimaryKey;
+import org.minerift.ether.debug.Debug;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.TypeDescriptor;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ReflectedClass<T> implements IReflectedElement {
 
-    // DEBUG
+    @Debug
     public static class TestCls {
-        @PrimaryKey public final int TEST_PK = 42069;
+        public final int TEST_PK = 42069;
         public final int TEST2 = 42069;
 
     }
 
-    // DEBUG
+    @Debug
     public static void main(String[] args) {
         TestCls test = new TestCls();
         System.out.println(Reflect.of(test).getFieldFromRef(test.TEST_PK).getName());

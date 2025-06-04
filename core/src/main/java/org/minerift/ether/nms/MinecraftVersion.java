@@ -60,7 +60,7 @@ public class MinecraftVersion implements Comparable<MinecraftVersion> {
 
         if(equals(other)) return false;
 
-        // This is done to evaluate a more complex set of rules while keeping the API clean
+        // This is done to evaluate a more complex set of rules while keeping the code clean
         return greaterThanCheckChained(major, other.getMajor(),
                 () -> greaterThanCheckChained(minor, other.getMinor(),
                         () -> greaterThanCheckChained(patch, other.getPatch(), null)

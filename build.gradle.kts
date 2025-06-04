@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    `kotlin-dsl`
+    //`kotlin-dsl`
     `java-library`
     id("java")
     id("com.gradleup.shadow") version("8.3.1")
@@ -11,7 +11,7 @@ group = rootProject.group
 version = rootProject.version
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 repositories {
@@ -27,24 +27,35 @@ dependencies {
 
     // shade in these dependencies as well
     implementation(libs.reflectionRemapper)
+    implementation(libs.jooq)
+    implementation(libs.hikariCP)
+    implementation(libs.sql.driver.h2)
+    implementation(libs.sql.driver.sqlite)
+    implementation(libs.sql.driver.mysql)
+    implementation(libs.sql.driver.postgresql)
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    //archiveClassifier.set("implementation")
 
-    //exclude("module-info.class")
+    configurations = listOf(project.configurations.runtimeClasspath.get())
+
     exclude("*.properties") // TODO: review
     archiveFileName.set("${project.name}-${project.version}.jar")
 
-    dependencies {
-        include(project(":core"))
-        include(project(":nms:v1_20_R2"))
-        include(dependency("xyz.jpenilla:reflection-remapper"))
-    }
+    fun reloc(pkg: String) = relocate(pkg, "$group.relocate.$pkg")
+    reloc("net.fabricmc.mappingio")
+    reloc("org.jooq")
+    reloc("com.zaxxer")
+
+    // TODO: review this
+    //reloc("org.postgresql")
+    //reloc("com.h2database")
+    //reloc("com.mysql")
+    //reloc("org.xerial")
 }
 
 tasks.withType<JavaCompile> {
-    options.release.set(21)
+    options.release.set(17)
     options.encoding = Charsets.UTF_8.name()
 }
 

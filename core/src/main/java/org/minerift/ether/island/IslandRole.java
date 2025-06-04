@@ -1,8 +1,10 @@
 package org.minerift.ether.island;
 
+import org.minerift.ether.util.Default;
+
 public enum IslandRole {
 
-    VISITOR,
+    @Default VISITOR,
     MEMBER,
     OWNER
 

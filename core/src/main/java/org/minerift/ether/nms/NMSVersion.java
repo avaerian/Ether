@@ -45,7 +45,62 @@ public enum NMSVersion {
     V1_19_R2,
     V1_19_R3,
 
+    V1_20_R2,
+
     // Other
     UNKNOWN
+
+    ;
+
+    public String asNiceString() {
+        String str = this.name();
+        if(this == UNKNOWN) {
+            return str;
+        }
+
+        return str.replace('V', 'v')
+                .replace('_', '.');
+    }
+
+    public static NMSVersion from(String version) throws IllegalArgumentException {
+        version = version.toUpperCase()
+                .replace('.', '_')
+                .replaceAll("V", "");
+        return switch (version) {
+            case "1_8_R3" -> V1_8_R3;
+
+            case "1_9_R1" -> V1_9_R1;
+            case "1_9_R2" -> V1_9_R2;
+
+            case "1_10_R1" -> V1_10_R1;
+
+            case "1_11_R1" -> V1_11_R1;
+            case "1_12_R1" -> V1_12_R1;
+
+            case "1_13_R1" -> V1_13_R1;
+            case "1_13_R2" -> V1_13_R2;
+
+            case "1_14_R1" -> V1_14_R1;
+
+            case "1_15_R1" -> V1_15_R1;
+
+            case "1_16_R1" -> V1_16_R1;
+            case "1_16_R2" -> V1_16_R2;
+            case "1_16_R3" -> V1_16_R3;
+
+            case "1_17_R1" -> V1_17_R1;
+
+            case "1_18_R1" -> V1_18_R1;
+            case "1_18_R2" -> V1_18_R2;
+
+            case "1_19_R1" -> V1_19_R1;
+            case "1_19_R2" -> V1_19_R2;
+            case "1_19_R3" -> V1_19_R3;
+
+            case "1_20_R2" -> V1_20_R2;
+
+            default -> throw new IllegalArgumentException("Unexpected value: " + version);
+        };
+    }
 
 }

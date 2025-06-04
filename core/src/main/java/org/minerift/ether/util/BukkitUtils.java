@@ -1,5 +1,6 @@
 package org.minerift.ether.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -16,8 +17,14 @@ import org.minerift.ether.math.Vec3i;
  */
 public class BukkitUtils {
 
+    public static String getImplVersionStr() {
+        String version = Bukkit.getServer().getClass().getPackageName();
+        version = version.substring(version.lastIndexOf('.') + 2);
+        return version;
+    }
+
     public static String dumpItemStack(ItemStack item) {
-        NamespacedKey key = Ether.getNMS().getNamespacedKey(item);
+        NamespacedKey key = Ether.getDeprecatedNMS().getNamespacedKey(item);
         return key.asString() + item.getItemMeta().getAsString();
     }
 

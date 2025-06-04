@@ -1,9 +1,9 @@
 package org.minerift.ether.world;
 
 import org.minerift.ether.math.Vec3d;
-import org.minerift.ether.util.nbt.tags.CompoundTag;
+import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
 
-public class EntityArchetype {
+public class EntityArchetype implements Archetype {
 
     private final String type;
     private final Vec3d.Mutable pos;

@@ -87,11 +87,11 @@ public class IslandGridSearchBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridState {
-        IslandGrid grid;
+        DeprecatedIslandGrid grid;
 
         @Setup
         public void setup() {
-            this.grid = new IslandGrid();
+            this.grid = new DeprecatedIslandGrid();
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)
@@ -105,11 +105,11 @@ public class IslandGridSearchBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridV2State {
-        IslandGridV2 grid;
+        DefaultIslandGrid grid;
 
         @Setup
         public void setup() {
-            this.grid = new IslandGridV2();
+            this.grid = new DefaultIslandGrid();
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)

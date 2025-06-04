@@ -1,16 +1,10 @@
 package org.minerift.ether.math;
 
-import org.minerift.ether.world.ChunkCoords;
-
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 // Immutable by default (use Vec2i.Mutable for mutable operations)
-public class Vec2i {
+public class Vec2i implements Vec2<Vec2i>, Serializable {
 
     public final static Vec2i ZERO = new Vec2i(0, 0);
 
@@ -25,12 +19,29 @@ public class Vec2i {
         this.z = z;
     }
 
+    @Override
+    public Vec2i copy() {
+        return new Vec2i(x, z);
+    }
+
+    @Override
     public int getX() {
         return x;
     }
 
+    @Override
     public int getZ() {
         return z;
+    }
+
+    @Override
+    public double getXd() {
+        return 0;
+    }
+
+    @Override
+    public double getZd() {
+        return 0;
     }
 
     public int getTileId() {
@@ -85,9 +96,17 @@ public class Vec2i {
             super.z += z;
         }
 
+        public void add(Vec2<?> addend) {
+            add(addend.getX(), addend.getZ());
+        }
+
         public void subtract(int x, int z) {
             super.x -= x;
             super.z -= z;
+        }
+
+        public void subtract(Vec2<?> subtrahend) {
+            subtract(subtrahend.getX(), subtrahend.getZ());
         }
 
         public Vec2i immutable() {

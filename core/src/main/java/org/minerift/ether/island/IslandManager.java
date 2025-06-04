@@ -1,6 +1,7 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Location;
+import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
@@ -9,21 +10,22 @@ import java.util.*;
 
 public class IslandManager {
 
-    private IslandGridV2 grid;
+    private IslandGrid grid;
 
     public IslandManager() {
-        this(new IslandGridV2());
+        this(new DefaultIslandGrid());
     }
 
-    public IslandManager(IslandGridV2 grid) {
+    public IslandManager(IslandGrid grid) {
         this.grid = grid;
     }
 
     public Set<Integer> getKeySet() {
-        Set<Integer> keys = new HashSet<>(grid.getData().size());
-        for(Island island : grid.getData()) {
+        var data = ((DefaultIslandGrid)grid).getData(); // be weary of this
+        Set<Integer> keys = new HashSet<>(data.size());
+        for(Island island : data) {
             // Return only active island ids for key set
-            if (island != null && !island.isDeleted()) {
+            if(island != null && !island.isDeleted()) {
                 keys.add(island.getId());
             }
         }
@@ -44,7 +46,7 @@ public class IslandManager {
         return IslandCreationRoutine.run(grid, user);
     }
 
-    public void deleteIsland(Island island) {
+    public void deleteIsland(Island island) { // TODO
 
         // Mark island as deleted
         island.markDeleted();

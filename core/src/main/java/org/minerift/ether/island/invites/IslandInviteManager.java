@@ -60,7 +60,8 @@ public class IslandInviteManager {
 
     // Handles an island invite with a callback and consumes the invite after done
     private boolean handleAndConsume(IslandInvite invite, Function<EtherUser, Boolean> callback) {
-        EtherUser receiver = Ether.getUserManager().getUser(invite.getReceiver()).orElseThrow(() -> new UnsupportedOperationException("User must be online to accept an island invite!"));
+        EtherUser receiver = Ether.getUserManager().getUser(invite.getReceiver())
+                .orElseThrow(() -> new UnsupportedOperationException("User must be online to accept an island invite!"));
         Player plr = receiver.getPlayer().orElseThrow();
 
         try {

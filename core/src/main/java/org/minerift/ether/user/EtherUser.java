@@ -8,7 +8,7 @@ import org.minerift.ether.util.CanChange;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandPermission;
 import org.minerift.ether.island.IslandRole;
-import org.minerift.ether.util.IBuilder;
+import org.minerift.ether.util.fn.IBuilder;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -40,7 +40,7 @@ public class EtherUser extends CanChange {
     }
 
     public void setIsland(Integer islandId) {
-        if(!this.islandId.equals(islandId)) {
+        if(this.islandId == null || !this.islandId.equals(islandId)) {
             this.islandId = islandId;
             setChanged(true);
         }

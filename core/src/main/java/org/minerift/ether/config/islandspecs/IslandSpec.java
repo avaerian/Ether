@@ -1,38 +1,43 @@
 package org.minerift.ether.config.islandspecs;
 
-import org.bukkit.Bukkit;
-import org.bukkit.inventory.ItemFactory;
-import org.bukkit.inventory.ItemStack;
 import org.minerift.ether.Ether;
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec3i;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class IslandSpec {
 
     private String islandName;
     private List<String> desc;
-    //private String iconData; // minecraft /give command style (think "minecraft:bedrock")
-    private ItemStack icon;
+    private String iconData; // minecraft /give command style (think "minecraft:bedrock")
+    //private ItemStack icon;
     private String schemFileName;
     private Vec3i defaultSpawnLoc;
+
+    public IslandSpec() {
+        this("", Collections.emptyList(), "", "", Vec3i.ZERO);
+    }
 
     public IslandSpec(String islandName, List<String> desc, String iconData, String schemFileName, Vec3i defaultSpawnLoc) {
         this.islandName = islandName;
         this.desc = desc;
-        setIconData(iconData);
+        //setIconData(iconData);
+        this.iconData = iconData;
         this.schemFileName = schemFileName;
         this.defaultSpawnLoc = defaultSpawnLoc;
     }
 
-    public IslandSpec(String islandName, List<String> desc, ItemStack icon, String schemFileName, Vec3i defaultSpawnLoc) {
+    // FIXME: commented out for local testing (Bukkit not available at runtime here)
+    /*public IslandSpec(String islandName, List<String> desc, ItemStack icon, String schemFileName, Vec3i defaultSpawnLoc) {
         this.islandName = islandName;
         this.desc = desc;
         this.icon = icon;
         this.schemFileName = schemFileName;
         this.defaultSpawnLoc = defaultSpawnLoc;
-    }
+    }*/
 
     public String getIslandName() {
         return islandName;
@@ -50,21 +55,24 @@ public class IslandSpec {
         this.desc = desc;
     }
 
-    /*public String getIconData() {
+    @Debug // TODO: test this, review
+    public String getIconData() {
         return iconData;
-    }*/
-
-    public ItemStack getIcon() {
-        return icon;
+        //return icon.getItemMeta().getAsString();
     }
 
+    /*public ItemStack getIcon() {
+        return icon;
+    }*/
+
     public void setIconData(String iconData) {
-        try {
+        /*try {
             this.icon = Bukkit.getItemFactory().createItemStack(iconData);
         } catch (IllegalArgumentException ex) {
             Ether.getLogger().warning("Failed to set invalid icon data: " + iconData);
             Ether.getLogger().warning("Invalid icon replaced with ..."); // TODO
-        }
+        }*/
+        this.iconData = iconData;
     }
 
     public String getSchemFileName() {

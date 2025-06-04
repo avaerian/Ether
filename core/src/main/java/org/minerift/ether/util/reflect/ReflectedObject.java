@@ -50,6 +50,7 @@ public class ReflectedObject<T> {
     }
 
     // TODO: NOT WORKING
+    @Deprecated
     public ReflectedFields getFieldsFromRefs(Object[] fieldVals) {
         Map<ReflectedField, Object> fields2Vals = reflectedClass.mapFieldsToValues(holder);
         final ReflectedField[] fields = new ReflectedField[fieldVals.length];

@@ -18,15 +18,17 @@ configurations.all {
     resolutionStrategy.force("net.fabricmc:tiny-remapper:${libsCatalog.getVersion("minTinyRemapper")}")
 }
 
-tasks.withType<ShadowJar> {
+/*
+tasks.named<ShadowJar>("shadowJar") {
     dependencies {
         exclude("org.ow2.asm:asm")
         //exclude("org.ow2.asm:asm-commons")
     }
 }
+*/
 
 dependencies {
-    implementation(project(":core"))
+    compileOnly(project(":core"))
     implementation(libsCatalog.getLibrary("reflectionRemapper"))
 
     constraints {

@@ -11,14 +11,14 @@ import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
-import org.minerift.ether.schematic.types.Schematic;
+import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.user.EtherUser;
 
 import java.io.File;
 
 public class IslandCreationRoutine {
 
-    public static Island run(IslandGridV2 grid, EtherUser user) {
+    public static Island run(IslandGrid grid, EtherUser user) {
 
         final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island!"));
         final World islandWorld = plr.getWorld(); // TODO: change this to island world (add config thing and load in Ether class)
