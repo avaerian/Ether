@@ -27,6 +27,12 @@ dependencies {
 
     // shade in these dependencies as well
     implementation(libs.reflectionRemapper)
+    implementation(libs.jooq)
+    implementation(libs.hikariCP)
+    implementation(libs.sql.driver.h2)
+    implementation(libs.sql.driver.sqlite)
+    implementation(libs.sql.driver.mysql)
+    implementation(libs.sql.driver.postgresql)
 }
 
 tasks.named<ShadowJar>("shadowJar") {
@@ -38,6 +44,14 @@ tasks.named<ShadowJar>("shadowJar") {
 
     fun reloc(pkg: String) = relocate(pkg, "$group.relocate.$pkg")
     reloc("net.fabricmc.mappingio")
+    reloc("org.jooq")
+    reloc("com.zaxxer")
+
+    // TODO: review this
+    //reloc("org.postgresql")
+    //reloc("com.h2database")
+    //reloc("com.mysql")
+    //reloc("org.xerial")
 }
 
 tasks.withType<JavaCompile> {
