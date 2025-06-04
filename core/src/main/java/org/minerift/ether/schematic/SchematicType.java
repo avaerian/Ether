@@ -1,13 +1,11 @@
-package org.minerift.ether.schematic.types;
+package org.minerift.ether.schematic;
 
 import org.minerift.ether.Ether;
-import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.schematic.pasters.ISchematicPaster;
-import org.minerift.ether.schematic.pasters.SpongeSchematicPaster;
-import org.minerift.ether.schematic.pasters.WESchematicPaster;
-import org.minerift.ether.schematic.readers.ISchematicReader;
-import org.minerift.ether.schematic.readers.sponge.SpongeSchematicReader;
-import org.minerift.ether.schematic.readers.worldedit.WESchematicReader;
+import org.minerift.ether.schematic.sponge.DeprecatedSpongeSchematicPaster;
+import org.minerift.ether.schematic.sponge.SpongeSchematicPaster;
+import org.minerift.ether.schematic.worldedit.WESchematicPaster;
+import org.minerift.ether.schematic.sponge.reader.SpongeSchematicReader;
+import org.minerift.ether.schematic.worldedit.WESchematicReader;
 
 public class SchematicType {
 
@@ -25,9 +23,9 @@ public class SchematicType {
                 : UNSUPPORTED;
     }
 
-    private final ISchematicReader<? extends Schematic> reader;
-    private final ISchematicPaster<? extends Schematic> paster;
-    private SchematicType(ISchematicReader<? extends Schematic> reader, ISchematicPaster<? extends Schematic> paster) {
+    private final SchematicReader<? extends Schematic> reader;
+    private final SchematicPaster<? extends Schematic> paster;
+    private SchematicType(SchematicReader<? extends Schematic> reader, SchematicPaster<? extends Schematic> paster) {
         this.reader = reader;
         this.paster = paster;
     }
@@ -36,21 +34,21 @@ public class SchematicType {
         return this != UNSUPPORTED;
     }
 
-    public ISchematicReader<? extends Schematic> getReader() {
+    public SchematicReader<? extends Schematic> getReader() {
         if(!isSupported()) {
             throw new UnsupportedOperationException("Reader unavailable because schematic type was unable to load!");
         }
         return reader;
     }
 
-    public ISchematicPaster<? extends Schematic> getPaster() {
+    public SchematicPaster<? extends Schematic> getPaster() {
         if(!isSupported()) {
             throw new UnsupportedOperationException("Paster unavailable because schematic type was unable to load!");
         }
         return paster;
     }
 
-    public <P extends ISchematicPaster<? extends Schematic>> P getPaster(Class<P> clazz) {
+    public <P extends SchematicPaster<? extends Schematic>> P getPaster(Class<P> clazz) {
         return clazz.cast(getPaster());
     }
 

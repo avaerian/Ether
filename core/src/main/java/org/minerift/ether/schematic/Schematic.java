@@ -1,10 +1,8 @@
-package org.minerift.ether.schematic.types;
+package org.minerift.ether.schematic;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.schematic.SchematicFileReadException;
-import org.minerift.ether.schematic.SchematicPasteOptions;
 
 import java.io.File;
 
@@ -29,6 +27,7 @@ public interface Schematic {
     int getHeight();
     int getLength();
 
+    Vec3i getDimensions();
     Vec3i getOffset();
 
 }
