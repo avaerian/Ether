@@ -1,28 +1,28 @@
 package org.minerift.ether.work;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.Callable;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 // Batch of tasks associated with a single operation
+// TODO: refactor WorkQueue system for better clarity and exception handling
 public class TaskBatch extends Task {
 
-    private Deque<BooleanSupplier> tasks;
+    private Deque<Callable<Void>> tasks;
 
     public TaskBatch() {
         this(new ArrayDeque<>());
     }
 
-    public TaskBatch(Deque<BooleanSupplier> tasks) {
+    public TaskBatch(Deque<Callable<Void>> tasks) {
         super();
         this.tasks = tasks;
     }
 
-    public TaskBatch addTask(BooleanSupplier task) {
+    public TaskBatch addTask(Callable<Void> task) {
         tasks.add(task);
         return this;
     }
@@ -33,7 +33,7 @@ public class TaskBatch extends Task {
         return this;
     }
 
-    public ImmutableList<BooleanSupplier> getRemainingTasks() {
+    public ImmutableList<Callable<Void>> getRemainingTasks() {
         return ImmutableList.copyOf(tasks);
     }
 
@@ -45,18 +45,19 @@ public class TaskBatch extends Task {
     // Returns whether the operation has finished
     @Override
     protected boolean completeNextTask() {
-        BooleanSupplier task = tasks.poll();
+        Callable<Void> task = tasks.poll();
         if(task == null) {
             runCallback(Task.Status.OP_COMPLETE);
             return true;
         }
 
-        // If task failed, end operation
-        boolean failed = !task.getAsBoolean();
-        if(failed) {
+        try {
+            task.call();
+            return true;
+        } catch (Exception ex) {
             runCallback(Task.Status.TASK_FAILED);
+            return false;
         }
-        return failed;
     }
 
 }
