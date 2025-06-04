@@ -3,12 +3,15 @@ package org.minerift.ether.math;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.world.ChunkCoords;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -23,7 +26,7 @@ public class Maths {
     private static final Function<Stream<String>, int[]> INT_ARGS_ADAPTER = (stream) -> stream.mapToInt(Integer::parseInt).toArray();
     private static final Function<Stream<String>, double[]> DOUBLE_ARGS_ADAPTER = (stream) -> stream.mapToDouble(Double::parseDouble).toArray();
 
-    // DEBUG
+    @Debug
     public static void main(String[] args) {
         System.out.println(Maths.strToVec3i("    1738,  -69,   420   "));
         System.out.println(Maths.strToVec3d(" (420.69, -3.14,   1802)!   "));
@@ -48,12 +51,52 @@ public class Maths {
         return new Vec3i(tile.getX() * config.getTileLengthBlocks(), config.getTileHeight(), tile.getZ() * config.getTileLengthBlocks());
     }
 
-    public static boolean inRangeInclusive(Vec3i minInclusive, Vec3i maxInclusive, Vec3i test) {
-        return minInclusive.isLessThan(test, true) && maxInclusive.isGreaterThan(test, true);
+    public static int[] range(int minInclusive, int maxExclusive) {
+        return IntStream.range(minInclusive, maxExclusive).toArray();
     }
 
-    public static boolean inRangeExclusive(Vec3i minInclusive, Vec3i maxExclusive, Vec3i test) {
-        return minInclusive.isLessThan(test, true) && maxExclusive.isGreaterThan(test, false);
+    public static List<Integer> rangeList(int minInclusive, int maxExclusive) {
+        return IntStream.range(minInclusive, maxExclusive).boxed().toList();
+    }
+
+    public static boolean inRangeInclusive(int minInclusive, int maxInclusive, int test) {
+        return minInclusive <= test && test <= maxInclusive;
+    }
+
+    public static boolean inRangeInclusive(double minInclusive, double maxInclusive, double test) {
+        return minInclusive <= test && test <= maxInclusive;
+    }
+
+    public static boolean inRange(int minInclusive, int maxExclusive, int test) {
+        return minInclusive <= test && test < maxExclusive;
+    }
+
+    public static boolean inRange(double minInclusive, double maxExclusive, double test) {
+        return minInclusive <= test && test < maxExclusive;
+    }
+
+    public static boolean inRangeInclusiveI(Vec3<?> minInclusive, Vec3<?> maxInclusive, Vec3<?> test) {
+        return inRangeInclusive(minInclusive.getX(), maxInclusive.getX(), test.getX())
+                && inRangeInclusive(minInclusive.getY(), maxInclusive.getY(), test.getY())
+                && inRangeInclusive(minInclusive.getZ(), maxInclusive.getZ(), test.getZ());
+    }
+
+    public static boolean inRangeInclusiveD(Vec3<?> minInclusive, Vec3<?> maxInclusive, Vec3<?> test) {
+        return inRangeInclusive(minInclusive.getXd(), maxInclusive.getXd(), test.getXd())
+                && inRangeInclusive(minInclusive.getYd(), maxInclusive.getYd(), test.getYd())
+                && inRangeInclusive(minInclusive.getZd(), maxInclusive.getZd(), test.getZd());
+    }
+
+    public static boolean inRangeI(Vec3<?> minInclusive, Vec3<?> maxExclusive, Vec3<?> test) {
+        return inRange(minInclusive.getX(), maxExclusive.getX(), test.getX())
+                && inRange(minInclusive.getY(), maxExclusive.getY(), test.getY())
+                && inRange(minInclusive.getZ(), maxExclusive.getZ(), test.getZ());
+    }
+
+    public static boolean inRangeD(Vec3<?> minInclusive, Vec3<?> maxExclusive, Vec3<?> test) {
+        return inRange(minInclusive.getXd(), maxExclusive.getXd(), test.getXd())
+                && inRange(minInclusive.getYd(), maxExclusive.getYd(), test.getYd())
+                && inRange(minInclusive.getZd(), maxExclusive.getZd(), test.getZd());
     }
 
     protected static Vec2i strToVec2i(String str) {
