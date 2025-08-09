@@ -10,11 +10,11 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.*;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
-import org.minerift.ether.util.BukkitUtils;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.work.TaskBatch;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.work.BatchedTask;
 import org.minerift.ether.world.ChunkCoords;
 
+import static java.lang.String.format;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 
 @SuppressWarnings("Duplicates")
@@ -22,7 +22,7 @@ public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
     @Override
     public void paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
         World world = Bukkit.getWorld(worldName);
-        ChunkGetter chunkGetter = ChunkGetter.ASYNC; // TODO: make this an option
+        ChunkGetter chunkGetter = ChunkGetter.SYNC; // TODO: make this an option
 
         Vec3i end = pasteLoc.copy().asMutable().add(schem.getDimensions());
         schem.getBlocks().getBlockEntities().forEach((be) -> be.getPos().add(pasteLoc));
@@ -48,7 +48,7 @@ public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
 
         // Start at top right
         // TODO: test async
-        TaskBatch operation = new TaskBatch();
+        BatchedTask operation = new BatchedTask();
         for(int cz = tr.z; cz <= br.z; cz++) {
             for(int cx = tr.x; cx <= tl.x; cx++) {
                 int finalCx = cx;
@@ -60,11 +60,12 @@ public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
                         }
                         chunk.setUnsaved(true);
                     });
-                    return null; // FIXME: change Callable<Void> to more specific functional interface
                 });
             }
         }
         operation.whenComplete((status) -> {
+            System.out.println(schem.getBlocks().blockEntities);
+            //System.out.println(schem.getBlocks().getBlockEntities());
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
 
@@ -171,7 +172,10 @@ public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
                         }
 
                         if(block.hasBlockEntity()) {
-                            CompoundTag nbt = schem.getBlocks().getBlockEntity(idx).getNBTData();
+                            System.out.printf("block entity at %d, %d, %d (%d, %d, %d) -> %d\n",
+                                    worldBlockX, worldBlockY, worldBlockZ,
+                                    arrayBlockX, arrayBlockY, arrayBlockZ, idx);
+                            CompoundTag nbt = schem.getBlocks().getBlockEntity(idx).getNbtData();
                             chunk.setBlockEntity(worldBlockX, worldBlockY, worldBlockZ, block, nbt);
                         }
 

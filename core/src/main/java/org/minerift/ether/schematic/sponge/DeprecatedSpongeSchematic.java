@@ -62,6 +62,11 @@ public class DeprecatedSpongeSchematic implements Schematic {
     }
 
     @Override
+    public Vec3i getDimensions() {
+        return new Vec3i(width, height, length);
+    }
+
+    @Override
     public Vec3i getOffset() {
         return offset;
     }

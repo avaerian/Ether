@@ -36,7 +36,8 @@ public class DeprecatedSpongeSchematicPaster implements SchematicPaster<Deprecat
         if(options.copyBiomes) {
             schem.getBiomes().forEach(biomeArchetype -> {
                 biomeArchetype.getPosMut().add(worldPasteLoc); // translate to proper pos
-                final Biome biome = biomeArchetype.getBiome();
+                //final Biome biome = biomeArchetype.getBiome();
+                final Biome biome = null;
                 final Vec3i biomePos = biomeArchetype.getPos();
                 world.setBiome(biomePos.getX(), biomePos.getY(), biomePos.getZ(), biome);
             });
