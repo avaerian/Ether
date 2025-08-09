@@ -8,7 +8,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleUnaryOperator;
 
 // Immutable (by default) Vec3 of doubles
-public class Vec3d implements Vec3<Vec3d>, Serializable {
+public class Vec3d implements Vec3, Serializable {
 
     public static final Vec3d ZERO = new Vec3d(0, 0, 0);
 
@@ -144,6 +144,11 @@ public class Vec3d implements Vec3<Vec3d>, Serializable {
     public static class Mutable extends Vec3d {
         public Mutable(double x, double y, double z) {
             super(x, y, z);
+        }
+
+        @Override
+        public Vec3d.Mutable copy() {
+            return new Vec3d.Mutable(x, y, z);
         }
 
         // Use asMutable() instead

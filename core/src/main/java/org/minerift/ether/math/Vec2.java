@@ -1,8 +1,8 @@
 package org.minerift.ether.math;
 
-public interface Vec2<T extends Vec2<T>> {
+public interface Vec2 {
 
-    T copy();
+    Vec2 copy();
 
     int getX();
     int getZ();

@@ -9,7 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntUnaryOperator;
 
 // Immutable (by default) Vec3 of ints
-public class Vec3i implements Vec3<Vec3i>, Serializable {
+public class Vec3i implements Vec3, Serializable {
 
     public static final Vec3i ZERO = new Vec3i(0, 0, 0);
 

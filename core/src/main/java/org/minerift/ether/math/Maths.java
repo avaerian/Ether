@@ -75,25 +75,25 @@ public class Maths {
         return minInclusive <= test && test < maxExclusive;
     }
 
-    public static boolean inRangeInclusiveI(Vec3<?> minInclusive, Vec3<?> maxInclusive, Vec3<?> test) {
+    public static boolean inRangeInclusiveI(Vec3 minInclusive, Vec3 maxInclusive, Vec3 test) {
         return inRangeInclusive(minInclusive.getX(), maxInclusive.getX(), test.getX())
                 && inRangeInclusive(minInclusive.getY(), maxInclusive.getY(), test.getY())
                 && inRangeInclusive(minInclusive.getZ(), maxInclusive.getZ(), test.getZ());
     }
 
-    public static boolean inRangeInclusiveD(Vec3<?> minInclusive, Vec3<?> maxInclusive, Vec3<?> test) {
+    public static boolean inRangeInclusiveD(Vec3 minInclusive, Vec3 maxInclusive, Vec3 test) {
         return inRangeInclusive(minInclusive.getXd(), maxInclusive.getXd(), test.getXd())
                 && inRangeInclusive(minInclusive.getYd(), maxInclusive.getYd(), test.getYd())
                 && inRangeInclusive(minInclusive.getZd(), maxInclusive.getZd(), test.getZd());
     }
 
-    public static boolean inRangeI(Vec3<?> minInclusive, Vec3<?> maxExclusive, Vec3<?> test) {
+    public static boolean inRangeI(Vec3 minInclusive, Vec3 maxExclusive, Vec3 test) {
         return inRange(minInclusive.getX(), maxExclusive.getX(), test.getX())
                 && inRange(minInclusive.getY(), maxExclusive.getY(), test.getY())
                 && inRange(minInclusive.getZ(), maxExclusive.getZ(), test.getZ());
     }
 
-    public static boolean inRangeD(Vec3<?> minInclusive, Vec3<?> maxExclusive, Vec3<?> test) {
+    public static boolean inRangeD(Vec3 minInclusive, Vec3 maxExclusive, Vec3 test) {
         return inRange(minInclusive.getXd(), maxExclusive.getXd(), test.getXd())
                 && inRange(minInclusive.getYd(), maxExclusive.getYd(), test.getYd())
                 && inRange(minInclusive.getZd(), maxExclusive.getZd(), test.getZd());

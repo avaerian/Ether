@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 // Immutable by default (use Vec2i.Mutable for mutable operations)
-public class Vec2i implements Vec2<Vec2i>, Serializable {
+public class Vec2i implements Vec2, Serializable {
 
     public final static Vec2i ZERO = new Vec2i(0, 0);
 
@@ -83,6 +83,11 @@ public class Vec2i implements Vec2<Vec2i>, Serializable {
             super(x, z);
         }
 
+        @Override
+        public Vec2i.Mutable copy() {
+            return new Vec2i.Mutable(x, z);
+        }
+
         public void setX(int x) {
             super.x = x;
         }
@@ -91,12 +96,17 @@ public class Vec2i implements Vec2<Vec2i>, Serializable {
             super.z = z;
         }
 
+        public void set(int x, int z) {
+            super.x = x;
+            super.z = z;
+        }
+
         public void add(int x, int z) {
             super.x += x;
             super.z += z;
         }
 
-        public void add(Vec2<?> addend) {
+        public void add(Vec2 addend) {
             add(addend.getX(), addend.getZ());
         }
 
@@ -105,7 +115,7 @@ public class Vec2i implements Vec2<Vec2i>, Serializable {
             super.z -= z;
         }
 
-        public void subtract(Vec2<?> subtrahend) {
+        public void subtract(Vec2 subtrahend) {
             subtract(subtrahend.getX(), subtrahend.getZ());
         }
 
