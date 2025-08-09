@@ -2,6 +2,7 @@ package org.minerift.ether.util.collect;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.util.Predicates;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -104,16 +105,4 @@ public class IndexedList<T> implements Iterable<T> {
         return buffer.spliterator();
     }
 
-    public static class Predicates {
-        private static final Predicate<?> ALWAYS = (ignore) -> true;
-        private static final Predicate<?> NEVER = (ignore) -> false;
-
-        public static <E> Predicate<E> always() {
-            return (Predicate<E>) ALWAYS;
-        }
-
-        public static <E> Predicate<E> never() {
-            return (Predicate<E>) NEVER;
-        }
-    }
 }

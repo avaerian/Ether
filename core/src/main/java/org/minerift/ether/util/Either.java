@@ -30,6 +30,7 @@ public class Either<L, R> {
         return !isLeft;
     }
 
+    // TODO: review
     public void runIfLeft(boolean b, Consumer<L> run) {
         if(b) {
             run.accept(getLeft());
@@ -40,6 +41,7 @@ public class Either<L, R> {
         runIfLeft(isLeft(), run);
     }
 
+    // TODO: review
     public void runIfRight(boolean b, Consumer<R> run) {
         if(b) {
             run.accept(getRight());
