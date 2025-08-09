@@ -3,10 +3,7 @@ package org.minerift.ether.database;
 import com.google.common.collect.ImmutableMap;
 import org.minerift.ether.database.nusql.fallback.NuFallback;
 import org.minerift.ether.database.nusql.adapters.Adapter;
-import org.minerift.ether.util.pair.Pair;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.function.Function;
 
 import static org.minerift.ether.database.nusql.SQLUtils.getPossibleFallback;

@@ -5,13 +5,14 @@ import org.minerift.ether.config.IConfigWriter;
 import org.minerift.ether.config.exceptions.ConfigFileWriteException;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.util.nunbt.NbtReader;
-import org.minerift.ether.util.nunbt.NbtWriter;
-import org.minerift.ether.util.nunbt.tags.StringTag;
-import org.minerift.ether.util.nunbt.tags.TagType;
-import org.minerift.ether.util.nunbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nunbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.NbtReader;
+import org.minerift.ether.util.nbt.NbtWriter;
+import org.minerift.ether.util.nbt.tags.StringTag;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
+import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.ListTag;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class IslandSpecsWriter extends IConfigWriter<IslandSpecsConfig> {
             List<StringTag> desc = spec.getDescription().stream()
                     .map((line) -> new StringTag("", line))
                     .toList();
-            tag.addTag(new ListTag<>("IslandDesc", desc, TagType.STRING));
+            tag.addTag(new ListTag<>("IslandDesc", TagType.STRING, desc));
             tag.addTag(new IntArrayTag("IslandPlayerSpawn", spec.getDefaultSpawnLoc().getXYZ()));
 
             writer.writeTag(tag);

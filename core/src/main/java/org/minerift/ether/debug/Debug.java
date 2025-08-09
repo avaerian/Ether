@@ -6,4 +6,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.TYPE})
 public @interface Debug {
+    String what() default "null";
 }

@@ -4,12 +4,12 @@ import com.google.common.base.Preconditions;
 import org.minerift.ether.config.IConfigReader;
 import org.minerift.ether.config.exceptions.ConfigFileReadException;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.util.nunbt.Compression;
-import org.minerift.ether.util.nunbt.NbtReader;
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.StringTag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.Compression;
+import org.minerift.ether.util.nbt.NbtReader;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.StringTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.io.File;
 import java.io.IOException;

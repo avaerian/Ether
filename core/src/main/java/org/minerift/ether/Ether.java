@@ -105,8 +105,8 @@ public class Ether {
 
 
         // Load managers
-        //islandManager = new IslandManager(); // This needs to be delayed until islands are loaded
-        inviteManager = new IslandInviteManager(); // This needs to be delayed until invites are loaded
+        islandManager = new IslandManager(); // TODO: This needs to be delayed until islands are loaded
+        inviteManager = new IslandInviteManager(); // TODO: This needs to be delayed until invites are loaded
         userManager = new UserManager();
 
         stopwatch.stop();

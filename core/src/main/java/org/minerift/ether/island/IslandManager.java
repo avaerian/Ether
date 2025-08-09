@@ -1,7 +1,6 @@
 package org.minerift.ether.island;
 
 import org.bukkit.Location;
-import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
@@ -43,6 +42,12 @@ public class IslandManager {
     }
 
     public Island createIsland(EtherUser user) {
+
+        if(user.getIsland() != null) {
+            // TODO: logger
+        }
+
+
         return IslandCreationRoutine.run(grid, user);
     }
 

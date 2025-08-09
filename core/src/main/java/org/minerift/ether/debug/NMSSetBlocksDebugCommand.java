@@ -10,6 +10,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
+import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.DeprecatedNMSAccess;
 import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.math.Vec3i;
@@ -93,7 +94,11 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
             for(int y = 0; y < height; y++) {
                 for(int z = 0; z < length; z++) {
                     final BlockData randomBlockData = BLOCK_DATA[random.nextInt(BLOCK_DATA.length)];
-                    blocks.add(new BlockArchetype(new Vec3i(x,y,z), randomBlockData.getAsString(true)));
+                    try {
+                        blocks.add(new BlockArchetype(randomBlockData.getAsString(true), new Vec3i(x,y,z)));
+                    } catch (BlockStateNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }
