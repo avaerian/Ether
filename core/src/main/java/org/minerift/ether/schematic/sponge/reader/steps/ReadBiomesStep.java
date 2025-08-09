@@ -7,11 +7,10 @@ import org.minerift.ether.schematic.data.Array3DOrder;
 import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
-import org.minerift.ether.util.nunbt.tags.IntTag;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.IntTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,7 +34,7 @@ public class ReadBiomesStep implements IReaderStep {
         if(tagList.isPresent()) {
 
             // Read biome palette
-            Map<String, Tag<?>> biomePaletteRaw = tagList.get().getValue();
+            Map<String, Tag> biomePaletteRaw = tagList.get().getValue();
             //Int2ObjectMap<String> biomePalette = new Int2ObjectOpenHashMap<>(biomePaletteRaw.size());
             BytePalette<Biome<?>> biomePalette = new BytePalette<>(biomePaletteRaw.size());
 
@@ -56,7 +55,7 @@ public class ReadBiomesStep implements IReaderStep {
                     // TODO: for invalid biomes, either throw, ignore (no biome), or set to fallback
                     biome = null; // nulls will be ignored
                 }
-                biomePalette.add((byte)((IntTag)idx).getIntValue(), biome);
+                biomePalette.add((byte)((IntTag)idx).getAsInt(), biome);
             });
 
             // Prepare to read data

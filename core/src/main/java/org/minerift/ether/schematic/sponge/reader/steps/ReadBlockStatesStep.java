@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.sponge.reader.steps;
 
+import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.BlockState;
 import org.minerift.ether.schematic.SchematicFileReadException;
@@ -8,9 +9,10 @@ import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
-import org.minerift.ether.util.nunbt.tags.IntTag;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.IntTag;
+import org.minerift.ether.util.nbt.tags.StringTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.util.Map;
 import java.util.OptionalInt;
@@ -30,7 +32,7 @@ public class ReadBlockStatesStep implements IReaderStep {
         final int height = builder.getHeight();
         final int length = builder.getLength();*/
 
-        Map<String, Tag<?>> paletteRaw = root.getCompound(NBT_PALETTE)
+        Map<String, Tag> paletteRaw = root.getCompound(NBT_PALETTE)
                 .orElseThrow(() -> new SchematicFileReadException("Failed to read block state palette!"))
                 .getValue();
 
@@ -50,14 +52,19 @@ public class ReadBlockStatesStep implements IReaderStep {
 
         // Map raw palette to actual palette
         paletteRaw.forEach((data, idx) -> {
+
+            // FIXME: review this item/block name upgrader
+            // TODO: create fixer-upper ops class for nunbt/other needs
+            data = Ether.getNms().fixUpItemName(StringTag.valueOf(data), -1).getValue();
+
             BlockState<?> state = BlockState.of(data, null);
             if(state == null) {
                 // TODO: proper logger
                 System.out.println("Block state " + data + " failed to create, defaulting to air");
                 state = BlockState.of("minecraft:air", null);
             }
-            System.out.println((byte)((IntTag)idx).getIntValue() + " " + state);
-            palette.add((byte)((IntTag)idx).getIntValue(), state);
+            System.out.println((byte)((IntTag)idx).getAsInt() + " " + state);
+            palette.add((byte)((IntTag)idx).getAsInt(), state);
         });
 
         // Read block data

@@ -3,9 +3,9 @@ package org.minerift.ether.schematic.sponge.reader.steps;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.math.Vec3d;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nunbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.ListTag;
 import org.minerift.ether.world.EntityArchetype;
 
 import java.util.*;
@@ -31,7 +31,7 @@ public class ReadEntitiesStep implements IReaderStep {
                 final Vec3d.Mutable pos = new Vec3d.Mutable(posRaw[0], posRaw[1], posRaw[2]);
 
                 // Fix up NBT data
-                Map<String, Tag<?>> rawNbt = entity.getValue();
+                Map<String, Tag> rawNbt = entity.getValue();
                 rawNbt.remove("Id");
                 rawNbt.remove("Pos");
 

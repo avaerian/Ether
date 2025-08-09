@@ -3,9 +3,9 @@ package org.minerift.ether.schematic.sponge.reader;
 import com.google.common.base.Preconditions;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
-import org.minerift.ether.util.nunbt.Compression;
-import org.minerift.ether.util.nunbt.NbtReader;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.Compression;
+import org.minerift.ether.util.nbt.NbtReader;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.io.File;
 import java.io.IOException;
