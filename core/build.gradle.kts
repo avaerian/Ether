@@ -11,12 +11,14 @@ plugins {
 repositories {
     mavenCentral()
     maven ("https://maven.enginehub.org/repo/")
+    maven("https://libraries.minecraft.net")
 }
 
 dependencies {
 
     //implementation("org.jooq:joor-java-8:0.9.15")
     compileOnly(libs.paperApi)
+    implementation(libs.dataFixerUpper) // TODO: review; compileOnly / compile ??
 
     // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling ?
     // General libraries
