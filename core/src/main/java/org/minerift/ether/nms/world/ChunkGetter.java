@@ -11,13 +11,13 @@ public interface ChunkGetter {
 
     ChunkGetter SYNC = (world, chunkX, chunkZ, chunkCallback) -> {
         org.bukkit.Chunk bukkitChunk = world.getChunkAt(chunkX, chunkZ);
-        Chunk chunk = Ether.getNms().getConverter().asChunk(bukkitChunk);
+        Chunk chunk = Chunk.of(bukkitChunk);
         chunkCallback.accept(chunk);
     };
 
     ChunkGetter ASYNC = (world, chunkX, chunkZ, chunkCallback) -> {
         world.getChunkAtAsync(chunkX, chunkZ)
-                .thenApply((bukkitChunk1) -> Ether.getNms().getConverter().asChunk(bukkitChunk1))
+                .thenApply(Chunk::of)
                 .thenAccept(chunkCallback);
     };
 

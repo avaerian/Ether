@@ -1,28 +1,47 @@
 package org.minerift.ether.nms;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
-import org.minerift.ether.nms.world.Biome;
-import org.minerift.ether.nms.world.BlockState;
-import org.minerift.ether.nms.world.Chunk;
-import org.minerift.ether.nms.world.Section;
-import org.minerift.ether.world.BlockArchetype;
+import org.minerift.ether.nms.world.*;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+
+import static org.minerift.ether.util.nbt.tags.PrimitiveTagType.COMPOUND;
 
 // NBS -> native block state
 // NC  -> native chunk
 // NCS -> native chunk section
-public interface NativeTypeConversions<NBS, NC, NCS, NB> {
+public interface NativeTypeConversions<NBS, NC, NCS, NB, NIS> {
 
-    NBS asNativeBlockState(String id) throws BlockStateNotFoundException;
+    default ItemStack<NIS> asItemStack(String snbt) {
+        return asItemStack(asNativeItemStack(snbt));
+    }
 
-    @Deprecated
-    default NBS asNativeBlockState(BlockArchetype block) {
-        // TODO: switch BlockArchetype to use BlockState instead of string id
+    default ItemStack<NIS> asItemStack(CompoundTag nbt) {
+        return asItemStack(asNativeItemStack(nbt));
+    }
+
+    ItemStack<NIS> asItemStack(org.bukkit.inventory.ItemStack bukkitItemStack);
+    ItemStack<NIS> asItemStack(NIS nativeItemStack);
+
+    default NIS asNativeItemStack(String snbt) {
+        Tag tag;
         try {
-            return asNativeBlockState(block.getData());
-        } catch (BlockStateNotFoundException ex) {
+            tag = Snbt.readTag(snbt);
+        } catch (UnexpectedTokenException ex) {
             throw new RuntimeException(ex);
         }
+        Preconditions.checkArgument(tag.is(COMPOUND));
+
+        return asNativeItemStack((CompoundTag) tag);
     }
+
+    NIS asNativeItemStack(CompoundTag nbt);
+
+
+    NBS asNativeBlockState(String id) throws BlockStateNotFoundException;
 
     default BlockState<NBS> asBlockState(String id) throws BlockStateNotFoundException {
         return asBlockState(asNativeBlockState(id));
@@ -44,16 +63,6 @@ public interface NativeTypeConversions<NBS, NC, NCS, NB> {
     }
 
     BlockState<NBS> asBlockState(NBS nativeState);
-
-    @Deprecated
-    default BlockState<NBS> asBlockState(BlockArchetype block) {
-        // TODO: switch BlockArchetype to use BlockState instead of string id
-        try {
-            return asBlockState(block.getData());
-        } catch (BlockStateNotFoundException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
     NB asNativeBiome(String id) throws BiomeNotFoundException;
 

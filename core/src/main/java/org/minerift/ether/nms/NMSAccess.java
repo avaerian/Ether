@@ -2,6 +2,7 @@ package org.minerift.ether.nms;
 
 import org.bukkit.World;
 import org.minerift.ether.nms.world.Chunk;
+import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 
@@ -20,6 +21,9 @@ public interface NMSAccess { // TODO: refactor to abstract class?
                 .thenApply(Chunk::of);
     }
 
+    // TODO: review; looking into local FixerUpper that emulates native MC FixerUpper
+    <T extends Tag> T fixUpItemName(T nbt, int dataVersion);
+
     void addEntity(World world, EntityArchetype entity) throws EntityLoadException;
 
     default boolean tryAddEntity(World world, EntityArchetype entity) {
@@ -34,6 +38,7 @@ public interface NMSAccess { // TODO: refactor to abstract class?
         }
     }
 
+    int getDataVersion();
     RegistryAccess registryAccess();
     NativeTypeConversions getConverter();
 

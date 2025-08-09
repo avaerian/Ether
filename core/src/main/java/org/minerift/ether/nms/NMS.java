@@ -21,7 +21,7 @@ public final class NMS {
     }
 
     private static <T> T loadNmsImpl(Class<T> iface, String implName, NMSVersion version) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> clazz = Class.forName("org.minerift.ether.nms." + version.asNiceString() + "." + implName);
+        Class<?> clazz = Class.forName("org.minerift.ether.nms." + version.asPackageString() + "." + implName);
         return iface.cast(clazz.getConstructor().newInstance());
     }
 

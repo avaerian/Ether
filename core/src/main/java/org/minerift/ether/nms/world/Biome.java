@@ -27,7 +27,7 @@ public interface Biome<NB> {
     NamespacedKey getNamespacedKey();
 
 
-    NativeTypeConversions<?,?,?,NB> getConverter();
+    NativeTypeConversions<?,?,?,NB,?> getConverter();
 
     NB asNative();
 

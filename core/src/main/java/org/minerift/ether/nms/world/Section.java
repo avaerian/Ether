@@ -21,16 +21,11 @@ public interface Section<NBS, NC, NCS, NB> {
         return getConverter().asBlockState(getNativeBlockState(x, y, z));
     }
 
-    default BlockState<?> getBlockState(Vec3<?> pos) {
+    default BlockState<?> getBlockState(Vec3 pos) {
         return getBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
     NBS setBlockState(int x, int y, int z, NBS state);
-
-    default NBS setBlockState(BlockArchetype block) throws BlockStateNotFoundException {
-        // TODO: switch BlockArchetype to use BlockState instead of string id
-        return setBlockState(block.getX(), block.getY(), block.getZ(), block.getData());
-    }
 
     default NBS setBlockState(int x, int y, int z, String id) throws BlockStateNotFoundException {
         NBS state = getConverter().asNativeBlockState(id);
@@ -75,7 +70,7 @@ public interface Section<NBS, NC, NCS, NB> {
 
     NCS asNative();
 
-    NativeTypeConversions<NBS, NC, NCS, NB> getConverter();
+    NativeTypeConversions<NBS, NC, NCS, NB, ?> getConverter();
 
     // TODO: move to Maths class
     static int sectionRelative(int i) {

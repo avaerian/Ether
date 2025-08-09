@@ -8,7 +8,7 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 
@@ -48,7 +48,7 @@ public interface Chunk<NBS, NC, NCS, NB> {
         return getConverter().asBlockState(nativeState);
     }
 
-    default NBS getBlockState(Vec3<?> pos) {
+    default NBS getBlockState(Vec3 pos) {
         return getNativeBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
@@ -64,15 +64,8 @@ public interface Chunk<NBS, NC, NCS, NB> {
     }
 
     default BlockState<NBS> setBlockState(BlockArchetype block) {
-        NBS nativeNew;
-        // TODO: switch BlockArchetype to use BlockState instead of string id
-        try {
-            nativeNew = getConverter().asNativeBlockState(block.getData());
-        } catch (BlockStateNotFoundException ex) {
-            throw new RuntimeException(ex);
-        }
-        NBS nativeOld = setNativeBlockState(block.getX(), block.getY(), block.getZ(), nativeNew);
-        return getConverter().asBlockState(nativeNew);
+        NBS nativeOld = setNativeBlockState(block.getX(), block.getY(), block.getZ(), (NBS) block.getState().asNative());
+        return getConverter().asBlockState(nativeOld);
     }
 
     // Assumes that the state already has a block entity
@@ -83,8 +76,8 @@ public interface Chunk<NBS, NC, NCS, NB> {
     }
 
     default boolean setBlockEntity(BlockEntityArchetype blockEntity) throws BlockStateNotFoundException {
-        NBS nativeState = getConverter().asNativeBlockState(blockEntity.getData());
-        return setNativeBlockEntity(blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), nativeState, blockEntity.getNBTData());
+        NBS nativeState = (NBS) blockEntity.getState().asNative();
+        return setNativeBlockEntity(blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), nativeState, blockEntity.getNbtData());
     }
 
     default boolean setBlockEntity(Vec3i pos, BlockState<?> block, CompoundTag nbt) {
@@ -130,7 +123,7 @@ public interface Chunk<NBS, NC, NCS, NB> {
 
     NC asNative();
 
-    NativeTypeConversions<NBS, NC, NCS, NB> getConverter();
+    NativeTypeConversions<NBS, NC, NCS, NB, ?> getConverter();
 
     /*int getMinBuildHeight();
     int getMinSection();*/

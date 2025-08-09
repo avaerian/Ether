@@ -26,5 +26,5 @@ public interface BlockState<NBS> {
 
     NBS asNative();
 
-    NativeTypeConversions<NBS, ?, ?, ?> getConverter();
+    NativeTypeConversions<NBS,?,?,?,?> getConverter();
 }

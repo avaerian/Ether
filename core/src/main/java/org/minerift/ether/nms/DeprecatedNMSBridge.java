@@ -16,7 +16,7 @@ import java.util.List;
 @Deprecated
 public interface DeprecatedNMSBridge {
 
-    NativeTypeConversions<?,?,?,?> getConverter();
+    NativeTypeConversions<?,?,?,?,?> getConverter();
 
     //void bootstrap();
 

@@ -52,6 +52,15 @@ public enum NMSVersion {
 
     ;
 
+    public String asPackageString() {
+        String str = this.name();
+        if(this == UNKNOWN) {
+            return str;
+        }
+
+        return str.replace('V', 'v');
+    }
+
     public String asNiceString() {
         String str = this.name();
         if(this == UNKNOWN) {
