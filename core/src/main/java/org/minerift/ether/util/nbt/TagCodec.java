@@ -1,10 +1,10 @@
-package org.minerift.ether.util.nunbt;
+package org.minerift.ether.util.nbt;
 
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.Tag;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.Tag;
 
-public interface TagCodec<T extends Tag<?>> {
+public interface TagCodec<T extends Tag> {
 
     // TODO: return bytes written
     void writeTag(NbtTraverser nbt, T tag);

@@ -1,15 +1,13 @@
-package org.minerift.ether.util.nunbt.tags.array;
+package org.minerift.ether.util.nbt.tags.array;
 
-import it.unimi.dsi.fastutil.bytes.ByteArrayList;
-import it.unimi.dsi.fastutil.bytes.ByteList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
-import org.minerift.ether.util.nunbt.NbtTraverser;
-import org.minerift.ether.util.nunbt.TagCodec;
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
+import org.minerift.ether.util.nbt.tags.TagType;
 
 public final class LongArrayTag extends ArrayTag<long[]> {
     public LongArrayTag(String name, long[] value) {
@@ -17,7 +15,7 @@ public final class LongArrayTag extends ArrayTag<long[]> {
     }
 
     @Override
-    public TagType getType() {
+    public TagType<LongArrayTag> getType() {
         return TagType.LONG_ARRAY;
     }
 

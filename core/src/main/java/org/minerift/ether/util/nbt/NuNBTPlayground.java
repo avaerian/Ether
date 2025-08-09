@@ -1,14 +1,13 @@
-package org.minerift.ether.util.nunbt;
+package org.minerift.ether.util.nbt;
 
 import org.minerift.ether.Secrets;
 import org.minerift.ether.debug.Debug;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.zip.GZIPOutputStream;
 
 @Debug
 public class NuNBTPlayground {

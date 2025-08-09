@@ -1,19 +1,20 @@
-package org.minerift.ether.util.nunbt.tags;
+package org.minerift.ether.util.nbt.tags;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import org.minerift.ether.util.nunbt.NbtTraverser;
-import org.minerift.ether.util.nunbt.TagCodec;
-import org.minerift.ether.util.nunbt.tags.array.ArrayTag;
-import org.minerift.ether.util.nunbt.tags.array.ByteArrayTag;
-import org.minerift.ether.util.nunbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nunbt.tags.array.LongArrayTag;
-import org.minerift.ether.util.nunbt.tags.container.AbstractContainerTag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nunbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.tags.array.ArrayTag;
+import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
+import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
+import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
+import org.minerift.ether.util.nbt.tags.container.AbstractContainerTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.ListTag;
 
-public enum TagType {
+@Deprecated // TODO: remove this
+public enum PrimitiveTagType {
 
     END(EndTag.class, EndTag.Codec::new),
 
@@ -44,8 +45,8 @@ public enum TagType {
 
     ;
 
-    public static final TagType[] VALUES = values();
-    public static TagType lookup(byte id) {
+    public static final PrimitiveTagType[] VALUES = values();
+    public static PrimitiveTagType lookup(byte id) {
         Preconditions.checkElementIndex(id, VALUES.length, "Unknown tag type " + id);
         return VALUES[id];
     }
@@ -54,7 +55,7 @@ public enum TagType {
 
     private final Supplier<TagCodec<?>> codec; // TODO: switch to regular init vs lazy loading
 
-    TagType(Class<? extends Tag> tagClazz, Supplier<TagCodec<?>> codec) {
+    PrimitiveTagType(Class<? extends Tag> tagClazz, Supplier<TagCodec<?>> codec) {
         this.tagClazz = tagClazz;
         this.codec = Suppliers.memoize(codec);
     }
@@ -83,13 +84,13 @@ public enum TagType {
         return AbstractContainerTag.class.isAssignableFrom(tagClazz);
     }
 
-    public Tag<?> readTag(NbtTraverser nbt, String name) {
+    public Tag readTag(NbtTraverser nbt, String name) {
         return getCodec().readTag(nbt, name);
     }
 
-    public void writeTag(NbtTraverser nbt, Tag<?> tag) {
-        Preconditions.checkArgument(tag.getType() == this, "Unable to write tag " + tag.getType() + " as " + this);
-        ((TagCodec<Tag<?>>)getCodec()).writeTag(nbt, tag);
+    public void writeTag(NbtTraverser nbt, Tag tag) {
+        Preconditions.checkArgument(tag.getPrimitiveType() == this, "Unable to write tag " + tag.getType() + " as " + this);
+        ((TagCodec<Tag>)getCodec()).writeTag(nbt, tag);
     }
 
     public int skip(NbtTraverser nbt) {

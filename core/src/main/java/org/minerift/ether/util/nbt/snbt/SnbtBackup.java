@@ -1,13 +1,13 @@
-package org.minerift.ether.util.nunbt.snbt;
+package org.minerift.ether.util.nbt.snbt;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.UnreachableException;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.TagType;
-import org.minerift.ether.util.nunbt.tags.array.ByteArrayTag;
-import org.minerift.ether.util.nunbt.tags.container.AbstractContainerTag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
+import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
+import org.minerift.ether.util.nbt.tags.container.AbstractContainerTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -39,7 +39,7 @@ public class SnbtBackup {
             //System.out.println(tok.translateEscapes());
         }
 
-        Tag<?> tag = readTag(test);
+        Tag tag = readTag(test);
     }
 
     public static class Parser {
@@ -71,17 +71,17 @@ public class SnbtBackup {
         }
 
 
-        public static TagType getTagType(TokenStream toks, String tok) {
+        public static PrimitiveTagType getTagType(TokenStream toks, String tok) {
             return switch (tok) {
-                case "{" -> TagType.COMPOUND;
+                case "{" -> PrimitiveTagType.COMPOUND;
                 case "[" -> {
-                    TagType type = switch (toks.peekNextToken()) {
-                        case "B" -> TagType.BYTE_ARRAY;
-                        case "I" -> TagType.INT_ARRAY;
-                        case "L" -> TagType.LONG_ARRAY;
-                        default -> TagType.LIST;
+                    PrimitiveTagType type = switch (toks.peekNextToken()) {
+                        case "B" -> PrimitiveTagType.BYTE_ARRAY;
+                        case "I" -> PrimitiveTagType.INT_ARRAY;
+                        case "L" -> PrimitiveTagType.LONG_ARRAY;
+                        default -> PrimitiveTagType.LIST;
                     };
-                    if(type != TagType.LIST) { // if array type
+                    if(type != PrimitiveTagType.LIST) { // if array type
                         toks.readNextToken(); // skip array type
                         toks.readNextToken(); // skip ";"
                     }
@@ -89,24 +89,24 @@ public class SnbtBackup {
                 }
                 default -> {
                     if(tok.equalsIgnoreCase("true") || tok.equalsIgnoreCase("false")) {
-                        yield TagType.BYTE;
+                        yield PrimitiveTagType.BYTE;
                     }
 
-                    TagType type;
+                    PrimitiveTagType type;
                     if(BYTE_VALUE.test(tok)) {
-                        type = TagType.BYTE;
+                        type = PrimitiveTagType.BYTE;
                     } else if(SHORT_VALUE.test(tok)) {
-                        type = TagType.SHORT;
+                        type = PrimitiveTagType.SHORT;
                     } else if(INT_VALUE.test(tok)) {
-                        type = TagType.INT;
+                        type = PrimitiveTagType.INT;
                     } else if(LONG_VALUE.test(tok)) {
-                        type = TagType.LONG;
+                        type = PrimitiveTagType.LONG;
                     } else if(FLOAT_VALUE.test(tok)) {
-                        type = TagType.FLOAT;
+                        type = PrimitiveTagType.FLOAT;
                     } else if(DOUBLE_VALUE.test(tok)) {
-                        type = TagType.DOUBLE;
+                        type = PrimitiveTagType.DOUBLE;
                     } else if(STRING_VALUE.test(tok)) {
-                        type = TagType.STRING;
+                        type = PrimitiveTagType.STRING;
                     } else {
                         type = null;
                         //throw new IllegalArgumentException("'" + tok + "' is not a valid tag type!");
@@ -126,7 +126,7 @@ public class SnbtBackup {
 
     }
 
-    public static Tag<?> readTag(String snbt) {
+    public static Tag readTag(String snbt) {
 
         // Format: Name:Value
 
@@ -147,7 +147,7 @@ public class SnbtBackup {
                 }
 
                 case "[" -> {
-                    TagType type = Parser.getTagType(tokens, token);
+                    PrimitiveTagType type = Parser.getTagType(tokens, token);
                     // Goal for this parser/token reader: create tags and assign values
                     /*switch (type) { // FIXME: work on this
                         case BYTE_ARRAY -> containerStack.push(new ByteArrayTag(name));

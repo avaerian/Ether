@@ -1,115 +1,107 @@
 package org.minerift.ether.util.nbt.tags;
 
-/*
- * JNBT License
- *
- * Copyright (c) 2010 Graham Edgecombe
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *
- *     * Neither the name of the JNBT team nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+import org.minerift.ether.util.Note;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
-import org.minerift.ether.util.nbt.NBTTagType;
+public class ByteTag extends Tag implements ScalarTag {
 
-/**
- * The <code>TAG_Byte</code> tag.
- *
- * @author Graham Edgecombe
- *
- */
-public final class ByteTag extends Tag {
+    public static ByteTag valueOf(byte value) {
+        return new ByteTag("", value);
+    }
 
-    /**
-     * The value.
-     */
-    private final byte value;
+    private byte value;
 
-    /**
-     * Creates the tag.
-     *
-     * @param name
-     *            The name.
-     * @param value
-     *            The value.
-     */
-    public ByteTag(final String name, final byte value) {
-
-        super(name);
+    public ByteTag(String name, byte value) {
+        this.name = name;
         this.value = value;
     }
 
     @Override
-    public Byte getValue() {
+    public TagType<ByteTag> getType() {
+        return TagType.BYTE;
+    }
 
+    @Note("If 0, return false. For all other values, return true")
+    public boolean getAsBoolean() {
+        return value != 0;
+    }
+
+    @Override
+    public byte getAsByte() {
         return value;
     }
 
     @Override
-    public NBTTagType getTagType() {
-        return NBTTagType.BYTE_TAG;
+    public short getAsShort() {
+        return value;
+    }
+
+    @Override
+    public int getAsInt() {
+        return value;
+    }
+
+    @Override
+    public long getAsLong() {
+        return value;
+    }
+
+    @Override
+    public float getAsFloat() {
+        return value;
+    }
+
+    @Override
+    public double getAsDouble() {
+        return value;
+    }
+
+    @Override
+    public Number getAsNumber() {
+        return value;
+    }
+
+    public void setValue(byte value) {
+        this.value = value;
+    }
+
+    @Override
+    public ByteTag copy() {
+        return new ByteTag(name, value);
     }
 
     @Override
     public String toString() {
+        return "ByteTag{" +
+                "value=" + value +
+                ", name='" + name + '\'' +
+                '}';
+    }
 
-        final String name = getName();
-        String append = "";
-        if ((name != null) && !name.equals("")) {
-            append = "(\"" + getName() + "\")";
+    public static class Codec implements TagCodec<ByteTag> {
+        @Override
+        public ByteTag readTag(NbtTraverser nbt, String name) {
+            return new ByteTag(name, nbt.readByte());
         }
-        return "TAG_Byte" + append + ": " + value;
+
+        @Override
+        public ByteTag readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException {
+            byte b = snbt.expectByte();
+            return new ByteTag(name, b);
+        }
+
+        @Override
+        public void writeTag(NbtTraverser nbt, ByteTag tag) {
+            nbt.writeByte(tag.getAsByte());
+        }
+
+        @Override
+        public int skip(NbtTraverser nbt) {
+            nbt.skip(Byte.BYTES);
+            return Byte.BYTES;
+        }
     }
-
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-
-        final int prime = 31;
-        int result = super.hashCode();
-        result = (prime * result) + value;
-        return result;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(final Object obj) {
-
-        if (this == obj) { return true; }
-        if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof ByteTag)) { return false; }
-        final ByteTag other = (ByteTag) obj;
-        if (value != other.value) { return false; }
-        return true;
-    }
-
 }

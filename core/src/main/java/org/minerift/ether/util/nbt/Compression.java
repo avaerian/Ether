@@ -1,4 +1,4 @@
-package org.minerift.ether.util.nunbt;
+package org.minerift.ether.util.nbt;
 
 public enum Compression {
     NONE,

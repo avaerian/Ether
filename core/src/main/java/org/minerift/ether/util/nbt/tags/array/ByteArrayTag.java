@@ -1,14 +1,13 @@
-package org.minerift.ether.util.nunbt.tags.array;
+package org.minerift.ether.util.nbt.tags.array;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.bytes.ByteList;
-import org.minerift.ether.util.io.DynBuf;
-import org.minerift.ether.util.nunbt.NbtTraverser;
-import org.minerift.ether.util.nunbt.TagCodec;
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
+import org.minerift.ether.util.nbt.tags.TagType;
 
 public final class ByteArrayTag extends ArrayTag<byte[]> {
     public ByteArrayTag(String name, byte[] value) {
@@ -20,7 +19,7 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
     }
 
     @Override
-    public TagType getType() {
+    public TagType<ByteArrayTag> getType() {
         return TagType.BYTE_ARRAY;
     }
 

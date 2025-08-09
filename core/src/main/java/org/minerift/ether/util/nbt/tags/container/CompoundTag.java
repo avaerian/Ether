@@ -1,21 +1,26 @@
-package org.minerift.ether.util.nunbt.tags.container;
+package org.minerift.ether.util.nbt.tags.container;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.util.nunbt.NbtTraverser;
-import org.minerift.ether.util.nunbt.TagCodec;
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.*;
+import org.jetbrains.annotations.Nullable;
+import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.*;
+import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
+import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
+import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-import static org.minerift.ether.util.nunbt.tags.TagType.*;
+import static org.minerift.ether.util.nbt.tags.PrimitiveTagType.*;
 
-public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
+public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
-    protected Map<String, Tag<?>> tags;
+    protected Map<String, Tag> tags;
 
     public CompoundTag() {
         this("", new LinkedHashMap<>());
@@ -25,32 +30,49 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
         this(name, new LinkedHashMap<>());
     }
 
-    public CompoundTag(String name, Map<String, Tag<?>> tags) {
+    public CompoundTag(String name, Map<String, Tag> tags) {
         this.name = name;
         this.tags = tags;
     }
 
     @Override
-    public TagType getType() {
+    public TagType<CompoundTag> getType() {
         return TagType.COMPOUND;
     }
 
-    public void addTag(Tag<?> tag) {
+    public void addTag(Tag tag) {
         Preconditions.checkArgument(!tags.containsKey(tag.getName()), "Tag already exists with name " + tag.getName() + " in CompoundTag!");
         tags.put(tag.getName(), tag);
     }
 
-    public Tag<?> getTag(String name) {
+    public Tag getTag(String name) {
         return tags.get(name);
     }
 
-    // NOTE: unsafe; TODO: add safety checks with exception?
-    public <T extends Tag<?>> T getTag(String name, Class<T> clazz) {
-        return (T) getTag(name);
+    public <T extends Tag> T getTag(String name, Class<? extends T> clazz) {
+        return getTag(name, TagType.lookup(clazz));
     }
 
-    @Override
-    public void removeTag(Tag<?> tag) {
+    public <T extends Tag> T getTag(String name, TagType<T> type) {
+        Tag tag = getTag(name);
+        if(tag == null) {
+            return null;
+        }
+
+        if(!tag.is(type)) {
+            throw new IllegalArgumentException("Found tag " + name + "; expected type " + type.getTagClass() + ", got " + tag.getType());
+        }
+        return (T) tag;
+    }
+
+    // TODO
+    public <T extends Tag> ListTag<T> getListTag(String name, TagType<T> childType) {
+        ListTag<?> tag = getTag(name, TagType.LIST);
+        //if(tag.isHolding())
+        throw new UnreachableException("unimplemented");
+    }
+
+    public void removeTag(Tag tag) {
         removeTag(tag.getName());
     }
 
@@ -58,107 +80,148 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
         tags.remove(name);
     }
 
-    private <R, F extends Function<Tag<?>, R>> R getTagValue(String name, TagType expectedType, F none, F some) {
-        Tag<?> tag = tags.get(name);
+    /*private <R, F extends Function<Tag, R>> R getTagValue(String name, TagType<> expectedType, F none, F some) {
+        Tag tag = tags.get(name);
         if(tag == null) {
             return none.apply(null);
         }
         Preconditions.checkArgument(tag.getType() == expectedType,
                 tag.getType() + " tag \"" + name + "\" found, but expected type " + expectedType);
         return some.apply(tag);
-    }
-
-    private <T> Optional<T> getTagValue(String name, TagType expectedType) {
-        return (Optional<T>) getTagValue(name, expectedType, (t) -> Optional.empty(), (t) -> Optional.of(t.getValue()));
-    }
+    }*/
 
     // TODO: add getOrThrow methods to throw NbtTagGetException for better IO exception handling
     //  (for schematic handling, if nbt fails to retrieve, catch nbt except and throw as SchematicFileReadException)
 
     // TODO: create additional primitive Optional classes to avoid autoboxing if possible?
     public Optional<Byte> getByte(String name) {
-        return getTagValue(name, BYTE);
+        ByteTag tag = getTag(name, TagType.BYTE);
+        return tag != null
+                ? Optional.of(tag.getAsByte())
+                : Optional.empty();
     }
 
     public Optional<Short> getShort(String name) {
-        return getTagValue(name, SHORT);
+        ShortTag tag = getTag(name, TagType.SHORT);
+        return tag != null
+                ? Optional.of(tag.getAsShort())
+                : Optional.empty();
     }
 
     public OptionalInt getInt(String name) {
-        return getTagValue(name, INT, (t) -> OptionalInt.empty(), (t) -> OptionalInt.of(((IntTag)t).getIntValue()));
+        IntTag tag = getTag(name, TagType.INT);
+        return tag != null
+                ? OptionalInt.of(tag.getAsInt())
+                : OptionalInt.empty();
     }
 
     public OptionalLong getLong(String name) {
-        return getTagValue(name, LONG, (t) -> OptionalLong.empty(), (t) -> OptionalLong.of(((LongTag)t).getLongValue()));
+        LongTag tag = getTag(name, TagType.LONG);
+        return tag != null
+                ? OptionalLong.of(tag.getAsLong())
+                : OptionalLong.empty();
     }
 
     public Optional<Float> getFloat(String name) {
-        return getTagValue(name, FLOAT);
+        FloatTag tag = getTag(name, TagType.FLOAT);
+        return tag != null
+                ? Optional.of(tag.getAsFloat())
+                : Optional.empty();
     }
 
     public OptionalDouble getDouble(String name) {
-        return getTagValue(name, DOUBLE, (t) -> OptionalDouble.empty(), (t) -> OptionalDouble.of(((DoubleTag)t).getDoubleValue()));
+        DoubleTag tag = getTag(name, TagType.DOUBLE);
+        return tag != null
+                ? OptionalDouble.of(tag.getAsDouble())
+                : OptionalDouble.empty();
     }
 
     public Optional<String> getString(String name) {
-        return getTagValue(name, STRING);
+        StringTag tag = getTag(name, TagType.STRING);
+        return tag != null
+                ? Optional.of(tag.getValue())
+                : Optional.empty();
     }
 
-    public <T extends Tag<?>> Optional<ListTag<T>> getList(String name, Class<T> childClazz) {
-        return Optional.ofNullable((ListTag<T>) tags.get(name));
+    public <T extends Tag> Optional<ListTag<T>> getList(String name, @Nullable TagType<T> childType) {
+        ListTag<?> tag = getTag(name, TagType.LIST);
+        if(tag == null) {
+            return Optional.empty();
+        }
+
+        if(childType != null && !tag.getChildType().equals(childType)) {
+            // Mismatching children types
+        }
+
+        return Optional.of((ListTag<T>) tag);
     }
 
-    // TODO: add additional checks to ensure types are correct and better exception handling
-    public <T extends Tag<?>> Optional<ListTag<T>> getList(String name) {
-        return Optional.ofNullable((ListTag<T>) tags.get(name));
+    public <T extends Tag> Optional<ListTag<T>> getList(String name, Class<T> childClazz) {
+        return getList(name, TagType.lookup(childClazz));
     }
+
+
 
     public Optional<CompoundTag> getCompound(String name) {
-        return Optional.ofNullable((CompoundTag) tags.get(name));
+        CompoundTag tag = getTag(name, TagType.COMPOUND);
+        return Optional.ofNullable(tag);
     }
 
     public Optional<byte[]> getByteArray(String name) {
-        return getTagValue(name, BYTE_ARRAY);
+        ByteArrayTag tag = getTag(name, TagType.BYTE_ARRAY);
+        return tag != null
+                ? Optional.of(tag.getValue())
+                : Optional.empty();
     }
 
     public Optional<int[]> getIntArray(String name) {
-        return getTagValue(name, INT_ARRAY);
+        IntArrayTag tag = getTag(name, TagType.INT_ARRAY);
+        return tag != null
+                ? Optional.of(tag.getValue())
+                : Optional.empty();
     }
 
     public Optional<long[]> getLongArray(String name) {
-        return getTagValue(name, LONG_ARRAY);
+        LongArrayTag tag = getTag(name, TagType.LONG_ARRAY);
+        return tag != null
+                ? Optional.of(tag.getValue())
+                : Optional.empty();
     }
 
+    // TODO: refactor these methods by remove Optional ????
     // TODO: refactor by moving this out of CompoundTag and into ListTag ?
     public Optional<double[]> getDoubleArray(String name) {
-        Optional<ListTag<DoubleTag>> tag = getList(name);
-        return tag.map((listTag) -> {
-            List<DoubleTag> tags = listTag.getValue();
-            double[] doubles = new double[tags.size()];
-            for(int i = 0; i < doubles.length; i++) {
-                doubles[i] = tags.get(i).getDoubleValue();
-            }
-            return doubles;
-        });
+        ListTag<DoubleTag> listTag = getListTag(name, TagType.DOUBLE);
+        if(listTag == null) {
+            return Optional.empty();
+        }
+
+        double[] buf = new double[listTag.getValue().size()];
+        for(int i = 0; i < listTag.size(); i++) {
+            buf[i] = listTag.getTag(i).getAsDouble();
+        }
+        return Optional.of(buf);
     }
 
-    @Override
-    public Map<String, Tag<?>> getValue() {
+    public Map<String, Tag> getValue() {
         return tags;
     }
 
-    @Override
-    public void setValue(Map<String, Tag<?>> value) {
+    public void setValue(Map<String, Tag> value) {
         this.tags = value;
     }
 
     @Override
     public CompoundTag copy() {
-        return new CompoundTag(name, tags);
+        CompoundTag copy = new CompoundTag(name);
+        for(Tag tag : getValue().values()) {
+            copy.addTag(tag.copy());
+        }
+        return copy;
     }
 
     @Override
-    public CompoundTag copy(@NotNull Function<Map<String, Tag<?>>, Map<String, Tag<?>>> copyContainerFn) {
+    public CompoundTag copy(@NotNull UnaryOperator<Map<String, Tag>> copyContainerFn) {
         return new CompoundTag(name, copyContainerFn.apply(tags));
     }
 
@@ -180,7 +243,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
         }
 
         @Override
-        public void addTag(Tag<?> tag) {
+        public void addTag(Tag tag) {
             if(tags == Collections.EMPTY_MAP) {
                 tags = new LinkedHashMap<>();
             }
@@ -196,7 +259,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
             CompoundTag compound = new CompoundTag(name);
             do {
                 byte childTypeId = nbt.readByte();
-                TagType childType = TagType.lookup(childTypeId);
+                PrimitiveTagType childType = lookup(childTypeId);
                 if(childType == END) {
                     break;
                 }
@@ -229,7 +292,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
                 System.out.println(result.token());
                 snbt.getTokens().setPos(result.token().getStreamPos());
 
-                Tag<?> tag = result.type().getCodec().readTag(snbt, name);
+                Tag tag = result.type().codec().readTag(snbt, name);
                 compound.addTag(tag);
 
                 if(snbt.nextIf("}")) {
@@ -243,10 +306,10 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
 
         @Override
         public void writeTag(NbtTraverser nbt, CompoundTag tag) {
-            for(Tag<?> childTag : tag.getValue().values()) {
+            for(Tag childTag : tag.getValue().values()) {
                 nbt.writeByte(childTag.getType().getId());
                 nbt.writeUTF8(childTag.getName());
-                childTag.getType().writeTag(nbt, childTag);
+                ((TagType<Tag>)childTag.getType()).codec().writeTag(nbt, childTag);
             }
             END.writeTag(nbt, EndTag.INSTANCE);
         }
@@ -257,7 +320,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag<?>>> {
             do {
                 byte childTypeId = nbt.readByte();
                 bytes++;
-                TagType childType = TagType.lookup(childTypeId);
+                PrimitiveTagType childType = lookup(childTypeId);
                 if(childType == END) {
                     break;
                 }

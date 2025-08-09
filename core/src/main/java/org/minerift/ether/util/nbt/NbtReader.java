@@ -1,8 +1,8 @@
-package org.minerift.ether.util.nunbt;
+package org.minerift.ether.util.nbt;
 
-import org.minerift.ether.util.nunbt.tags.EndTag;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.EndTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
 
 import java.nio.ByteBuffer;
 import java.util.function.Predicate;
@@ -17,10 +17,10 @@ public class NbtReader extends NbtTraverser {
         super(buffer, bigEndian, tagSelector);
     }
 
-    public Tag<?> readNextTag() {
+    public Tag readNextTag() {
         byte typeId = readByte();
-        TagType type = TagType.lookup(typeId);
-        if(type == TagType.END) {
+        PrimitiveTagType type = PrimitiveTagType.lookup(typeId);
+        if(type == PrimitiveTagType.END) {
             return EndTag.INSTANCE;
         }
         String name = readUTF8();

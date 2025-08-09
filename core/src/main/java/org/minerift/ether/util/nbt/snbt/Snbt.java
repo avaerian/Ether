@@ -1,10 +1,10 @@
-package org.minerift.ether.util.nunbt.snbt;
+package org.minerift.ether.util.nbt.snbt;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.UnreachableException;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.TagType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +41,7 @@ public class Snbt {
 
         System.out.println(Parser.DOUBLE_VALUE.matcher("-555.0d").matches());
 
-        Tag<?> tag = readTag(test);
+        Tag tag = readTag(test);
         System.out.println(test);
         System.out.println(tag);
     }
@@ -194,6 +194,7 @@ public class Snbt {
             return getTagType(stream, tok);
         }
 
+        // TODO: refactor PrimitiveTagType to new TagType
         public static TagTypeParserResult getTagType(TokenStream toks, Token tok) {
             final String strTok = tok.strTok;
             return switch (tok.strTok) {
@@ -216,7 +217,7 @@ public class Snbt {
                         yield new TagTypeParserResult(TagType.BYTE, tok);
                     }
 
-                    TagType type;
+                    TagType<?> type;
                     if(tok.matches(BYTE_VALUE)) {
                         type = TagType.BYTE;
                     } else if(tok.matches(SHORT_VALUE)) {
@@ -248,7 +249,7 @@ public class Snbt {
 
     }
 
-    public static Tag<?> readTag(String snbt) throws UnexpectedTokenException { // TODO: review exception; change name/remove from here and create duplicate method that returns null instead of exception
+    public static Tag readTag(String snbt) throws UnexpectedTokenException { // TODO: review exception; change name/remove from here and create duplicate method that returns null instead of exception
         // Format: Name:Value
 
         TokenStream tokens = new TokenStream(snbt);
@@ -265,7 +266,7 @@ public class Snbt {
         Token valToken = parser.peek();
         TagTypeParserResult result = parser.getTagType(valToken);
         tokens.pos = result.token().nextStreamPos;
-        return result.type().getCodec().readTag(parser, name);
+        return result.type().codec().readTag(parser, name);
     }
 
     // final String test = "\"x:0\" :  {x: 0, y: 55, z: 0, Items: [{Slot: 0b, id: \"clock\", Count: 1b}, {Slot: 9b, id: \"written_book\", Count: 1b, tag: {pages: ['{\"text\":\"\\'twas brillig and the slithy toves\"}', '{\"text\":\"Did gyre and gimble in the wabe.\"}', '{\"text\":\"All mimsy were the borogoves,\"}', '{\"text\":\"And the mome raths outgrabe.\"}'], author: \"LewisCarroll\", title: \"Jabberwocky\"}}], id: \"enderchest and \"}";

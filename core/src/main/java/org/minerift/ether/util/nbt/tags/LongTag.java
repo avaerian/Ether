@@ -1,115 +1,102 @@
 package org.minerift.ether.util.nbt.tags;
 
-/*
- * JNBT License
- *
- * Copyright (c) 2010 Graham Edgecombe
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *
- *     * Neither the name of the JNBT team nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
-import org.minerift.ether.util.nbt.NBTTagType;
+public class LongTag extends Tag implements ScalarTag {
 
-/**
- * The <code>TAG_Long</code> tag.
- *
- * @author Graham Edgecombe
- *
- */
-public final class LongTag extends Tag {
+    public static LongTag valueOf(long value) {
+        return new LongTag("", value);
+    }
 
-    /**
-     * The value.
-     */
-    private final long value;
+    private long value;
 
-    /**
-     * Creates the tag.
-     *
-     * @param name
-     *            The name.
-     * @param value
-     *            The value.
-     */
-    public LongTag(final String name, final long value) {
-
-        super(name);
+    public LongTag(String name, long value) {
+        this.name = name;
         this.value = value;
     }
 
     @Override
-    public Long getValue() {
+    public TagType<LongTag> getType() {
+        return TagType.LONG;
+    }
 
+    @Override
+    public byte getAsByte() {
+        return (byte) value;
+    }
+
+    @Override
+    public short getAsShort() {
+        return (short) value;
+    }
+
+    @Override
+    public int getAsInt() {
+        return (int) value;
+    }
+
+    @Override
+    public long getAsLong() {
         return value;
     }
 
     @Override
-    public NBTTagType getTagType() {
-        return NBTTagType.LONG_TAG;
+    public float getAsFloat() {
+        return value;
+    }
+
+    @Override
+    public double getAsDouble() {
+        return value;
+    }
+
+    @Override
+    public Number getAsNumber() {
+        return value;
+    }
+
+    @Override
+    public LongTag copy() {
+        return new LongTag(name, value);
+    }
+
+    public void setValue(long value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
+        return "LongTag{" +
+                "value=" + value +
+                ", name='" + name + '\'' +
+                '}';
+    }
 
-        final String name = getName();
-        String append = "";
-        if ((name != null) && !name.equals("")) {
-            append = "(\"" + getName() + "\")";
+    public static class Codec implements TagCodec<LongTag> {
+
+        @Override
+        public LongTag readTag(NbtTraverser nbt, String name) {
+            return new LongTag(name, nbt.readLong());
         }
-        return "TAG_Long" + append + ": " + value;
+
+        @Override
+        public LongTag readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException {
+            long l = snbt.expectLong();
+            return new LongTag(name, l);
+        }
+
+        @Override
+        public void writeTag(NbtTraverser nbt, LongTag tag) {
+            nbt.writeLong(tag.getAsLong());
+        }
+
+        @Override
+        public int skip(NbtTraverser nbt) {
+            nbt.skip(Long.BYTES);
+            return Long.BYTES;
+        }
     }
-
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-
-        final int prime = 31;
-        int result = super.hashCode();
-        result = (prime * result) + (int) (value ^ (value >>> 32));
-        return result;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(final Object obj) {
-
-        if (this == obj) { return true; }
-        if (!super.equals(obj)) { return false; }
-        if (!(obj instanceof LongTag)) { return false; }
-        final LongTag other = (LongTag) obj;
-        if (value != other.value) { return false; }
-        return true;
-    }
-
 }

@@ -1,6 +1,6 @@
-package org.minerift.ether.util.nunbt.tags.container;
+package org.minerift.ether.util.nbt.tags.container;
 
-import org.minerift.ether.util.nunbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.Tag;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class RootEntryTag extends CompoundTag {
         super(name);
     }
 
-    public RootEntryTag(String name, Map<String, Tag<?>> tags) {
+    public RootEntryTag(String name, Map<String, Tag> tags) {
         super(name, tags);
     }
 }

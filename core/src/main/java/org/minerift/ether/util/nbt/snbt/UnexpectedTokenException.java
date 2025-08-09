@@ -1,4 +1,4 @@
-package org.minerift.ether.util.nunbt.snbt;
+package org.minerift.ether.util.nbt.snbt;
 
 public class UnexpectedTokenException extends Exception {
     public UnexpectedTokenException() {

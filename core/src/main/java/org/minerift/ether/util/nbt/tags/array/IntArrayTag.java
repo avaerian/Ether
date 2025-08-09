@@ -1,22 +1,27 @@
-package org.minerift.ether.util.nunbt.tags.array;
+package org.minerift.ether.util.nbt.tags.array;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.minerift.ether.util.nunbt.NbtTraverser;
-import org.minerift.ether.util.nunbt.TagCodec;
-import org.minerift.ether.util.nunbt.snbt.Snbt;
-import org.minerift.ether.util.nunbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.NbtTraverser;
+import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.snbt.Snbt;
+import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
+import org.minerift.ether.util.nbt.tags.TagType;
 
 import java.util.Arrays;
 
 public final class IntArrayTag extends ArrayTag<int[]> {
+    public static IntArrayTag valueOf(int[] value) {
+        return new IntArrayTag("", value);
+    }
+
     public IntArrayTag(String name, int[] value) {
         super(name, value);
     }
 
     @Override
-    public TagType getType() {
+    public TagType<IntArrayTag> getType() {
         return TagType.INT_ARRAY;
     }
 

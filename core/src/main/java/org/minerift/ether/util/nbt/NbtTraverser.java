@@ -1,8 +1,8 @@
-package org.minerift.ether.util.nunbt;
+package org.minerift.ether.util.nbt;
 
 import com.google.common.base.Predicates;
 import org.minerift.ether.debug.Debug;
-import org.minerift.ether.util.nunbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -64,7 +64,7 @@ public class NbtTraverser {
 
     public TagHeader readTagHeader() {
         byte id = readByte();
-        String name = TagType.END.getId() == id ? "" : readUTF8();
+        String name = PrimitiveTagType.END.getId() == id ? "" : readUTF8();
         TagHeader header = new TagHeader(id, name);
         return header;
     }
