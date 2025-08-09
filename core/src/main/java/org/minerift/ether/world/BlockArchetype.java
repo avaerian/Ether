@@ -1,20 +1,27 @@
 package org.minerift.ether.world;
 
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.nms.BlockStateNotFoundException;
+import org.minerift.ether.nms.world.BlockState;
 
 // Represents a single block ready for world placement
 public class BlockArchetype implements Archetype {
 
-    protected final String data;
+    protected final BlockState<?> state;
     protected final Vec3i.Mutable pos;
 
-    public BlockArchetype(Vec3i pos, String data) {
+    public BlockArchetype(String data, Vec3i pos) throws BlockStateNotFoundException {
+        this.state = BlockState.of(data);
         this.pos = pos.asMutable();
-        this.data = data;
     }
 
-    public String getData() {
-        return data;
+    public BlockArchetype(BlockState<?> state, Vec3i pos) {
+        this.state = state;
+        this.pos = pos.asMutable();
+    }
+
+    public BlockState<?> getState() {
+        return state;
     }
 
     public Vec3i.Mutable getPos() {
@@ -47,6 +54,6 @@ public class BlockArchetype implements Archetype {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s", pos, data);
+        return String.format("%s -> %s", pos, state);
     }
 }

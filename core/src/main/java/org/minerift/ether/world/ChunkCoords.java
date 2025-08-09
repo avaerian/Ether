@@ -30,7 +30,7 @@ public class ChunkCoords {
         return new Vec2i(blockX >> 4, blockZ >> 4);
     }
 
-    public static Vec2i getChunkAt(Vec3<?> blockPos) {
+    public static Vec2i getChunkAt(Vec3 blockPos) {
         return getChunkAt(blockPos.getX(), blockPos.getZ());
     }
 
@@ -42,11 +42,11 @@ public class ChunkCoords {
         return new Vec3i(chunkX << 4, y, chunkZ << 4);
     }
 
-    public static Vec3i getBlockAt(Vec2<?> chunkPos, int y) {
+    public static Vec3i getBlockAt(Vec2 chunkPos, int y) {
         return getBlockAt(chunkPos.getX(), chunkPos.getZ(), y);
     }
 
-    public static Vec3i getBlockAt(Vec2<?> chunkPos) {
+    public static Vec3i getBlockAt(Vec2 chunkPos) {
         return getBlockAt(chunkPos.getX(), chunkPos.getZ(), 0);
     }
 

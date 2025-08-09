@@ -1,25 +1,30 @@
 package org.minerift.ether.world;
 
-import org.bukkit.block.Biome;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.nms.BiomeNotFoundException;
+import org.minerift.ether.nms.world.Biome;
 
 public class BiomeArchetype implements Archetype/*<Vec3i>*/ {
 
-    private String biomeId;
+    private Biome<?> biome;
     private Vec3i pos;
 
-    public BiomeArchetype(Vec3i pos, String biomeId) {
-        this.biomeId = biomeId;
+    public BiomeArchetype(String biomeId, Vec3i pos) throws BiomeNotFoundException {
+        this.biome = Biome.of(biomeId);
         this.pos = pos.asMutable();
     }
 
-    // NOTE: doesn't support custom biomes
-    public Biome getBiome() {
-        return BiomesList.getBiome(biomeId);
+    public BiomeArchetype(Biome<?> biome, Vec3i pos) {
+        this.biome = biome;
+        this.pos = pos;
+    }
+
+    public Biome<?> getBiome() {
+        return biome;
     }
 
     public String getBiomeId() {
-        return biomeId;
+        return biome.getResourceKey();
     }
 
     //@Override
