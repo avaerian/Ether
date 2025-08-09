@@ -39,7 +39,7 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.DeprecatedNMSBridge;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.util.reflect.ReflectedObject;
-import org.minerift.ether.work.TaskBatch;
+import org.minerift.ether.work.BatchedTask;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.EntityArchetype;
@@ -193,7 +193,7 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
         final DeprecatedBlockPartition partition = new DeprecatedBlockPartition(blocks, world, DeprecatedGetChunkFunction.ASYNC);
         //final WorkQueue workQueue = EtherPlugin.getInstance().getWorkQueue();
         final Logger logger = Ether.getLogger();
-        final TaskBatch operation = new TaskBatch();
+        final BatchedTask operation = new BatchedTask();
 
         System.out.println("Partition Chunks = " + partition.getChunks());
 
@@ -221,7 +221,6 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
 
                     // Completed successfully
                     //return true;
-                    return null; // FIXME: needed for Void generic; revise WorkQueue impl
                 });
             }
         });
@@ -409,7 +408,8 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
                 final int z = SectionPos.sectionRelative(block.getZ());
 
                 // Set block
-                BlockState state = NativeTypeConversionsImpl.inst().asNativeBlockState(block, Blocks.AIR.defaultBlockState());
+                //BlockState state = NativeTypeConversionsImpl.inst().asNativeBlockState(block, Blocks.AIR.defaultBlockState());
+                BlockState state = (BlockState) block.getState().asNative();
                 BlockState oldState = section.setBlockState(x, y, z, state, false);
 
                 // Remove old block entity, if needed
@@ -425,7 +425,7 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
 
                         // Load NBT data
                         if(block instanceof BlockEntityArchetype blockEntityArchetype) {
-                            CompoundTag nbt = (CompoundTag) NativeTypeConversionsImpl.inst().asNativeTag(blockEntityArchetype.getNBTData());
+                            CompoundTag nbt = (CompoundTag) NativeTypeConversionsImpl.inst().asNativeTag(blockEntityArchetype.getNbtData());
                             blockEntity.load(nbt);
                             blockEntity.setChanged();
                         }
@@ -648,7 +648,8 @@ public class DeprecatedNMSBridgeImpl implements DeprecatedNMSBridge {
                 mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
 
                 positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
-                states[index] = NativeTypeConversionsImpl.inst().asNativeBlockState(block);
+                //states[index] = NativeTypeConversionsImpl.inst().asNativeBlockState(block);
+                states[index] = (BlockState) block.getState().asNative();
             }
 
             this.positions = new ShortArraySet(positions);

@@ -37,30 +37,27 @@ import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
-import org.minerift.ether.nms.v1_20_R2.data.BiomeImpl;
-import org.minerift.ether.nms.v1_20_R2.data.BlockStateImpl;
-import org.minerift.ether.nms.v1_20_R2.data.ChunkImpl;
-import org.minerift.ether.nms.v1_20_R2.data.SectionImpl;
+import org.minerift.ether.nms.v1_20_R2.data.*;
 import org.minerift.ether.nms.world.BlockState;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.Section;
 import org.minerift.ether.util.Note;
-import org.minerift.ether.util.nunbt.tags.Tag;
-import org.minerift.ether.util.nunbt.tags.*;
-import org.minerift.ether.util.nunbt.tags.array.ByteArrayTag;
-import org.minerift.ether.util.nunbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nunbt.tags.array.LongArrayTag;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nunbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.tags.Tag;
+import org.minerift.ether.util.nbt.tags.*;
+import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
+import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
+import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.ListTag;
 import org.minerift.ether.util.reflect.Reflect;
-import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 
 import java.util.Map;
 
 public class NativeTypeConversionsImpl implements NativeTypeConversions
         <net.minecraft.world.level.block.state.BlockState,
-        LevelChunk, LevelChunkSection, Holder<Biome>> {
+        LevelChunk, LevelChunkSection, Holder<Biome>,
+                ItemStack> {
 
     // TODO: change to INSTANCE = new NativeTypeConversionsImpl() ??
     private static NativeTypeConversionsImpl INSTANCE;
@@ -72,45 +69,55 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         return INSTANCE;
     }
 
-    public net.minecraft.nbt.Tag asNativeTag(Tag<?> tag) {
+    public Tag asTag(net.minecraft.nbt.Tag nativeTag) {
+        if(nativeTag == null) {
+            return null;
+        }
+
+        return new TagBuilderVisitor().visit(nativeTag);
+    }
+
+    public net.minecraft.nbt.Tag asNativeTag(Tag tag) {
         if(tag == null) {
             return null;
         }
 
-        return switch (tag.getType()) {
+        return switch (tag) {
 
-            case END -> net.minecraft.nbt.EndTag.INSTANCE;
+            case EndTag ignored -> net.minecraft.nbt.EndTag.INSTANCE;
 
             // Primitives
-            case BYTE   -> net.minecraft.nbt.ByteTag.valueOf(((ByteTag)tag).getValue());
-            case SHORT  -> net.minecraft.nbt.ShortTag.valueOf(((ShortTag)tag).getValue());
-            case INT    -> net.minecraft.nbt.IntTag.valueOf(((IntTag)tag).getValue());
-            case LONG   -> net.minecraft.nbt.LongTag.valueOf(((LongTag)tag).getValue());
-            case FLOAT  -> net.minecraft.nbt.FloatTag.valueOf(((FloatTag)tag).getValue());
-            case DOUBLE -> net.minecraft.nbt.DoubleTag.valueOf(((DoubleTag)tag).getValue());
-            case STRING -> net.minecraft.nbt.StringTag.valueOf(((StringTag)tag).getValue());
+            case ByteTag t   -> net.minecraft.nbt.ByteTag.valueOf( t.getAsByte() );
+            case ShortTag t  -> net.minecraft.nbt.ShortTag.valueOf( t.getAsShort() );
+            case IntTag t    -> net.minecraft.nbt.IntTag.valueOf( t.getAsInt() );
+            case LongTag t   -> net.minecraft.nbt.LongTag.valueOf( t.getAsLong() );
+            case FloatTag t  -> net.minecraft.nbt.FloatTag.valueOf( t.getAsFloat() );
+            case DoubleTag t -> net.minecraft.nbt.DoubleTag.valueOf( t.getAsDouble() );
+
+            case StringTag t -> net.minecraft.nbt.StringTag.valueOf( t.getValue() );
 
             // Arrays
-            case BYTE_ARRAY -> new net.minecraft.nbt.ByteArrayTag(((ByteArrayTag)tag).getValue());
-            case INT_ARRAY  -> new net.minecraft.nbt.IntArrayTag(((IntArrayTag)tag).getValue());
-            case LONG_ARRAY -> new net.minecraft.nbt.LongArrayTag(((LongArrayTag)tag).getValue());
+            case ByteArrayTag t -> new net.minecraft.nbt.ByteArrayTag( t.getValue() );
+            case IntArrayTag t  -> new net.minecraft.nbt.IntArrayTag( t.getValue() );
+            case LongArrayTag t -> new net.minecraft.nbt.LongArrayTag( t.getValue() );
 
             // Collections
-            case LIST -> {
-                final ListTag<Tag<?>> listTag = ((ListTag<Tag<?>>) tag);
+            case ListTag<?> t -> {
                 final net.minecraft.nbt.ListTag nativeTag = new net.minecraft.nbt.ListTag();
-                listTag.getValue().forEach(tagInList -> nativeTag.add(asNativeTag(tagInList)));
+                t.getValue().forEach(tagInList -> nativeTag.add(asNativeTag(tagInList)));
                 yield nativeTag;
             }
 
-            case COMPOUND -> {
-                final CompoundTag compoundTag = (CompoundTag) tag;
+            case CompoundTag t -> {
                 final net.minecraft.nbt.CompoundTag nativeTag = new net.minecraft.nbt.CompoundTag();
-                for(Map.Entry<String, Tag<?>> entry : compoundTag.getValue().entrySet()) {
+                for(Map.Entry<String, Tag> entry : t.getValue().entrySet()) {
                     nativeTag.put(entry.getKey(), asNativeTag(entry.getValue()));
                 }
                 yield nativeTag;
             }
+
+            // TODO: review and update this
+            default -> throw new IllegalStateException("Unexpected value: " + tag);
         };
     }
 
@@ -134,9 +141,26 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
     }
 
     @Override
+    public org.minerift.ether.nms.world.ItemStack<ItemStack> asItemStack(org.bukkit.inventory.ItemStack bukkitItemStack) {
+        ItemStack handle = ((CraftItemStack)bukkitItemStack).handle;
+        return new ItemStackImpl(handle);
+    }
+
+    @Override
+    public org.minerift.ether.nms.world.ItemStack<ItemStack> asItemStack(ItemStack nativeItemStack) {
+        return new ItemStackImpl(nativeItemStack);
+    }
+
+    @Override
+    public ItemStack asNativeItemStack(CompoundTag nbt) {
+        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) asNativeTag(nbt);
+        return ItemStack.of(nativeTag);
+    }
+
+    @Override
     public net.minecraft.world.level.block.state.BlockState asNativeBlockState(String data) throws BlockStateNotFoundException {
         try {
-            // From Bukkit
+            // Courtesy of Bukkit
             StringReader reader = new StringReader(data);
             BlockStateParser.BlockResult arg = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK.asLookup(), reader, false);
             Preconditions.checkArgument(!reader.canRead(), "Spurious trailing data: " + data);
@@ -186,13 +210,9 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         return BiomeImpl.of(nativeBiome.unwrapKey().orElseThrow()); // TODO: review exception thrown
     }
 
-    public net.minecraft.world.level.block.state.BlockState asNativeBlockState(BlockArchetype block, net.minecraft.world.level.block.state.BlockState fallback) {
-        return asNativeBlockState(block.getData(), fallback);
-    }
-
     @Note("Position needs to be proper world coordinates, instead of normalized")
     public BlockEntity asNativeBlockEntity(BlockEntityArchetype blockEntity) throws BlockStateNotFoundException {
-        net.minecraft.world.level.block.state.BlockState state = asNativeBlockState((BlockArchetype) blockEntity);
+        net.minecraft.world.level.block.state.BlockState state = (net.minecraft.world.level.block.state.BlockState) blockEntity.getState().asNative();
         BlockPos pos = new BlockPos(blockEntity.getX(), blockEntity.getY(), blockEntity.getZ());
         return ((EntityBlock) (state.getBlock())).newBlockEntity(pos, state);
     }

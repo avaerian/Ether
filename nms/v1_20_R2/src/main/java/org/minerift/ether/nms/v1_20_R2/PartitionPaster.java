@@ -15,7 +15,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.CraftChunk;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
 import org.minerift.ether.Ether;
-import org.minerift.ether.work.TaskBatch;
+import org.minerift.ether.work.BatchedTask;
 import org.minerift.ether.world.BukkitChunkGetter;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,7 +29,7 @@ public class PartitionPaster {
         final AtomicInteger chunksUpdated = new AtomicInteger();
         final BukkitChunkGetter chunkGetter = BukkitChunkGetter.ASYNC;
 
-        TaskBatch operation = new TaskBatch();
+        BatchedTask operation = new BatchedTask();
 
         partition.forEach((chunkCoords, sections) -> {
 
@@ -67,7 +67,7 @@ public class PartitionPaster {
                 });
 
                 // task ran successfully, i guess
-                return true;
+                //return true;
             });
 
         });

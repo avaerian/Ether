@@ -3,8 +3,6 @@ package org.minerift.ether.nms.v1_20_R2.data;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,9 +17,7 @@ import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
 import org.minerift.ether.nms.world.Chunk;
-import org.minerift.ether.util.nunbt.tags.container.CompoundTag;
-import org.minerift.ether.world.EntityArchetype;
-import org.minerift.ether.world.EntityLoadException;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> {
 

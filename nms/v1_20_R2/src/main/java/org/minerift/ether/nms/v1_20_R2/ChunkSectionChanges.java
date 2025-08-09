@@ -35,7 +35,7 @@ public class ChunkSectionChanges {
                 mutableBlockPos.set(block.getX(), block.getY(), block.getZ());
 
                 positions[index] = SectionPos.sectionRelativePos(mutableBlockPos);
-                states[index] = NativeTypeConversionsImpl.inst().asNativeBlockState(block);
+                states[index] = (BlockState) block.getState().asNative();
             }
 
             this.positions = new ShortArraySet(positions);
