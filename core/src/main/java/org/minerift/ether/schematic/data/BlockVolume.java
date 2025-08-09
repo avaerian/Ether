@@ -2,6 +2,7 @@ package org.minerift.ether.schematic.data;
 
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.BlockState;
 import org.minerift.ether.world.BlockArchetype;
@@ -21,13 +22,13 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
         return new BlockVolume.Builder();
     }
 
-    private final Map<Integer, BlockEntityArchetype> blockEntities;
+    public final Map<Integer, BlockEntityArchetype> blockEntities;
     private final BitSet blockEntityTest;
 
     public BlockVolume(Array3DOrder order, byte[] data, BytePalette<BlockState<?>> palette,
                        int width, int height, int length,
                        Map<Integer, BlockEntityArchetype> blockEntities) {
-        super(order, data, palette, width, height, length, BlockArchetype::new);
+        super(order, data, palette, width, height, length);
         this.blockEntities = blockEntities;
 
         // From block entities, create bit test
@@ -71,7 +72,7 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
 
         public static final Supplier<Map<Integer, BlockEntityArchetype>> NEW_BLOCK_ENTITY_MAP = Int2ObjectOpenHashMap::new;
 
-        protected Map<Integer, BlockEntityArchetype> blockEntities;
+        public Map<Integer, BlockEntityArchetype> blockEntities;
 
         protected Builder() {
             super();
@@ -90,8 +91,7 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
             Vec3i pos = bEntity.getPos().copyAsImmutable();
 
             // ensure block entity pos is within volume bounds
-            // FIXME: switch to different volume bounds check
-            if(pos.isGreaterThan(new Vec3i(width, height, length), true)) {
+            if(!Maths.inRangeI(Vec3i.ZERO, new Vec3i(width, height, length), pos)) {
                 throw new IllegalArgumentException(
                         format("Block entity at %s is outside of volume bounds (%d, %d, %d)",
                                 bEntity.getPos(), width, height, length));

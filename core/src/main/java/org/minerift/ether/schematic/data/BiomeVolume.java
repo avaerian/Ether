@@ -9,12 +9,12 @@ public class BiomeVolume extends Volume<Biome<?>, BiomeArchetype> {
     }
 
     public BiomeVolume(Array3DOrder order, byte[] data, BytePalette<Biome<?>> palette, int width, int height, int length) {
-        super(order, data, palette, width, height, length, BiomeArchetype::new);
+        super(order, data, palette, width, height, length);
     }
 
     @Deprecated
     protected BiomeVolume(int width, int height, int length) {
-        super(width, height, length, BiomeArchetype::new);
+        super(width, height, length);
     }
 
     public static class Builder extends Volume.Builder<BiomeVolume, BiomeVolume.Builder, Biome<?>, BiomeArchetype> {

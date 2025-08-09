@@ -8,15 +8,16 @@ import java.io.File;
 
 public interface Schematic {
 
-    static Schematic fromFile(File file) throws SchematicFileReadException {
-
+    static Schematic fromFile(SchematicType type, File file) throws SchematicFileReadException {
         Preconditions.checkNotNull(file, "File cannot be null!");
+        return type.getReader().read(file);
+    }
 
-        final SchematicType schemType = Ether.isUsingWorldEdit()
+    static Schematic fromFile(File file) throws SchematicFileReadException {
+        final SchematicType type = Ether.isUsingWorldEdit()
                 ? SchematicType.WORLDEDIT
                 : SchematicType.SPONGE;
-
-        return schemType.getReader().read(file);
+        return fromFile(type, file);
     }
 
     SchematicType getType();

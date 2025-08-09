@@ -13,19 +13,19 @@ import static java.lang.String.format;
 
 // T -> element type
 // A -> archetype
-public abstract class Volume<T, A extends Archetype> implements Iterable<A> {
+public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> // TODO*/ {
 
     @Deprecated
-    public interface ToArchetype<T extends Archetype> extends BiFunction<Vec3i, String, T> {
+    public interface ToArchetype<T extends Archetype> extends BiFunction<String, Vec3i, T> {
         // empty
     }
 
-    // TODO: implement
+    /*// TODO: implement
     @NotNull
     @Override
     public Iterator<A> iterator() {
         throw new UnsupportedOperationException("unimplemented");
-    }
+    }*/
 
     public ByteIterator byteIterator() {
         return ByteIterator.of(data);
@@ -44,21 +44,21 @@ public abstract class Volume<T, A extends Archetype> implements Iterable<A> {
     protected final BytePalette<T> palette;
     protected final byte[] data;
     protected final int width, height, length;
-    protected final ToArchetype<A> toArchetype;
+    //protected final ToArchetype<A> toArchetype;
 
 
-    public Volume(Array3DOrder order, byte[] data, BytePalette<T> palette, int width, int height, int length, ToArchetype<A> toArchetype) {
+    public Volume(Array3DOrder order, byte[] data, BytePalette<T> palette, int width, int height, int length/*, ToArchetype<A> toArchetype*/) {
         this.order = order;
         this.data = data;
         this.palette = palette;
         this.width = width;
         this.height = height;
         this.length = length;
-        this.toArchetype = toArchetype;
+        //this.toArchetype = toArchetype;
     }
 
-    public Volume(int width, int height, int length, ToArchetype<A> toArchetype) {
-        this(Array3DOrder.YZX, new byte[width * height * length], new BytePalette<>(), width, height, length, toArchetype);
+    public Volume(int width, int height, int length/*, ToArchetype<A> toArchetype*/) {
+        this(Array3DOrder.YZX, new byte[width * height * length], new BytePalette<>(), width, height, length);
     }
 
     public byte setData(byte b, Vec3i loc) {
