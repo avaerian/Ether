@@ -4,36 +4,34 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.Callable;
-import java.util.function.BooleanSupplier;
 
 // Batch of tasks associated with a single operation
 // TODO: refactor WorkQueue system for better clarity and exception handling
-public class TaskBatch extends Task {
+public class BatchedTask extends Task {
 
-    private Deque<Callable<Void>> tasks;
+    private Deque<Runnable> tasks;
 
-    public TaskBatch() {
+    public BatchedTask() {
         this(new ArrayDeque<>());
     }
 
-    public TaskBatch(Deque<Callable<Void>> tasks) {
+    public BatchedTask(Deque<Runnable> tasks) {
         super();
         this.tasks = tasks;
     }
 
-    public TaskBatch addTask(Callable<Void> task) {
+    public BatchedTask addTask(Runnable task) {
         tasks.add(task);
         return this;
     }
 
     // Append all tasks from other operation to this operation
-    public TaskBatch join(TaskBatch other) {
+    public BatchedTask join(BatchedTask other) {
         tasks.addAll(other.tasks);
         return this;
     }
 
-    public ImmutableList<Callable<Void>> getRemainingTasks() {
+    public ImmutableList<Runnable> getRemainingTasks() {
         return ImmutableList.copyOf(tasks);
     }
 
@@ -45,19 +43,19 @@ public class TaskBatch extends Task {
     // Returns whether the operation has finished
     @Override
     protected boolean completeNextTask() {
-        Callable<Void> task = tasks.poll();
+        Runnable task = tasks.poll();
         if(task == null) {
             runCallback(Task.Status.OP_COMPLETE);
             return true;
         }
 
-        try {
-            task.call();
-            return true;
+        /*try {
+            task.run();
         } catch (Exception ex) {
-            runCallback(Task.Status.TASK_FAILED);
-            return false;
-        }
+            runCallback(Operation.Status.TASK_FAILED);
+        }*/
+        task.run();
+        return false;
     }
 
 }

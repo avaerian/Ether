@@ -2,17 +2,18 @@ package org.minerift.ether.work;
 
 import com.google.common.base.Preconditions;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public abstract class Task {
 
-    public static SimpleTask of(BooleanSupplier task) {
-        return new SimpleTask(task);
+    public static SingleTask of(Runnable task) {
+        return new SingleTask(task);
     }
 
-    public static TaskBatch batch() {
-        return new TaskBatch();
+    public static BatchedTask batch() {
+        return new BatchedTask();
     }
 
     protected Consumer<Status> callback;
