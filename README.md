@@ -1,6 +1,6 @@
 # Ether
 
-> [!WARNING]
+> [!IMPORTANT]
 > Ether is currently under development; beware when testing posted dev builds.
 
 Ether is an open-source skyblock plugin for Spigot and Paper servers, intended as a performant, expandable, and feature-packed option for skyblock servers. Codebase also contains a variety of useful tools for building future projects.
