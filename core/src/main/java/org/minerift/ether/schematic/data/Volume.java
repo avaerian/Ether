@@ -13,51 +13,28 @@ import static java.lang.String.format;
 
 // T -> element type
 // A -> archetype
-public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> // TODO*/ {
-
-    @Deprecated
-    public interface ToArchetype<T extends Archetype> extends BiFunction<String, Vec3i, T> {
-        // empty
-    }
-
-    /*// TODO: implement
-    @NotNull
-    @Override
-    public Iterator<A> iterator() {
-        throw new UnsupportedOperationException("unimplemented");
-    }*/
+public abstract class Volume<T> {
 
     public ByteIterator byteIterator() {
         return ByteIterator.of(data);
     }
 
-    /***
-     * REVISING SCHEMATIC API:
-     * - blocks have a palette and byte[] of all block palette types ordered YZX
-     * - blocks have a location lookup for block entities
-     * - biomes have a palette and byte[] of all biome palette types ordered YZX
-     * - entities have an array of each archetype (data and pos)
-     *
-     */
-
     protected final Array3DOrder order;
     protected final BytePalette<T> palette;
     protected final byte[] data;
     protected final int width, height, length;
-    //protected final ToArchetype<A> toArchetype;
 
 
-    public Volume(Array3DOrder order, byte[] data, BytePalette<T> palette, int width, int height, int length/*, ToArchetype<A> toArchetype*/) {
+    public Volume(Array3DOrder order, byte[] data, BytePalette<T> palette, int width, int height, int length) {
         this.order = order;
         this.data = data;
         this.palette = palette;
         this.width = width;
         this.height = height;
         this.length = length;
-        //this.toArchetype = toArchetype;
     }
 
-    public Volume(int width, int height, int length/*, ToArchetype<A> toArchetype*/) {
+    public Volume(int width, int height, int length) {
         this(Array3DOrder.YZX, new byte[width * height * length], new BytePalette<>(), width, height, length);
     }
 
@@ -120,10 +97,9 @@ public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> //
     }
 
     public static abstract class Builder<
-            V extends Volume<T, A>,
-            B extends Volume.Builder<V, B, T, A>,
-            T,
-            A extends Archetype> implements IBuilder<V> {
+            V extends Volume<T>,
+            B extends Volume.Builder<V, B, T>,
+            T> implements IBuilder<V> {
         protected Array3DOrder order;
         protected int width, height, length;
         protected byte[] data;
@@ -137,6 +113,7 @@ public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> //
             this.length = 0;
             this.data = new byte[0];
             this.palette = null;
+            this.order = Array3DOrder.YZX;
         }
 
         public B setOrder(Array3DOrder order) {

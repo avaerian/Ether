@@ -9,6 +9,7 @@ import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.Either;
+import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.world.EntityArchetype;
 
@@ -22,11 +23,11 @@ public class SpongeSchematic implements Schematic {
         return new SpongeSchematic.Builder();
     }
 
-    private final int width, height, length;
-    private final Vec3i offset;
-    private final BlockVolume blocks;
-    private final BiomeVolume biomes;
-    private final List<EntityArchetype> entities;
+    private int width, height, length;
+    private Vec3i offset;
+    private BlockVolume blocks;
+    private BiomeVolume biomes;
+    private List<EntityArchetype> entities;
 
     public SpongeSchematic(int width, int height, int length,
                            Vec3i offset,
@@ -77,10 +78,15 @@ public class SpongeSchematic implements Schematic {
     }
 
     @Override
-    public SpongeSchematic transform(Transforms transforms) {
-        // TODO: get blockvolume pasting working, test in-game, fix rotational issues
-        // TODO: commit changes, impl Flip transform
-        return null;
+    public SpongeSchematic transform(Transforms ts) {
+        // TODO
+        throw new UnreachableException("unimplemented");
+    }
+
+    @Override
+    public Schematic transformMut(Transforms ts) {
+        //TODO
+        throw new UnreachableException("unimplemented");
     }
 
     public BlockVolume getBlocks() {

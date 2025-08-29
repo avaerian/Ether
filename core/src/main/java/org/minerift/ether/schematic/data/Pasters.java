@@ -14,8 +14,10 @@ import org.minerift.ether.nms.world.Section;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.work.BatchedTask;
+import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.ChunkCoords;
 
+import static org.minerift.ether.nms.world.Section.*;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 
 @SuppressWarnings("Duplicates") // TODO: remove once finished
@@ -39,8 +41,8 @@ public class Pasters {
         System.out.println("bl: " + bl);
         System.out.println("br: " + br);
 
-        final int startSecY = getSectionIdx(loc.getY());
-        final int endSecY = getSectionIdx(loc.getY() + bv.getHeight());
+        final int startSecY = getSectionIdx(loc.getY(), world.getMinHeight());
+        final int endSecY = getSectionIdx(loc.getY() + bv.getHeight(), world.getMinHeight());
 
         System.out.println("startSecY: " + startSecY + ", endSecY: " + endSecY);
 
@@ -82,11 +84,11 @@ public class Pasters {
         pasteBlockVolume(bv, world, loc, ChunkGetter.SYNC);
     }
 
-    // TODO: add flag for acquiring/releasing chunk sections
+    // TODO: add flag for acquiring/releasing chunk sections?
     private static void pasteSection(Chunk chunk, int sy, BlockVolume bv, Vec3i loc) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
-        int realSectionY = sectionRealFromIdx(sy);
+        int realSectionY = sectionRealFromIdx(sy, chunk.getWorld().getMinHeight());
         Section section = chunk.getSection(sy);
 
         int normX = roundChunk(loc.getX());
@@ -162,8 +164,15 @@ public class Pasters {
                             System.out.printf("block entity at %d, %d, %d (%d, %d, %d) -> %d\n",
                                     worldBlockX, worldBlockY, worldBlockZ,
                                     arrayBlockX, arrayBlockY, arrayBlockZ, idx);
-                            CompoundTag nbt = bv.getBlockEntity(idx).getNbtData();
-                            chunk.setBlockEntity(worldBlockX, worldBlockY, worldBlockZ, block, nbt);
+
+                            // experiment with this for stability
+                            BlockEntityArchetype be = bv.getBlockEntity(idx);
+                            if(be == null) {
+                                System.out.println("block entity has no associated archetype");
+                            } else {
+                                CompoundTag nbt = be.getNbtData();
+                                chunk.setBlockEntity(worldBlockX, worldBlockY, worldBlockZ, block, nbt);
+                            }
                         }
 
                         sectionChanges.add(worldBlockX, worldBlockY, worldBlockZ, block);
@@ -194,21 +203,4 @@ public class Pasters {
         //return i >= 0 ? i & 15 : 15-(~i&15);
         return i & 15;
     }
-
-
-    public static final int MIN_WORLD_HEIGHT = -64; // temp
-
-    public static int getSectionIdx(int blockY) {
-        return (blockY >> 4) - (MIN_WORLD_HEIGHT >> 4);
-    }
-
-    // TODO: move to Section.class
-    public static int sectionRealFromIdx(int sectionIdx) {
-        return sectionIdx + (MIN_WORLD_HEIGHT >> 4);
-    }
-
-    public static int getSectionReal(int blockY) {
-        return (blockY >> 4);
-    }
-
 }

@@ -163,6 +163,10 @@ public class BytePalette<V> implements Iterable<BytePalette.Entry<V>>, Copy<Byte
         return val;
     }
 
+    public int size() {
+        return size;
+    }
+
     public boolean containsKey(byte key) {
         return findKey(key) >= 0;
     }

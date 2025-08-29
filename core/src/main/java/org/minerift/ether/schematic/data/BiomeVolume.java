@@ -3,7 +3,7 @@ package org.minerift.ether.schematic.data;
 import org.minerift.ether.nms.world.Biome;
 import org.minerift.ether.world.BiomeArchetype;
 
-public class BiomeVolume extends Volume<Biome<?>, BiomeArchetype> {
+public class BiomeVolume extends Volume<Biome<?>> {
     public static BiomeVolume.Builder builder() {
         return new BiomeVolume.Builder();
     }
@@ -17,7 +17,7 @@ public class BiomeVolume extends Volume<Biome<?>, BiomeArchetype> {
         super(width, height, length);
     }
 
-    public static class Builder extends Volume.Builder<BiomeVolume, BiomeVolume.Builder, Biome<?>, BiomeArchetype> {
+    public static class Builder extends Volume.Builder<BiomeVolume, BiomeVolume.Builder, Biome<?>> {
         @Override
         public BiomeVolume build() {
             return new BiomeVolume(order, data, palette, width, height, length);

@@ -22,8 +22,7 @@ import java.util.function.Supplier;
 import static java.lang.String.format;
 import static org.minerift.ether.schematic.transform.Direction.*;
 
-// TODO: review/consider removing generic for BlockState
-public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
+public class BlockVolume extends Volume<BlockState<?>> {
 
     public static final int NO_FLAGS;
     public static final int ALL_FLAGS;
@@ -49,6 +48,10 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
 
     public final Int2ObjectMap<BlockEntityArchetype> blockEntities;
     private final BitSet blockEntityTest;
+
+
+    // TODO: improve block entity handling by checking if BlockState
+    //  has a block entity and handling, propagating fn call??
 
     public BlockVolume(Array3DOrder order, byte[] data, BytePalette<BlockState<?>> palette,
                        Vec3i dim, Int2ObjectMap<BlockEntityArchetype> blockEntities) {
@@ -130,13 +133,13 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
             palette = this.palette;
         }
 
-        if((flags & ROTATE_BLK_DIRS) != 0) { // FIXME
+        if((flags & ROTATE_BLK_DIRS) != 0) {
             for(BytePalette.Entry<BlockState<?>> entry : palette) {
                 BlockState<?> state = entry.getValue();
                 Attribute<Direction> dirAttr;
                 Direction dir;
 
-                // TODO: fix multiple mutable copies
+                // NOTE: multiple mutable vec copies are created; should fix
                 if (state.hasAttribute(Attributes.AXIS)) {
                     dir = switch (state.getAttribute(Attributes.AXIS)) {
                         case X -> NORTH;
@@ -173,7 +176,7 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
         return new BlockVolume(order, res.out, palette, res.dim, newBlockEntities);
     }
 
-    public static class Builder extends Volume.Builder<BlockVolume, BlockVolume.Builder, BlockState<?>, BlockArchetype> {
+    public static class Builder extends Volume.Builder<BlockVolume, BlockVolume.Builder, BlockState<?>> {
 
         public static final Supplier<Int2ObjectMap<BlockEntityArchetype>> NEW_BLOCK_ENTITY_MAP = Int2ObjectOpenHashMap::new;
 

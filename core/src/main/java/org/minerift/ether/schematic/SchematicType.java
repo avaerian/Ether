@@ -1,7 +1,6 @@
 package org.minerift.ether.schematic;
 
 import org.minerift.ether.Ether;
-import org.minerift.ether.schematic.sponge.DeprecatedSpongeSchematicPaster;
 import org.minerift.ether.schematic.sponge.SpongeSchematicPaster;
 import org.minerift.ether.schematic.worldedit.WESchematicPaster;
 import org.minerift.ether.schematic.sponge.reader.SpongeSchematicReader;

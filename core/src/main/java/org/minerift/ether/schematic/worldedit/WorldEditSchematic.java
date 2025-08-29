@@ -10,10 +10,9 @@ import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.schematic.transform.Rotate;
 import org.minerift.ether.schematic.transform.Transform;
 import org.minerift.ether.schematic.transform.Transforms;
+import org.minerift.ether.util.UnreachableException;
 
 public class WorldEditSchematic implements Schematic {
-
-
 
     private final Clipboard clipboard;
 
@@ -62,8 +61,8 @@ public class WorldEditSchematic implements Schematic {
     }
 
     @Override
-    public WorldEditSchematic transform(Transforms transforms) {
-        for (Transform t : transforms) {
+    public WorldEditSchematic transform(Transforms ts) {
+        for (Transform t : ts) {
             switch (t) {
                 case Rotate r -> {
                     if(r.isIdentity()) {
@@ -78,5 +77,10 @@ public class WorldEditSchematic implements Schematic {
         }
 
         return this; // FIXME
+    }
+
+    @Override
+    public Schematic transformMut(Transforms ts) {
+        throw new UnreachableException("unimplemented");
     }
 }

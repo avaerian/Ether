@@ -32,6 +32,7 @@ public interface Schematic {
     Vec3i getDimensions();
     Vec3i getOffset();
 
-    Schematic transform(Transforms transforms);
+    Schematic transform(Transforms ts);
+    Schematic transformMut(Transforms ts);
 
 }
