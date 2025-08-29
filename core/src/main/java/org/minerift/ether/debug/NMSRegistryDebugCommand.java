@@ -43,7 +43,7 @@ public class NMSRegistryDebugCommand implements CommandExecutor {
                 plr.sendMessage(Ether.getNms().registryAccess().getNamespacedKey(block.getState()).asString());
             }
             case "biome" -> {
-                plr.sendMessage(Ether.getDeprecatedNMS().getBiomeKey(plr.getLocation()).asString()); // TODO: fix
+                plr.sendMessage(Ether.getNms().registryAccess().getNamespacedKey(plr.getLocation().getBlock().getBiome()).asString()); // TODO: fix
             }
             case "dim" -> {
                 plr.sendMessage(Ether.getNms().registryAccess().getDimNamespacedKey(plr.getWorld()).asString());

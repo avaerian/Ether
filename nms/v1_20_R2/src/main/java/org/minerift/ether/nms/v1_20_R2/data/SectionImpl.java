@@ -12,12 +12,11 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
 import org.minerift.ether.nms.v1_20_R2.ReflectionMappings;
 import org.minerift.ether.nms.world.ChunkSectionChanges;
 import org.minerift.ether.nms.world.Section;
-
-import static org.minerift.ether.schematic.data.Pasters.sectionRealFromIdx;
 
 public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> {
 
@@ -59,7 +58,8 @@ public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSe
         section.setBiome(biomeX, biomeY, biomeZ, biome);
     }
 
-    // TODO: explore this more; doesn't appear to be working
+    @Deprecated
+    @NeedsTesting
     @Override
     public void updateSectionChanges(int sectionIndex, ChunkSectionChanges changes) {
         LevelChunk nativeChunk = (LevelChunk) changes.chunk.asNative();
@@ -70,7 +70,11 @@ public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSe
     }
 
     private ClientboundSectionBlocksUpdatePacket getPacket(ChunkSectionChanges changes) {
-        SectionPos sectionPos = SectionPos.of(changes.chunk.getX(), sectionRealFromIdx(index), changes.chunk.getZ());
+
+        final int minHeight = changes.chunk.getWorld().getMinHeight();
+        SectionPos sectionPos = SectionPos.of(changes.chunk.getX(),
+                Section.sectionRealFromIdx(index, minHeight), changes.chunk.getZ());
+
         ShortSet positions = new ShortArraySet(changes.positions);
         BlockState[] nativeStates = new BlockState[changes.states.length];
         for(int i = 0; i < changes.states.length; i++) {
@@ -137,6 +141,6 @@ public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSe
 
     @Override
     public int bottomBlockY() {
-        return (index << 4); // TODO: review
+        return (index << 4);
     }
 }

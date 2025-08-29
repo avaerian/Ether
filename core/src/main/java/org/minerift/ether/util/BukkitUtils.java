@@ -23,8 +23,9 @@ public class BukkitUtils {
         return version;
     }
 
+    @Deprecated
     public static String dumpItemStack(ItemStack item) {
-        NamespacedKey key = Ether.getDeprecatedNMS().getNamespacedKey(item);
+        NamespacedKey key = Ether.getNms().registryAccess().getNamespacedKey(item);
         return key.asString() + item.getItemMeta().getAsString();
     }
 

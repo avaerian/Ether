@@ -7,7 +7,6 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
 
-// TODO: consider merging this class with NMSBridge
 @Deprecated
 public interface RegistryAccess {
 

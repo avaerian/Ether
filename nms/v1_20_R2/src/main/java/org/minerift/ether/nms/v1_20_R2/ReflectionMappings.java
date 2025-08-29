@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.server.level.ChunkHolder;
+import org.minerift.ether.debug.Experimental;
+import org.minerift.ether.debug.NeedsTesting;
 import xyz.jpenilla.reflectionremapper.ReflectionRemapper;
 
 import java.lang.invoke.MethodHandles;
@@ -44,14 +46,17 @@ public final class ReflectionMappings {
             throw new RuntimeException(e);
         }
 
-
-        // TODO: remap changedBlocksPerSection and use to update blocks properly for chunk
+        // REVIEW: remap changedBlocksPerSection and use to update blocks properly for chunk
     }
 
+    @NeedsTesting
+    @Experimental
     public static void setSectionsHaveChanged(ChunkHolder chunk, boolean haveSectionsChanged) {
         HAS_SECTIONS_CHANGED.set(chunk, haveSectionsChanged);
     }
 
+    @NeedsTesting
+    @Experimental
     public static void addSectionBlockChanges(ChunkHolder chunk, int sectionIndex, short[] blocksChanged) {
         ShortSet[] sectionChanges = (ShortSet[]) CHANGED_BLOCKS_PER_SECTION.get(chunk);
         if(sectionChanges[sectionIndex] == null) {
@@ -61,6 +66,8 @@ public final class ReflectionMappings {
         }
     }
 
+    @NeedsTesting
+    @Experimental
     public static void setSectionBlockChanges(ChunkHolder chunk, int sectionIndex, ShortSet blockChanges) {
         CHANGED_BLOCKS_PER_SECTION_ARRAY_TYPE.set(
                 (ShortSet[])CHANGED_BLOCKS_PER_SECTION.get(chunk),
