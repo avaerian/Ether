@@ -1,7 +1,10 @@
 package org.minerift.ether.nms;
 
 import org.bukkit.World;
+import org.minerift.ether.debug.Experimental;
+import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.nms.world.Chunk;
+import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
@@ -38,9 +41,14 @@ public interface NMSAccess { // TODO: refactor to abstract class?
         }
     }
 
-    int getDataVersion();
+    void clearChunk(Chunk chunk, boolean clearEntities);
+    void clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
+    void clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
+
+    int getDataVersion(); // TODO: review for DataFixerUpper
     RegistryAccess registryAccess();
     NativeTypeConversions getConverter();
+    @Experimental Experiments experiments();
 
     //void relightChunks(Set<Vec2i> chunks); // TODO: remove? may not be needed
 
