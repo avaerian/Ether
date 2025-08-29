@@ -3,8 +3,6 @@ package org.minerift.ether.config;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.minerift.ether.config.exceptions.ConfigFileReadException;
-import org.minerift.ether.config.exceptions.ConfigFileWriteException;
 
 import java.io.File;
 import java.io.IOException;

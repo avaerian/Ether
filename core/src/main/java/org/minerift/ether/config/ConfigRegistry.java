@@ -1,7 +1,6 @@
 package org.minerift.ether.config;
 
 import org.minerift.ether.Ether;
-import org.minerift.ether.config.exceptions.ConfigFileReadException;
 
 import java.io.FileNotFoundException;
 import java.util.Collection;
@@ -26,7 +25,7 @@ public class ConfigRegistry {
     public <T extends Config<T>> T register(ConfigType<T> type) throws ConfigFileReadException {
         T config;
         try {
-            config = type.getReader().read(type);
+            config = type.codec().read(type);
         } catch (FileNotFoundException ex) {
             config = type.getDefaultConfig();
         }

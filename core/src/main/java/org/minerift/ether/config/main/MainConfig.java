@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MainConfig extends Config<MainConfig> {
 
+    public static final MainConfigCodec CODEC = MainConfigCodec.CODEC;
     public static final int CHUNK_SIZE = 16;
     public static final int MIN_TILE_CHUNKS = 3;
     public static final int MIN_TILE_SIZE = MIN_TILE_CHUNKS * CHUNK_SIZE; // 3 chunks * 16 blocks/chunk = 48 blocks

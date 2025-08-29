@@ -10,6 +10,8 @@ import java.util.List;
 
 public class IslandSpecsConfig extends Config<IslandSpecsConfig> implements Iterable<IslandSpec> {
 
+    public static final IslandSpecsCodec CODEC = IslandSpecsCodec.CODEC;
+
     protected List<IslandSpec> islandSpecs; // FIXME: make private and add methods that modify setChanged()
 
     public IslandSpecsConfig() {

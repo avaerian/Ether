@@ -1,4 +1,4 @@
-package org.minerift.ether.config.exceptions;
+package org.minerift.ether.config;
 
 import java.io.IOException;
 

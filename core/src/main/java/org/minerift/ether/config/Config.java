@@ -1,8 +1,6 @@
 package org.minerift.ether.config;
 
 import org.minerift.ether.Ether;
-import org.minerift.ether.config.exceptions.ConfigFileReadException;
-import org.minerift.ether.config.exceptions.ConfigFileWriteException;
 import org.minerift.ether.util.CanChange;
 
 import java.io.FileNotFoundException;
@@ -16,7 +14,7 @@ public abstract class Config<T extends Config<T>> extends CanChange {
 
     public void save() {
         try {
-            getType().getWriter().write((T) this, getType().getFile());
+            getType().codec().write((T) this, getType().getFile());
         } catch (ConfigFileWriteException ex) {
             Ether.getLogger().log(Level.SEVERE, getType().getName() + " was unable to save: ", ex);
         }
@@ -33,7 +31,7 @@ public abstract class Config<T extends Config<T>> extends CanChange {
     public boolean reload() {
         T reload;
         try {
-            reload = getType().getReader().read(getType());
+            reload = getType().codec().read(getType());
         } catch (FileNotFoundException ex) {
             reload = getType().getDefaultConfig();
         } catch (ConfigFileReadException ex) {
@@ -53,4 +51,8 @@ public abstract class Config<T extends Config<T>> extends CanChange {
     protected abstract void copyFrom(T other);
 
     public abstract ConfigType<T> getType();
+
+    public String getName() {
+        return getType().getName();
+    }
 }
