@@ -4,7 +4,7 @@ import com.google.common.base.Stopwatch;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
-import org.minerift.ether.config.exceptions.ConfigFileReadException;
+import org.minerift.ether.config.ConfigFileReadException;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.DatabaseConnectionSettings;
@@ -17,7 +17,6 @@ import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.island.invites.IslandInviteManager;
-import org.minerift.ether.nms.DeprecatedNMSAccess;
 import org.minerift.ether.nms.NMS;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.user.EtherUser;
@@ -44,7 +43,6 @@ public class Ether {
     private static File pluginDir;
 
     private static Database db;
-    @Deprecated private static DeprecatedNMSAccess depNmsAccess;
     private static NMSAccess nmsAccess;
     private static WorkQueue workQueue;
 
@@ -100,7 +98,6 @@ public class Ether {
         workQueue.start();
 
         // Load NMS access
-        depNmsAccess = new DeprecatedNMSAccess(); // TODO: remove
         nmsAccess = NMS.createAccess();
 
 
@@ -151,7 +148,6 @@ public class Ether {
             workQueue.close();
             workQueue = null;
 
-            depNmsAccess = null;
         }
 
         if(db != null) {
@@ -224,11 +220,6 @@ public class Ether {
 
     public static boolean isUsingWorldEdit() {
         return isUsingWorldEdit;
-    }
-
-    public static DeprecatedNMSAccess getDeprecatedNMS() {
-        ensure(depNmsAccess != null, () -> new UnsupportedOperationException("depNmsAccess is not loaded!"));
-        return depNmsAccess;
     }
 
     public static NMSAccess getNms() {

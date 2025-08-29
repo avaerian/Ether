@@ -1,11 +1,11 @@
 package org.minerift.ether.nms.world.block;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.Ether;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
-import org.minerift.ether.util.fn.Copy;
 
 public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
 
@@ -13,8 +13,17 @@ public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
         return Ether.getNms().getConverter().asBlockState(id);
     }
 
+    // Nullable to allow throwing exception at runtime without explicit exception handling
     static BlockState<?> of(String id, @Nullable String fallback) {
         return Ether.getNms().getConverter().asBlockState(id, fallback);
+    }
+
+    static BlockState<?> of(NamespacedKey key) throws BlockStateNotFoundException {
+        return of(key.asString());
+    }
+
+    static BlockState<?> of(NamespacedKey key, NamespacedKey fallback) {
+        return of(key.asString(), fallback.asString());
     }
 
 

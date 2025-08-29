@@ -1,5 +1,6 @@
 package org.minerift.ether.nms.world;
 
+import com.google.errorprone.annotations.InlineMe;
 import org.bukkit.entity.Player;
 import org.minerift.ether.math.Vec3;
 import org.minerift.ether.nms.BiomeNotFoundException;
@@ -72,13 +73,32 @@ public interface Section<NBS, NC, NCS, NB> {
 
     NativeTypeConversions<NBS, NC, NCS, NB, ?> getConverter();
 
-    // TODO: move to Maths class
+
+    // Util functions
+
+    // Rounding
     static int sectionRelative(int i) {
         return i & 15;
     }
 
+    // For packets
     static short sectionRelativePos(int x, int y, int z) {
         return (short) ((x & 15) << 8 | (z & 15) << 4 | y & 15);
+    }
+
+    // Internal array index
+    static int getSectionIdx(int blockY, int minHeight) {
+        return (blockY >> 4) - (minHeight >> 4);
+    }
+
+    // World position from array index
+    static int sectionRealFromIdx(int sectionIdx, int minHeight) {
+        return sectionIdx + (minHeight >> 4);
+    }
+
+    // World position
+    static int getSectionReal(int blockY) {
+        return (blockY >> 4);
     }
 
     // TODO: review these based on NMS version

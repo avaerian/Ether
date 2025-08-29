@@ -1,6 +1,7 @@
 package org.minerift.ether.nms.world;
 
 import org.bukkit.HeightMap;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3;
@@ -121,6 +122,9 @@ public interface Chunk<NBS, NC, NCS, NB> {
     /*default void broadcastChunkUpdatesPacket() {
         broadcastChunkUpdatesPacket(true);
     }*/
+
+    World getWorld();
+    Object getNativeWorld();
 
     NC asNative();
 
