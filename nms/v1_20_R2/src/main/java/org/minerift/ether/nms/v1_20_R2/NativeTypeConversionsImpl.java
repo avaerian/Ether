@@ -250,7 +250,7 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
 
     @Override
     public Chunk<net.minecraft.world.level.block.state.BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> asChunk(LevelChunk nativeChunk) {
-        return new ChunkImpl(nativeChunk);
+        return ChunkImpl.of(nativeChunk);
     }
 
     @Override

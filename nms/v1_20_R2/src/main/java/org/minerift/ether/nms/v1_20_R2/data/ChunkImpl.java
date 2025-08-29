@@ -3,6 +3,8 @@ package org.minerift.ether.nms.v1_20_R2.data;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,21 +15,37 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.HeightMap;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> {
+
+    // TODO: cache ??
+    private static final Map<ChunkAccess, ChunkImpl> CACHE = new WeakHashMap<>();
 
     private final LevelChunk chunk;
 
-    public ChunkImpl(LevelChunk chunk) {
+    public static ChunkImpl of(LevelChunk nChunk) {
+        return CACHE.computeIfAbsent(nChunk, ChunkImpl::new);
+    }
+
+    public static ChunkImpl of(ChunkAccess nChunk) {
+        return CACHE.computeIfAbsent(nChunk, ChunkImpl::new);
+    }
+
+    private ChunkImpl(LevelChunk chunk) {
         this.chunk = chunk;
     }
 
-    public ChunkImpl(ChunkAccess chunk) {
+    private ChunkImpl(ChunkAccess chunk) {
         if(chunk instanceof ProtoChunk) {
             throw new UnsupportedOperationException("ChunkAccess chunk is not a LevelChunk: " + chunk.getPos());
         }
@@ -63,7 +81,7 @@ public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSectio
 
     @Override
     public boolean updateNativeHeightmap(HeightMap heightmap, int x, int y, int z, BlockState state) {
-        // TODO: move to NativeTypeConversionsImpl?
+        // move to NativeTypeConversionsImpl?
         Heightmap.Types nativeHeightmap = switch(heightmap) {
             case MOTION_BLOCKING -> Heightmap.Types.MOTION_BLOCKING;
             case MOTION_BLOCKING_NO_LEAVES -> Heightmap.Types.MOTION_BLOCKING_NO_LEAVES;
@@ -101,6 +119,16 @@ public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSectio
     public void broadcastChunkUpdatesPacket() {
         //ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, chunk.level.getLightEngine(), null, null, modifyBlocks);
         chunk.getChunkHolder().vanillaChunkHolder.broadcastChanges(chunk);
+    }
+
+    @Override
+    public World getWorld() {
+        return chunk.level.getWorld();
+    }
+
+    @Override
+    public ServerLevel getNativeWorld() {
+        return chunk.level;
     }
 
     @Override
