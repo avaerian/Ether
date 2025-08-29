@@ -21,6 +21,8 @@ commands:
     description: Debug command for NMS registry testing
   dbgnbt:
     description: Debug command for item, nbt, and island spec testing
+  dbgbvt:
+    description: Debug command for BlockVolume transformations
   #nmsentity:
   #  description: Debug command for spawning an entity via NMS
 softdepend: [WorldEdit]

@@ -29,6 +29,7 @@ public class EtherPlugin extends JavaPlugin {
 
         getCommand("testreg").setExecutor(new NMSRegistryDebugCommand());
         getCommand("dbgnbt").setExecutor(new NbtDebugCommand());
+        getCommand("dbgbvt").setExecutor(new TransformDebugCommand());
 
         Bukkit.getPluginManager().registerEvents(new BlockBreakListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
