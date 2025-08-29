@@ -89,8 +89,14 @@ public class Vec3i implements Vec3, Serializable {
         return new Vec3i(x, y, z);
     }
 
-    public Mutable asMutable() {
+    // Return either this object as mutable, or a copy if immutable
+    public Vec3i.Mutable asMutable() {
         return this instanceof Mutable ? (Mutable) this : new Mutable(this);
+    }
+
+    // More explicit; creates a mutable copy of this Vec3i
+    public Vec3i.Mutable asMutableCopy() {
+        return new Vec3i.Mutable(this);
     }
 
     // TODO: for removal; already in MinecraftVersion
@@ -196,6 +202,10 @@ public class Vec3i implements Vec3, Serializable {
             this.y = y;
             this.z = z;
             return this;
+        }
+
+        public Vec3i.Mutable set(Vec3 vec) {
+            return set(vec.getX(), vec.getY(), vec.getZ());
         }
 
         public Vec3i.Mutable add(Vec3i addend) {

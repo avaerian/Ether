@@ -51,6 +51,10 @@ public class Maths {
         return new Vec3i(tile.getX() * config.getTileLengthBlocks(), config.getTileHeight(), tile.getZ() * config.getTileLengthBlocks());
     }
 
+    public static int clamp(int val, int min, int max) {
+        return Math.min(max, Math.max(val, min));
+    }
+
     public static int[] range(int minInclusive, int maxExclusive) {
         return IntStream.range(minInclusive, maxExclusive).toArray();
     }
