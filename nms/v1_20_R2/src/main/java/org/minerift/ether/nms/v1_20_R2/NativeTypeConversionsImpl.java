@@ -38,7 +38,7 @@ import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
 import org.minerift.ether.nms.v1_20_R2.data.*;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.Section;
 import org.minerift.ether.util.Note;
@@ -60,13 +60,13 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
                 ItemStack> {
 
     // TODO: change to INSTANCE = new NativeTypeConversionsImpl() ??
-    private static NativeTypeConversionsImpl INSTANCE;
+    private static NativeTypeConversionsImpl INST;
 
     public static NativeTypeConversionsImpl inst() {
-        if(INSTANCE == null) {
-            INSTANCE = new NativeTypeConversionsImpl();
+        if(INST == null) {
+            INST = new NativeTypeConversionsImpl();
         }
-        return INSTANCE;
+        return INST;
     }
 
     public Tag asTag(net.minecraft.nbt.Tag nativeTag) {

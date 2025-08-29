@@ -17,7 +17,7 @@ import org.minerift.ether.nms.v1_20_R2.ReflectionMappings;
 import org.minerift.ether.nms.world.ChunkSectionChanges;
 import org.minerift.ether.nms.world.Section;
 
-import static org.minerift.ether.schematic.sponge.SpongeSchematicPaster.sectionRealFromIdx;
+import static org.minerift.ether.schematic.data.Pasters.sectionRealFromIdx;
 
 public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> {
 

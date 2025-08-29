@@ -1,5 +1,7 @@
 package org.minerift.ether.nms.world;
 
+import org.minerift.ether.nms.world.block.BlockState;
+
 public class ChunkSectionChanges {
 
     public final Chunk chunk;

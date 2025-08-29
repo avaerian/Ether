@@ -4,6 +4,7 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
+import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.world.BiomeArchetype;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
@@ -69,6 +70,11 @@ public class DeprecatedSpongeSchematic implements Schematic {
     @Override
     public Vec3i getOffset() {
         return offset;
+    }
+
+    @Override
+    public Schematic transform(Transforms transforms) {
+        return null;
     }
 
     public List<BlockArchetype> getBlocks() {

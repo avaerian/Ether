@@ -3,6 +3,7 @@ package org.minerift.ether.nms;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.nms.world.*;
+import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.Tag;

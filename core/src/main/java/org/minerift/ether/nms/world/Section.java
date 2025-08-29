@@ -5,7 +5,7 @@ import org.minerift.ether.math.Vec3;
 import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
-import org.minerift.ether.world.BlockArchetype;
+import org.minerift.ether.nms.world.block.BlockState;
 
 import static java.lang.String.format;
 

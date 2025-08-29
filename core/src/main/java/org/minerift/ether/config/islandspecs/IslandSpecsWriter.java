@@ -8,8 +8,7 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.nbt.NbtReader;
 import org.minerift.ether.util.nbt.NbtWriter;
 import org.minerift.ether.util.nbt.tags.StringTag;
-import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
-import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
@@ -43,7 +42,7 @@ public class IslandSpecsWriter extends IConfigWriter<IslandSpecsConfig> {
             List<StringTag> desc = spec.getDescription().stream()
                     .map((line) -> new StringTag("", line))
                     .toList();
-            tag.addTag(new ListTag<>("IslandDesc", TagType.STRING, desc));
+            tag.addTag(new ListTag<>("IslandDesc", TagTypes.STRING, desc));
             tag.addTag(new IntArrayTag("IslandPlayerSpawn", spec.getDefaultSpawnLoc().getXYZ()));
 
             writer.writeTag(tag);

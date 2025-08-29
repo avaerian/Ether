@@ -2,7 +2,7 @@ package org.minerift.ether.world;
 
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.BlockStateNotFoundException;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.BlockState;
 
 // Represents a single block ready for world placement
 public class BlockArchetype implements Archetype {

@@ -33,9 +33,9 @@ public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> //
 
     /***
      * REVISING SCHEMATIC API:
-     * - blocks have a pallette and byte[] of all block pallette types ordered YZX
+     * - blocks have a palette and byte[] of all block palette types ordered YZX
      * - blocks have a location lookup for block entities
-     * - biomes have a pallette and byte[] of all biome pallette types ordered YZX
+     * - biomes have a palette and byte[] of all biome palette types ordered YZX
      * - entities have an array of each archetype (data and pos)
      *
      */
@@ -75,7 +75,7 @@ public abstract class Volume<T, A extends Archetype> /*implements Iterable<A> //
         }
 
         if(!palette.containsKey(b)) {
-            throw new IllegalArgumentException(b + " is not registered in the volume pallette");
+            throw new IllegalArgumentException(b + " is not registered in the volume palette");
         }
 
         byte old = data[idx];

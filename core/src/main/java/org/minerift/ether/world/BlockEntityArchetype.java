@@ -1,7 +1,7 @@
 package org.minerift.ether.world;
 
 import org.minerift.ether.nms.BlockStateNotFoundException;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.math.Vec3i;
 

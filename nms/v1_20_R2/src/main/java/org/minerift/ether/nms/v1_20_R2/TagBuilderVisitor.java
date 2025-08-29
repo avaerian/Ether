@@ -77,7 +77,7 @@ public class TagBuilderVisitor implements TagVisitor {
 
     @Override
     public void visitList(net.minecraft.nbt.ListTag element) {
-        TagType childType = TagType.lookup(element.getElementType());
+        TagType childType = TagTypes.lookup(element.getElementType());
         ListTag tag = new ListTag<>("", childType, new ArrayList<>(element.size()));
         for(net.minecraft.nbt.Tag value : element) {
             Tag childTag = new TagBuilderVisitor().visit(value);
