@@ -4,24 +4,24 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.bukkit.Material;
 import org.minerift.ether.nms.BlockStateNotFoundException;
+import org.minerift.ether.nms.world.block.Attribute;
 import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.BlockState;
 
 import java.time.Duration;
 
 public class BlockStateImpl implements BlockState<net.minecraft.world.level.block.state.BlockState> {
 
+    // TODO: review caching; move away from it in favor of Property's
     private static final Cache<net.minecraft.world.level.block.state.BlockState, BlockStateImpl> CACHE;
 
     static {
-        // TODO: review cache
         CACHE = CacheBuilder.newBuilder()
                 .expireAfterWrite(Duration.ofMinutes(1))
                 .build();
     }
 
     public static BlockStateImpl of(String id) throws BlockStateNotFoundException {
-        // TODO: review caching here
         net.minecraft.world.level.block.state.BlockState nativeState
                 = NativeTypeConversionsImpl.inst().asNativeBlockState(id);
         System.out.println(id + " " + nativeState.toString());
@@ -49,6 +49,35 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     }
 
     @Override
+    public boolean hasAttribute(Attribute<?> attr) {
+        return AttributeRegistry.access().hasAttr(state, attr);
+    }
+
+    @Override
+    public <T> T getAttribute(Attribute<T> attr) {
+        return AttributeRegistry.access().getValue(state, attr);
+    }
+
+    @Override
+    public <T> T tryGetAttribute(Attribute<T> attr) {
+        return AttributeRegistry.access().tryGetValue(state, attr);
+    }
+
+    @Override
+    public <T> BlockState<net.minecraft.world.level.block.state.BlockState> setAttribute(Attribute<T> attr, T val) {
+        net.minecraft.world.level.block.state.BlockState nState =
+                AttributeRegistry.access().setValue(state, attr, val);
+        return BlockStateImpl.of(nState); // TODO: review
+    }
+
+    @Override
+    public <T> BlockState<net.minecraft.world.level.block.state.BlockState> trySetAttribute(Attribute<T> attr, T val) {
+        net.minecraft.world.level.block.state.BlockState nState =
+                AttributeRegistry.access().trySetValue(state, attr, val);
+        return BlockStateImpl.of(nState);
+    }
+
+    @Override
     public boolean canBeReplaced() {
         return state.canBeReplaced();
     }
@@ -58,6 +87,7 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
         return state.isAir();
     }
 
+    @Deprecated
     @Override
     public Material getBukkitMaterial() {
         return state.getBukkitMaterial();
@@ -72,4 +102,10 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     public NativeTypeConversionsImpl getConverter() {
         return NativeTypeConversionsImpl.inst();
     }
+
+    /*@Override
+    public BlockState<net.minecraft.world.level.block.state.BlockState> copy() {
+        // FIXME
+        return new BlockStateImpl(new net.minecraft.world.level.block.state.BlockState(state.getBlock(), state.getValues(), );
+    }*/
 }
