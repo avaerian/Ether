@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.sponge.reader.steps;
 
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.data.Array3DOrder;
 import org.minerift.ether.schematic.data.BlockVolume;

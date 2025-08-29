@@ -7,7 +7,7 @@ import org.minerift.ether.schematic.SchematicFileReadException;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.util.nbt.tags.IntTag;
 import org.minerift.ether.util.nbt.tags.StringTag;
-import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
 import org.minerift.ether.world.BlockEntityArchetype;
@@ -24,7 +24,7 @@ public class ReadBlockEntitiesStep implements IReaderStep {
 
         final String blockEntitiesKey =
                 ctx.builder.getVersion() == V1 ? NBT_TILE_ENTITIES : NBT_BLOCK_ENTITIES;
-        final Optional<ListTag<CompoundTag>> tagList = ctx.root.getList(blockEntitiesKey, TagType.COMPOUND);
+        final Optional<ListTag<CompoundTag>> tagList = ctx.root.getList(blockEntitiesKey, TagTypes.COMPOUND);
 
         //Vec3i dim = ctx.builder.getDimensions();
 
@@ -37,30 +37,37 @@ public class ReadBlockEntitiesStep implements IReaderStep {
                 final int[] rawPos = bEntityTag.getIntArray(NBT_BLOCK_ENTITIES_POS).orElseThrow(() -> new SchematicFileReadException("Failed to read block entity positions!"));
                 final Vec3i pos = new Vec3i.Mutable(rawPos);
 
+                //System.out.println(bEntityTag);
+
                 // TODO: review nbt data fix up
                 // Fix up NBT data
                 CompoundTag nbt = bEntityTag.copy();
-                bEntityTag.addTag( new IntTag("x", pos.getX()) );
-                bEntityTag.addTag( new IntTag("y", pos.getY()) );
-                bEntityTag.addTag( new IntTag("z", pos.getZ()) );
-                bEntityTag.addTag( new StringTag("id", id) );
+                nbt.addTag( new IntTag("x", pos.getX()) );
+                nbt.addTag( new IntTag("y", pos.getY()) );
+                nbt.addTag( new IntTag("z", pos.getZ()) );
+                nbt.addTag( new StringTag("id", id) );
 
                 //ListTag<StringTag> test = bEntityTag.getListTag("test", TagType.STRING);
 
-                bEntityTag.removeTag(NBT_ENTITIES_POS);
-                bEntityTag.removeTag(NBT_ENTITIES_ID);
+                nbt.removeTag(NBT_ENTITIES_POS);
+                nbt.removeTag(NBT_ENTITIES_ID);
 
                 //int idx = Array3DOrder.YZX.flatten(dim.getX(), dim.getZ(), pos.getX(), pos.getY(), pos.getZ());
+                //System.out.println("first: " + nbt);
                 BlockEntityArchetype bEntity;
                 try {
-                    bEntity = new BlockEntityArchetype(id, pos, bEntityTag);
+                    bEntity = new BlockEntityArchetype(id, pos, nbt);
                     ctx.builder.getBlocks().addBlockEntity(bEntity);
                 } catch (BlockStateNotFoundException ex1) {
                     // TODO: logger
                     // Fix up any outdated nbt data to try again
-                    bEntityTag = Ether.getNms().fixUpItemName(bEntityTag, Ether.getNms().getDataVersion());
+                    StringTag idTag = nbt.getTag("id", TagTypes.STRING);
+                    idTag = Ether.getNms().fixUpItemName(idTag, -1);
+                    idTag.setName("id");
+                    nbt.addTag(idTag, true);
+                    //System.out.println("second: " + nbt);
                     try {
-                        bEntity = new BlockEntityArchetype(id, pos, bEntityTag);
+                        bEntity = new BlockEntityArchetype(nbt.getTag("id", TagTypes.STRING).getValue(), pos, nbt);
                         ctx.builder.getBlocks().addBlockEntity(bEntity);
                     } catch (BlockStateNotFoundException ex2) {
                         // skip for now
