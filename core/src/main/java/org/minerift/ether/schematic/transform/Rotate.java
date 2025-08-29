@@ -2,45 +2,120 @@ package org.minerift.ether.schematic.transform;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.data.Array3DOrder;
+import org.minerift.ether.util.Option;
 import org.minerift.ether.util.UnreachableException;
 
 import java.util.Arrays;
 import java.util.function.IntUnaryOperator;
 
+import static java.lang.Math.TAU;
+import static org.minerift.ether.util.Option.none;
+import static org.minerift.ether.util.Option.some;
+
 public class Rotate implements Transform {
 
-    public static final byte SWAP_IN_BUFFER;
+    public static final int SWAP_IN_BUFFER;
 
     static {
-        byte bit = 0;
-        SWAP_IN_BUFFER = (byte) (1 << bit++);
+        int bit = 0;
+        SWAP_IN_BUFFER = (1 << bit++);
     }
 
     public enum Angle {
-        DG_90,
-        DG_180, // flip on both coords
-        DG_NEG_90,
+        DG_90(90),
+        DG_180(180), // flip on both coords
+        DG_NEG_90(-90),
+
+        ;
+
+        private int deg;
+        private double rad;
+        Angle(int deg) {
+            this.deg = deg;
+            this.rad = ((double) deg / 360) * TAU;
+        }
+
+        public int deg() {
+            return deg;
+        }
+
+        public double rad() {
+            return rad;
+        }
+
+        public static Option<Angle> ofDeg(int dg) {
+            dg %= 360;
+            Option<Angle> angle = switch (dg) {
+                case 90, -270 -> some(DG_90);
+                case 180, -180 -> some(DG_180);
+                case 270, -90 -> some(DG_NEG_90);
+                default -> none();
+            };
+            return angle;
+        }
+
+        public static Option<Angle> ofRad(double rad) {
+            //rad %= TAU;
+            int dg = (int) ((rad / TAU) * 360);
+            return ofDeg(dg);
+        }
+
     }
+
+    public static Rotate of(Axis axis, Angle angle) {
+        return new Rotate(axis, angle);
+    }
+
+    public static Rotate of(Axis axis, Option<Angle> angle) {
+        Rotate transform = switch (angle) {
+            case Option.Some<Angle> s -> of(axis, s.value());
+            case Option.None<Angle> n -> Identity.INST;
+            default -> throw new IllegalStateException("Unexpected value: " + angle);
+        };
+        return transform;
+    }
+
+    /*public static Rotate of(Axis axis, int dg) {
+
+    }
+
+    public static Rotate of(Axis axis, double rad) {
+        return n
+    }*/
 
     private Axis axis;
     private Angle angle;
-    private byte options;
+    private int options;
 
-    public Rotate(Axis axis, Angle angle) {
+    private Rotate(Axis axis, Angle angle) {
         this(axis, angle, (byte) 0);
     }
 
-    public Rotate(Axis axis, Angle angle, byte options) {
+    private Rotate(Axis axis, Angle angle, int flags) {
         this.axis = axis;
         this.angle = angle;
-        this.options = options;
+        this.options = flags;
+    }
+
+    public Axis getAxis() {
+        return axis;
+    }
+
+    public Angle getAngle() {
+        return angle;
+    }
+
+    public boolean isIdentity() {
+        return false;
     }
 
     @Override
-    public byte[] transform(Array3DOrder order, int width, int height, int len, byte[] src) {
+    public Result<byte[]> transform(Array3DOrder order, int width, int height, int len, byte[] src) {
         Preconditions.checkArgument(width * height * len == src.length);
 
         // AXIS (rotating on X and Z, layer Y) ->
@@ -59,13 +134,13 @@ public class Rotate implements Transform {
 
                     if((options & SWAP_IN_BUFFER) != 0) { // if swap in buffer
                         // rotate in-place
-                        return rotateSquare90Swap(axis, order, rotX, axis.getLayers(dim), src);
+                        return rotateSquare90Swap(axis, order, dim, src);
                     } else {
                         // copy and rotate
                         // TODO: review algorithm for this
                         byte[] copy = new byte[src.length];
                         System.arraycopy(src, 0, copy, 0, src.length);
-                        return rotateSquare90Swap(axis, order, rotX, axis.getLayers(dim), copy);
+                        return rotateSquare90Swap(axis, order, dim, copy);
                     }
 
                 } else {
@@ -87,11 +162,64 @@ public class Rotate implements Transform {
             }
 
         }
-
         throw new UnreachableException("TODO");
     }
 
-    private static byte[] rotateRect180Swap(Axis axis, Array3DOrder order, Vec3i dim, byte[] src) {
+    @Override
+    public Result<Vec3i> transformVec(Vec3i dim, Vec3i vec) {
+        return transformVec(axis, angle, dim, vec);
+    }
+
+    public static Result<Vec3i> transformVec(Axis axis, Angle angle, Vec3i dim, Vec3i vec) {
+        Vec3i rotDim;
+        Vec3i res;
+
+        final int rotX = axis.getRotatingX(dim);
+        final int rotZ = axis.getRotatingZ(dim);
+        final int layer = axis.getLayers(vec);
+
+        switch (angle) {
+            case DG_90 -> {
+                rotDim = axis.rotateDim(dim);
+                final int gridLen;
+                if(rotX == rotZ) {
+                    gridLen = rotX;
+                    res = axis.reorder(gridLen - 1 - axis.getRotatingZ(vec), layer, axis.getRotatingX(vec));
+                } else {
+                    gridLen = Math.max(rotX, rotZ);
+                    final int diff = rotX >= rotZ ? rotX - rotZ : rotZ - rotX;
+                    Vec2i trRotated = new Vec2i(gridLen - 1, rotX - 1); // original: (dimX,0)
+                    IntUnaryOperator transform;
+                    if(trRotated.getX() == gridLen - 1 && trRotated.getZ() == gridLen - 1) {
+                        System.out.println("with diff"); // debug
+                        transform = (a) -> (gridLen - 1 - a) - diff;
+                    } else {
+                        transform = (a) -> gridLen - 1 - a;
+                    }
+                    res = axis.reorder(transform.applyAsInt(axis.getRotatingZ(vec)), layer, axis.getRotatingX(vec));
+                }
+            }
+            case DG_180 -> {
+                rotDim = dim;
+                res = axis.reorder(rotX - 1 - axis.getRotatingX(vec), layer, rotZ - 1 - axis.getRotatingZ(vec));
+            }
+            case DG_NEG_90 -> {
+                rotDim = axis.rotateDim(dim);
+                res = null; // TODO
+            }
+            default -> throw new IllegalStateException("Unexpected exception; angle is " + angle);
+        }
+        return new Result<>(rotDim, res);
+    }
+
+    @Override
+    public Result<Vec3d> transformVec(Vec3i dim, Vec3d vec) {
+        return null; // FIXME
+    }
+
+    /*public <T extends Vec3.Mutable> Transform.Result<T> transformVecMut(Vec3i dim, T vec) {}*/
+
+    private static Result<byte[]> rotateRect180Swap(Axis axis, Array3DOrder order, Vec3i dim, byte[] src) {
 
         final int width = dim.getX();
         final int length = dim.getZ();
@@ -101,7 +229,7 @@ public class Rotate implements Transform {
         
         final int layers = axis.getLayers(dim);
         final int iterZ = axis.getRotatingZ(dim);
-        final int iterX = (axis.getRotatingX(dim) + 1) / 2;
+        final int iterX = (axis.getRotatingX(dim) / 2);
 
         System.out.println("iterX " + iterX + ", iterZ " + iterZ);
 
@@ -113,18 +241,36 @@ public class Rotate implements Transform {
                     int transFlat = axis.flatten(order, width, length,
                             rotX - 1 - x, layer,  rotZ - 1 - z);
 
-                    System.out.printf("(%d,%d,%d) %d -> (%d,%d,%d) %d\n",
-                            x, layer, z, currFlat, width - 1 - x, layer, length - 1 - z, transFlat);
+                    /*System.out.printf("(%d,%d,%d) %d -> (%d,%d,%d) %d\n",
+                            x, layer, z, currFlat, rotX - 1 - x, layer, rotZ - 1 - z, transFlat);*/
 
                     byte swap = src[transFlat];
                     src[transFlat] = src[currFlat];
                     src[currFlat] = swap;
-
                 }
             }
         }
 
-        return src;
+        if((rotX & 1) != 0) {
+            final int mid = rotX >> 1;
+            for(int layer = 0; layer < layers; layer++) {
+                for(int z = 0; z < iterZ >> 1; z++) {
+
+                    int currFlat = axis.flatten(order, width, length, mid, layer, z);
+                    int transFlat = axis.flatten(order, width, length,
+                            mid, layer,  rotZ - 1 - z);
+
+                    /*System.out.printf("(%d,%d,%d) %d -> (%d,%d,%d) %d\n",
+                            x, layer, z, currFlat, rotX - 1 - x, layer, rotZ - 1 - z, transFlat);*/
+
+                    byte swap = src[transFlat];
+                    src[transFlat] = src[currFlat];
+                    src[currFlat] = swap;
+                }
+            }
+        }
+
+        return new Result<>(dim, src); // dim doesn't change
 
     }
 
@@ -132,9 +278,8 @@ public class Rotate implements Transform {
     public static void main(String[] args) {
         Array3DOrder order = Array3DOrder.YZX;
         final int width = 4;
-        final int length = 3;
-        //final int len = 3;
-        final int layers = 7; // y
+        final int length = 5;
+        final int layers = 5; // y
 
         //final int[] ibuf = IntStream.range(0, len * layers * len).toArray();
         byte[] buf = new byte[width * length * layers/*ibuf.length*/];
@@ -154,21 +299,37 @@ public class Rotate implements Transform {
         Vec3i dim = new Vec3i(width, layers, length);
         System.out.println(dim);
 
-        Axis axis = Axis.Y;
+        //Axis axis = Axis.Y;
         /*int rotX = axis.getRotatingX(dim);
         int rotZ = axis.getRotatingZ(dim);
         if(rotX != rotZ) {
             throw new RuntimeException(rotX + ", " + rotZ);
         }*/
 
+        Transforms transforms = Transforms.builder()
+                .add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                .add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_180, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_180, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_180, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.X, Angle.DG_90, SWAP_IN_BUFFER))
+                //.add(new Rotate(Axis.Z, Angle.DG_90, SWAP_IN_BUFFER))
+                .build();
+
         System.out.println("Buf: " + Arrays.toString(buf));
         /*for(int rots = 0; rots < 1; rots++) {
             //rotateSquare90Swap(axis, order, len, layers, buf);
             buf = rotateRect90(axis, order, dim, buf);
         }*/
-        rotateRect180Swap(axis, order, dim, buf);
 
-        System.out.println("buf: " + Arrays.toString(buf));
+        Result<byte[]> res = transforms.apply(order, dim, buf);
+        //rotateRect180Swap(axis, order, dim, buf);
+
+        System.out.println("buf: " + Arrays.toString(res.out));
 
         /*for(int z = 0; z < len; z++) {
             for(int x = 0; x < len; x++) {
@@ -178,7 +339,8 @@ public class Rotate implements Transform {
         }*/
     }
 
-    private static byte[] rotateRect90(Axis axis, Array3DOrder order, Vec3i dim, byte[] src) {
+    private static Result<byte[]> rotateRect90(Axis axis, Array3DOrder order, Vec3i dim, byte[] src) {
+        Vec3i rotatedDim = axis.rotateDim(dim);
         final int rotX = axis.getRotatingX(dim);
         final int rotZ = axis.getRotatingZ(dim);
 
@@ -187,25 +349,23 @@ public class Rotate implements Transform {
         byte[] out = new byte[src.length];
 
         final int gridLen = Math.max(rotX, rotZ); // max(x, z)
-        final int difference = rotX >= rotZ ? rotX - rotZ : rotZ - rotX;
-        System.out.println("gridLen " + gridLen + ", diff " + difference);
+        final int diff = rotX >= rotZ ? rotX - rotZ : rotZ - rotX;
+        System.out.println("gridLen " + gridLen + ", diff " + diff);
         //System.out.println(order.flatten(dim.getX(), dim.getZ(), 0, 3, 0));
 
-        Vec3i rotatedDim = new Vec3i(axis.getRotatingX(dim),
-                axis.getLayers(dim), axis.getRotatingZ(dim)); // TODO: swap X and Z??
         System.out.println("dim: " + dim + ", rotated: " + rotatedDim);
 
         // (x, z) -> ([len - 1] - z, x)
-        Vec2i trRotated = new Vec2i(gridLen - 1, rotatedDim.getX() - 1); // original: (dimX,0)
+        Vec2i trRotated = new Vec2i(gridLen - 1, rotX - 1); // original: (dimX,0)
         //Vec2i blRotated = new Vec2i(gridLen - 1 - rotatedDim.getZ(), 0); // original: (0, dimZ)
         //System.out.println(dim.getX() + " 0");
-        //System.out.println(trRotated);
+        System.out.println(trRotated);
 
         // check if top-left correction is needed
         IntUnaryOperator transform;
         if(trRotated.getX() == gridLen - 1 && trRotated.getZ() == gridLen - 1) { // TODO: review
             System.out.println("with diff");
-            transform = (a) -> (gridLen - 1 - a) - difference;
+            transform = (a) -> (gridLen - 1 - a) - diff;
         } else {
             transform = (a) -> gridLen - 1 - a;
         }
@@ -218,9 +378,9 @@ public class Rotate implements Transform {
                 for(int x = 0; x < rotX; x++) {
 
                     int currFlat = axis.flatten(order, dim.getX(), dim.getZ(), x, layer, z);
-                    int transFlat = order.flatten(rotatedDim.getZ(), rotatedDim.getX(),
+                    int transFlat = axis.flatten(order, rotatedDim.getX(), rotatedDim.getZ(),
                             transform.applyAsInt(z), layer, x); // 90deg rotation
-                    //System.out.printf("(%d,%d,%d) %d -> (%d,%d,%d) %d\n", x, z, layer, currFlat, gridLen - 1 - z - difference, x, layer, transFlat);
+                    //System.out.printf("(%d,%d,%d) %d -> (%d,%d,%d) %d\n", x, z, layer, currFlat, gridLen - 1 - z - diff, x, layer, transFlat);
                     //System.out.println(currFlat + ", " + transFlat);
 
                     out[transFlat] = src[currFlat];
@@ -228,12 +388,21 @@ public class Rotate implements Transform {
             }
         }
 
-        return out;
+        return new Result<>(rotatedDim, out);
     }
 
-    private static byte[] rotateSquare90Swap(Axis axis, Array3DOrder order, int len, int layers, byte[] buf) {
+    // TODO: change params for dim
+    @NeedsTesting
+    private static Result<byte[]> rotateSquare90Swap(Axis axis, Array3DOrder order, Vec3i dim, byte[] buf) {
 
-        final int points = len; // redundant; for clarity
+        final Vec3i rotDim = axis.rotateDim(dim);
+        System.out.println(rotDim);
+
+        final int len = axis.getRotatingX(dim);
+        final int layers = axis.getLayers(dim);
+        System.out.println(axis.getRotatingX(dim) + " " + layers + " " + axis.getRotatingZ(dim));
+
+        final int points = len; // x; redundant; for clarity
         final int shells = (points + 1) / 2; // z
 
         for(int layer = 0; layer < layers; layer++) {
@@ -246,15 +415,16 @@ public class Rotate implements Transform {
                     // TODO: move these two Vec2i's out of loop to avoid reallocating
                     Vec2i.Mutable curr = new Vec2i.Mutable(point, shell);
                     Vec2i.Mutable lookAhead = new Vec2i.Mutable(0,0);
-                    int nextSwapVal = buf[axis.flatten(order, len, curr.getX(), layer, curr.getZ())]; // current
+                    int nextSwapVal = buf[axis.flatten(order, dim.getX(), dim.getZ(), curr.getX(), layer, curr.getZ())]; // current
                     for(int i = 0; i < 4; i++) {
                         // TODO: to allow -90 rotations, change this to Consumer<Vec3i>
                         lookAhead.set(len - 1 - curr.getZ(), curr.getX()); // 90deg rotation
 
-                        int currFlat = axis.flatten(order, len, curr.getX(), layer, curr.getZ()); // unused
-                        int aheadFlat = axis.flatten(order, len, lookAhead.getX(), layer, lookAhead.getZ());
+                        //int currFlat = axis.flatten(order, len, curr.getX(), layer, curr.getZ()); // unused
+                        int aheadFlat = axis.flatten(order, dim.getX(), dim.getZ(), lookAhead.getX(), layer, lookAhead.getZ());
+                        //System.out.println(aheadFlat);
 
-                        //System.out.println(point + ", curr " + curr + ", next " + lookAhead);
+                        System.out.println(point + ", curr " + curr + ", next " + lookAhead);
                         //System.out.println(Arrays.toString(buf));
 
                         // swap
@@ -268,8 +438,36 @@ public class Rotate implements Transform {
 
             }
         }
-        // ROTATE SQUARE END
-        return buf;
+        return new Result<>(rotDim, buf);
+    }
+
+    public static final class Identity extends Rotate {
+
+        public static final Identity INST = new Identity();
+
+        private Identity() {
+            super(null, null);
+        }
+
+        @Override
+        public boolean isIdentity() {
+            return true;
+        }
+
+        @Override
+        public Result<byte[]> transform(Array3DOrder order, Vec3i dim, byte[] src) {
+            return new Result<>(dim, src);
+        }
+
+        @Override
+        public Result<Vec3i> transformVec(Vec3i dim, Vec3i vec) {
+            return new Result<>(dim, vec);
+        }
+
+        @Override
+        public Result<Vec3d> transformVec(Vec3i dim, Vec3d vec) {
+            return new Result<>(dim, vec);
+        }
     }
 
 }
