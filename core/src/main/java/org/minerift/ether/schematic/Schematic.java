@@ -3,6 +3,7 @@ package org.minerift.ether.schematic;
 import com.google.common.base.Preconditions;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.schematic.transform.Transforms;
 
 import java.io.File;
 
@@ -30,5 +31,7 @@ public interface Schematic {
 
     Vec3i getDimensions();
     Vec3i getOffset();
+
+    Schematic transform(Transforms transforms);
 
 }

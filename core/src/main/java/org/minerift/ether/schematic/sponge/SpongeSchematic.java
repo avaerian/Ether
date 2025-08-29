@@ -7,6 +7,7 @@ import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
+import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.Either;
 import org.minerift.ether.util.fn.IBuilder;
 import org.minerift.ether.world.EntityArchetype;
@@ -75,6 +76,13 @@ public class SpongeSchematic implements Schematic {
         return offset;
     }
 
+    @Override
+    public SpongeSchematic transform(Transforms transforms) {
+        // TODO: get blockvolume pasting working, test in-game, fix rotational issues
+        // TODO: commit changes, impl Flip transform
+        return null;
+    }
+
     public BlockVolume getBlocks() {
         return blocks;
     }
@@ -89,7 +97,7 @@ public class SpongeSchematic implements Schematic {
 
     public static class Builder implements IBuilder<SpongeSchematic> {
 
-        private SpongeVersion version; // FIXME: make an enum? V1, V2, V3, UNKNOWN
+        private SpongeVersion version;
         private Vec3i dim;
         private Vec3i offset;
         //private Either<BlockVolume, BlockVolume.Builder> blocks;
