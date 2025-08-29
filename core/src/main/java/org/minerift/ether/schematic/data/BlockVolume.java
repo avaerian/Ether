@@ -1,33 +1,63 @@
 package org.minerift.ether.schematic.data;
 
 import com.google.common.base.Preconditions;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.nms.world.BlockState;
+import org.minerift.ether.nms.world.block.Attribute;
+import org.minerift.ether.nms.world.block.Attributes;
+import org.minerift.ether.nms.world.block.BlockState;
+import org.minerift.ether.schematic.transform.Direction;
+import org.minerift.ether.schematic.transform.Transform;
+import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
+import static org.minerift.ether.schematic.transform.Direction.*;
 
+// TODO: review/consider removing generic for BlockState
 public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
+
+    public static final int NO_FLAGS;
+    public static final int ALL_FLAGS;
+
+    public static final int COPY_BV;
+    public static final int COPY_PALETTE;
+    public static final int ROTATE_BLK_DIRS;
+
+    static {
+        int flag = 0;
+
+        NO_FLAGS = 0;
+        COPY_BV = 1 << flag++;
+        COPY_PALETTE = 1 << flag++;
+        ROTATE_BLK_DIRS = 1 << flag++;
+
+        ALL_FLAGS = (1 << flag) - 1;
+    }
 
     public static BlockVolume.Builder builder() {
         return new BlockVolume.Builder();
     }
 
-    public final Map<Integer, BlockEntityArchetype> blockEntities;
+    public final Int2ObjectMap<BlockEntityArchetype> blockEntities;
     private final BitSet blockEntityTest;
 
     public BlockVolume(Array3DOrder order, byte[] data, BytePalette<BlockState<?>> palette,
+                       Vec3i dim, Int2ObjectMap<BlockEntityArchetype> blockEntities) {
+        this(order, data, palette, dim.getX(), dim.getY(), dim.getZ(), blockEntities);
+    }
+
+    public BlockVolume(Array3DOrder order, byte[] data, BytePalette<BlockState<?>> palette,
                        int width, int height, int length,
-                       Map<Integer, BlockEntityArchetype> blockEntities) {
+                       Int2ObjectMap<BlockEntityArchetype> blockEntities) {
         super(order, data, palette, width, height, length);
         this.blockEntities = blockEntities;
 
@@ -68,15 +98,90 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
         return blockEntities.values();
     }
 
+    // TODO: move up to Volume.class (or Transformable ??)
+    // TODO: implement method for Schematic.class
+    public BlockVolume transform(Transform t) {
+        return transform(Transforms.of(t), 0);
+    }
+
+    public BlockVolume transform(Transform t, int flags) {
+        return transform(Transforms.of(t), flags);
+    }
+
+    public BlockVolume transform(Transforms ts) {
+        return transform(ts, 0);
+    }
+
+    // Return [immutable copy of] transformed BlockVolume
+    public BlockVolume transform(Transforms ts, int flags) {
+        byte[] buf;
+        if((flags & COPY_BV) != 0) {
+            buf = new byte[data.length];
+            System.arraycopy(data, 0, buf, 0, data.length);
+        } else {
+            buf = data;
+        }
+
+        // rotate palette
+        BytePalette<BlockState<?>> palette;
+        if((flags & COPY_PALETTE) != 0) {
+            palette = this.palette.copy();
+        } else {
+            palette = this.palette;
+        }
+
+        if((flags & ROTATE_BLK_DIRS) != 0) { // FIXME
+            for(BytePalette.Entry<BlockState<?>> entry : palette) {
+                BlockState<?> state = entry.getValue();
+                Attribute<Direction> dirAttr;
+                Direction dir;
+
+                // TODO: fix multiple mutable copies
+                if (state.hasAttribute(Attributes.AXIS)) {
+                    dir = switch (state.getAttribute(Attributes.AXIS)) {
+                        case X -> NORTH;
+                        case Y -> UP;
+                        case Z -> EAST;
+                    };
+                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
+                    Direction rotated = Direction.fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+
+                    palette.add(entry.getKey(), state.trySetAttribute(Attributes.AXIS, rotated.getAxis()), true);
+                } else if ((dir = state.tryGetAttribute(dirAttr = Attributes.FACING)) != null
+                        || ((dir = state.tryGetAttribute(dirAttr = Attributes.HORIZONTAL_FACING)) != null)) {
+
+                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
+                    Direction rotated = Direction.fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+
+                    palette.add(entry.getKey(), state.trySetAttribute(dirAttr, rotated), true);
+                }
+            }
+        }
+
+        Transform.Result<byte[]> res = ts.apply(order, width, height, length, buf);
+
+        // transform BlockEntity positions
+        Int2ObjectMap<BlockEntityArchetype> newBlockEntities = new Int2ObjectOpenHashMap<>(blockEntities.size());
+        for(Int2ObjectMap.Entry<BlockEntityArchetype> be : blockEntities.int2ObjectEntrySet()) {
+            Vec3i oldPos = order.unflatten(width, length, be.getIntKey());
+            Transform.Result<Vec3i> newPos = ts.apply(width, height, length, oldPos);
+            int newFlat = order.flatten(res.dim.getX(), res.dim.getZ(), newPos.out);
+            BlockEntityArchetype newBe = new BlockEntityArchetype(be.getValue().getState(), newPos.out, be.getValue().getNbtData());
+            newBlockEntities.put(newFlat, newBe);
+        }
+
+        return new BlockVolume(order, res.out, palette, res.dim, newBlockEntities);
+    }
+
     public static class Builder extends Volume.Builder<BlockVolume, BlockVolume.Builder, BlockState<?>, BlockArchetype> {
 
-        public static final Supplier<Map<Integer, BlockEntityArchetype>> NEW_BLOCK_ENTITY_MAP = Int2ObjectOpenHashMap::new;
+        public static final Supplier<Int2ObjectMap<BlockEntityArchetype>> NEW_BLOCK_ENTITY_MAP = Int2ObjectOpenHashMap::new;
 
-        public Map<Integer, BlockEntityArchetype> blockEntities;
+        public Int2ObjectMap<BlockEntityArchetype> blockEntities;
 
         protected Builder() {
             super();
-            this.blockEntities = Collections.emptyMap();
+            this.blockEntities = Int2ObjectMaps.emptyMap();
         }
 
         public Builder addBlockEntity(BlockEntityArchetype bEntity) {
@@ -84,7 +189,7 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
             Preconditions.checkState(height > 0, "Height must be greater than 0");
             Preconditions.checkState(length > 0, "Length must be greater than 0");
 
-            if(blockEntities == Collections.EMPTY_MAP) {
+            if(blockEntities == Int2ObjectMaps.EMPTY_MAP) {
                 this.blockEntities = NEW_BLOCK_ENTITY_MAP.get();
             }
 
@@ -102,7 +207,7 @@ public class BlockVolume extends Volume<BlockState<?>, BlockArchetype> {
             return this;
         }
 
-        public Builder setBlockEntities(Map<Integer, BlockEntityArchetype> blockEntities) {
+        public Builder setBlockEntities(Int2ObjectMap<BlockEntityArchetype> blockEntities) {
             this.blockEntities = blockEntities;
             return this;
         }
