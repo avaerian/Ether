@@ -30,7 +30,7 @@ public class EndTag extends Tag {
 
     @Override
     public TagType<EndTag> getType() {
-        return TagType.END;
+        return TagTypes.END;
     }
 
     @Override

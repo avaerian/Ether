@@ -20,7 +20,7 @@ public class StringTag extends Tag {
 
     @Override
     public TagType<StringTag> getType() {
-        return TagType.STRING;
+        return TagTypes.STRING;
     }
 
     public String getValue() {

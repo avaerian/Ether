@@ -6,8 +6,8 @@ import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
 import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 
 public final class ByteArrayTag extends ArrayTag<byte[]> {
     public ByteArrayTag(String name, byte[] value) {
@@ -20,7 +20,7 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
 
     @Override
     public TagType<ByteArrayTag> getType() {
-        return TagType.BYTE_ARRAY;
+        return TagTypes.BYTE_ARRAY;
     }
 
     @Override

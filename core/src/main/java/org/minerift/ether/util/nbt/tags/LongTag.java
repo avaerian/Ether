@@ -20,7 +20,7 @@ public class LongTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<LongTag> getType() {
-        return TagType.LONG;
+        return TagTypes.LONG;
     }
 
     @Override

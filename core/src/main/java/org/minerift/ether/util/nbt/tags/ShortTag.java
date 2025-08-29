@@ -20,7 +20,7 @@ public class ShortTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<ShortTag> getType() {
-        return TagType.SHORT;
+        return TagTypes.SHORT;
     }
 
 

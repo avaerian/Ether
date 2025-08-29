@@ -20,7 +20,7 @@ public class FloatTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<FloatTag> getType() {
-        return TagType.FLOAT;
+        return TagTypes.FLOAT;
     }
 
     @Override

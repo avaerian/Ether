@@ -6,8 +6,8 @@ import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
 import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 
 import java.util.Arrays;
 
@@ -22,7 +22,7 @@ public final class IntArrayTag extends ArrayTag<int[]> {
 
     @Override
     public TagType<IntArrayTag> getType() {
-        return TagType.INT_ARRAY;
+        return TagTypes.INT_ARRAY;
     }
 
     @Override

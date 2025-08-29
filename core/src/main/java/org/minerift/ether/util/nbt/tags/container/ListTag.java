@@ -16,12 +16,12 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static java.lang.String.format;
-import static org.minerift.ether.util.nbt.tags.TagType.END;
+import static org.minerift.ether.util.nbt.tags.TagTypes.END;
 
 public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implements Iterable<T> {// TODO: review Iterable<T> vs Iterable<List<Tag>> /*permits ListTag.Untyped*/
 
     public static ListTag<?> empty(String name) {
-        return new ListTag<>(name, TagType.END, Collections.emptyList());
+        return new ListTag<>(name, TagTypes.END, Collections.emptyList());
     }
 
     protected TagType<T> childType;
@@ -56,7 +56,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
 
     @Debug
     public static void main(String[] args) {
-        ListTag<StringTag> test = new ListTag<>("test_list", TagType.STRING, new LinkedList<>());
+        ListTag<StringTag> test = new ListTag<>("test_list", TagTypes.STRING, new LinkedList<>());
         System.out.println(test.tagList.getClass());
     }
 
@@ -126,7 +126,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
 
     @Override
     public TagType<ListTag> getType() {
-        return TagType.LIST;
+        return TagTypes.LIST;
     }
 
     public TagType<T> getChildType() {
@@ -154,20 +154,20 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         this.tagList = value;
     }
 
-    @Deprecated // TODO
     @Override
     public ListTag<T> copy() {
-        List<T> newList = size() != 0 ? new ArrayList<>(size()) : Collections.emptyList();
-        // TODO:
-        //  ListTag<T> copy = new ListTag<>(name, childType, );
-
         if(tagList.isEmpty()) {
             return new ListTag<>(name, childType);
         }
 
+        List<T> newList = new ArrayList<>(size());
+        ListTag<T> copy = new ListTag<>(name, childType, newList);
 
-        return null;
-        //return copy;
+        for(T tag : tagList) {
+            copy.addTag((T) tag.copy());
+        }
+
+        return copy;
     }
 
     @Override
@@ -200,7 +200,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         public ListTag<?> readTag(NbtTraverser nbt, String name) {
             byte childTypeId = nbt.readByte();
             //PrimitiveTagType childType = PrimitiveTagType.lookup(childTypeId);
-            TagType childType = TagType.lookup(childTypeId);
+            TagType childType = TagTypes.lookup(childTypeId);
             TagCodec childCodec = childType.codec();
             int len = nbt.readInt();
             ListTag<Tag> list = new ListTag<>(name, childType, new ArrayList<>(len));

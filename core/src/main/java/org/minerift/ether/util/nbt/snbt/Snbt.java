@@ -5,6 +5,7 @@ import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -198,40 +199,40 @@ public class Snbt {
         public static TagTypeParserResult getTagType(TokenStream toks, Token tok) {
             final String strTok = tok.strTok;
             return switch (tok.strTok) {
-                case "{" -> new TagTypeParserResult(TagType.COMPOUND, tok);
+                case "{" -> new TagTypeParserResult(TagTypes.COMPOUND, tok);
                 case "[" -> {
                     Token arrayType = tok.next();
                     TagType type = switch (arrayType.strTok) {
-                        case "B" -> TagType.BYTE_ARRAY;
-                        case "I" -> TagType.INT_ARRAY;
-                        case "L" -> TagType.LONG_ARRAY;
-                        default -> TagType.LIST;
+                        case "B" -> TagTypes.BYTE_ARRAY;
+                        case "I" -> TagTypes.INT_ARRAY;
+                        case "L" -> TagTypes.LONG_ARRAY;
+                        default -> TagTypes.LIST;
                     };
-                    if(type == TagType.LIST) {
+                    if(type == TagTypes.LIST) {
                         yield new TagTypeParserResult(type, tok);
                     }
                     yield new TagTypeParserResult(type, arrayType.next());
                 }
                 default -> {
                     if(strTok.equalsIgnoreCase("true") || strTok.equalsIgnoreCase("false")) {
-                        yield new TagTypeParserResult(TagType.BYTE, tok);
+                        yield new TagTypeParserResult(TagTypes.BYTE, tok);
                     }
 
                     TagType<?> type;
                     if(tok.matches(BYTE_VALUE)) {
-                        type = TagType.BYTE;
+                        type = TagTypes.BYTE;
                     } else if(tok.matches(SHORT_VALUE)) {
-                        type = TagType.SHORT;
+                        type = TagTypes.SHORT;
                     } else if(tok.matches(INT_VALUE)) {
-                        type = TagType.INT;
+                        type = TagTypes.INT;
                     } else if(tok.matches(LONG_VALUE)) {
-                        type = TagType.LONG;
+                        type = TagTypes.LONG;
                     } else if(tok.matches(FLOAT_VALUE)) {
-                        type = TagType.FLOAT;
+                        type = TagTypes.FLOAT;
                     } else if(tok.matches(DOUBLE_VALUE)) {
-                        type = TagType.DOUBLE;
+                        type = TagTypes.DOUBLE;
                     } else if(tok.matches(STRING_VALUE)) {
-                        type = TagType.STRING;
+                        type = TagTypes.STRING;
                     } else {
                         type = null;
                         //throw new IllegalArgumentException("'" + tok + "' is not a valid tag type!");

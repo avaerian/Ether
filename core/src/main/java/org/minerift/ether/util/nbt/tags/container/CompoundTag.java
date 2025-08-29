@@ -37,11 +37,17 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     @Override
     public TagType<CompoundTag> getType() {
-        return TagType.COMPOUND;
+        return TagTypes.COMPOUND;
     }
 
     public void addTag(Tag tag) {
-        Preconditions.checkArgument(!tags.containsKey(tag.getName()), "Tag already exists with name " + tag.getName() + " in CompoundTag!");
+        addTag(tag, false);
+    }
+
+    public void addTag(Tag tag, boolean replace) {
+        if(!replace) {
+            Preconditions.checkArgument(!tags.containsKey(tag.getName()), "Tag already exists with name " + tag.getName() + " in CompoundTag!");
+        }
         tags.put(tag.getName(), tag);
     }
 
@@ -50,7 +56,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
     }
 
     public <T extends Tag> T getTag(String name, Class<? extends T> clazz) {
-        return getTag(name, TagType.lookup(clazz));
+        return getTag(name, TagTypes.lookup(clazz));
     }
 
     public <T extends Tag> T getTag(String name, TagType<T> type) {
@@ -67,7 +73,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     // TODO
     public <T extends Tag> ListTag<T> getListTag(String name, TagType<T> childType) {
-        ListTag<?> tag = getTag(name, TagType.LIST);
+        ListTag<?> tag = getTag(name, TagTypes.LIST);
         //if(tag.isHolding())
         throw new UnreachableException("unimplemented");
     }
@@ -95,56 +101,56 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     // TODO: create additional primitive Optional classes to avoid autoboxing if possible?
     public Optional<Byte> getByte(String name) {
-        ByteTag tag = getTag(name, TagType.BYTE);
+        ByteTag tag = getTag(name, TagTypes.BYTE);
         return tag != null
                 ? Optional.of(tag.getAsByte())
                 : Optional.empty();
     }
 
     public Optional<Short> getShort(String name) {
-        ShortTag tag = getTag(name, TagType.SHORT);
+        ShortTag tag = getTag(name, TagTypes.SHORT);
         return tag != null
                 ? Optional.of(tag.getAsShort())
                 : Optional.empty();
     }
 
     public OptionalInt getInt(String name) {
-        IntTag tag = getTag(name, TagType.INT);
+        IntTag tag = getTag(name, TagTypes.INT);
         return tag != null
                 ? OptionalInt.of(tag.getAsInt())
                 : OptionalInt.empty();
     }
 
     public OptionalLong getLong(String name) {
-        LongTag tag = getTag(name, TagType.LONG);
+        LongTag tag = getTag(name, TagTypes.LONG);
         return tag != null
                 ? OptionalLong.of(tag.getAsLong())
                 : OptionalLong.empty();
     }
 
     public Optional<Float> getFloat(String name) {
-        FloatTag tag = getTag(name, TagType.FLOAT);
+        FloatTag tag = getTag(name, TagTypes.FLOAT);
         return tag != null
                 ? Optional.of(tag.getAsFloat())
                 : Optional.empty();
     }
 
     public OptionalDouble getDouble(String name) {
-        DoubleTag tag = getTag(name, TagType.DOUBLE);
+        DoubleTag tag = getTag(name, TagTypes.DOUBLE);
         return tag != null
                 ? OptionalDouble.of(tag.getAsDouble())
                 : OptionalDouble.empty();
     }
 
     public Optional<String> getString(String name) {
-        StringTag tag = getTag(name, TagType.STRING);
+        StringTag tag = getTag(name, TagTypes.STRING);
         return tag != null
                 ? Optional.of(tag.getValue())
                 : Optional.empty();
     }
 
     public <T extends Tag> Optional<ListTag<T>> getList(String name, @Nullable TagType<T> childType) {
-        ListTag<?> tag = getTag(name, TagType.LIST);
+        ListTag<?> tag = getTag(name, TagTypes.LIST);
         if(tag == null) {
             return Optional.empty();
         }
@@ -157,32 +163,32 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
     }
 
     public <T extends Tag> Optional<ListTag<T>> getList(String name, Class<T> childClazz) {
-        return getList(name, TagType.lookup(childClazz));
+        return getList(name, TagTypes.lookup(childClazz));
     }
 
 
 
     public Optional<CompoundTag> getCompound(String name) {
-        CompoundTag tag = getTag(name, TagType.COMPOUND);
+        CompoundTag tag = getTag(name, TagTypes.COMPOUND);
         return Optional.ofNullable(tag);
     }
 
     public Optional<byte[]> getByteArray(String name) {
-        ByteArrayTag tag = getTag(name, TagType.BYTE_ARRAY);
+        ByteArrayTag tag = getTag(name, TagTypes.BYTE_ARRAY);
         return tag != null
                 ? Optional.of(tag.getValue())
                 : Optional.empty();
     }
 
     public Optional<int[]> getIntArray(String name) {
-        IntArrayTag tag = getTag(name, TagType.INT_ARRAY);
+        IntArrayTag tag = getTag(name, TagTypes.INT_ARRAY);
         return tag != null
                 ? Optional.of(tag.getValue())
                 : Optional.empty();
     }
 
     public Optional<long[]> getLongArray(String name) {
-        LongArrayTag tag = getTag(name, TagType.LONG_ARRAY);
+        LongArrayTag tag = getTag(name, TagTypes.LONG_ARRAY);
         return tag != null
                 ? Optional.of(tag.getValue())
                 : Optional.empty();
@@ -191,7 +197,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
     // TODO: refactor these methods by remove Optional ????
     // TODO: refactor by moving this out of CompoundTag and into ListTag ?
     public Optional<double[]> getDoubleArray(String name) {
-        ListTag<DoubleTag> listTag = getListTag(name, TagType.DOUBLE);
+        ListTag<DoubleTag> listTag = getListTag(name, TagTypes.DOUBLE);
         if(listTag == null) {
             return Optional.empty();
         }
@@ -214,7 +220,9 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
     @Override
     public CompoundTag copy() {
         CompoundTag copy = new CompoundTag(name);
-        for(Tag tag : getValue().values()) {
+        System.out.println("Values: " + tags.values());
+        for(Tag tag : tags.values()) {
+            System.out.println(tag);
             copy.addTag(tag.copy());
         }
         return copy;

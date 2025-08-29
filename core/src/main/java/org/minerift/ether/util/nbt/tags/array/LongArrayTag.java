@@ -6,8 +6,8 @@ import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
-import org.minerift.ether.util.nbt.tags.PrimitiveTagType;
 import org.minerift.ether.util.nbt.tags.TagType;
+import org.minerift.ether.util.nbt.tags.TagTypes;
 
 public final class LongArrayTag extends ArrayTag<long[]> {
     public LongArrayTag(String name, long[] value) {
@@ -16,7 +16,7 @@ public final class LongArrayTag extends ArrayTag<long[]> {
 
     @Override
     public TagType<LongArrayTag> getType() {
-        return TagType.LONG_ARRAY;
+        return TagTypes.LONG_ARRAY;
     }
 
     @Override

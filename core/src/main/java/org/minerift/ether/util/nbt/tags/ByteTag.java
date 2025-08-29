@@ -21,7 +21,7 @@ public class ByteTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<ByteTag> getType() {
-        return TagType.BYTE;
+        return TagTypes.BYTE;
     }
 
     @Note("If 0, return false. For all other values, return true")

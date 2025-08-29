@@ -20,7 +20,7 @@ public class IntTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<IntTag> getType() {
-        return TagType.INT;
+        return TagTypes.INT;
     }
 
     @Override

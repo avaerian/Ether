@@ -20,7 +20,7 @@ public class DoubleTag extends Tag implements ScalarTag {
 
     @Override
     public TagType<DoubleTag> getType() {
-        return TagType.DOUBLE;
+        return TagTypes.DOUBLE;
     }
 
     @Override
