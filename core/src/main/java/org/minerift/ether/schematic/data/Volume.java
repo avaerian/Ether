@@ -1,13 +1,8 @@
 package org.minerift.ether.schematic.data;
 
-import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.fn.IBuilder;
-import org.minerift.ether.util.iterator.ByteIterator;
-import org.minerift.ether.world.Archetype;
-
-import java.util.Iterator;
-import java.util.function.BiFunction;
+import org.minerift.ether.util.iter.ByteIterator;
 
 import static java.lang.String.format;
 

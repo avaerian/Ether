@@ -3,6 +3,7 @@ package org.minerift.ether.util;
 import com.google.common.base.Preconditions;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Either<L, R> {
 
@@ -28,6 +29,20 @@ public class Either<L, R> {
 
     public boolean isRight() {
         return !isLeft;
+    }
+
+    public <E extends Exception> L getLeftOrThrow(Supplier<E> ex) throws E {
+        if(!isLeft) {
+            throw ex.get();
+        }
+        return (L) obj;
+    }
+
+    public <E extends Exception> R getRightOrThrow(Supplier<E> ex) throws E {
+        if(isLeft) {
+            throw ex.get();
+        }
+        return (R) obj;
     }
 
     // TODO: review

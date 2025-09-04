@@ -25,7 +25,6 @@ public class ChunkCoords {
         }
     }
 
-    // FIXME: Refactor to Vec2i
     public static Vec2i getChunkAt(int blockX, int blockZ) {
         return new Vec2i(blockX >> 4, blockZ >> 4);
     }

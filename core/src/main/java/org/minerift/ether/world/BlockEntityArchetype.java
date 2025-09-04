@@ -13,13 +13,13 @@ public class BlockEntityArchetype extends BlockArchetype implements Archetype {
     public BlockEntityArchetype(String data, Vec3i pos, CompoundTag nbtData) throws BlockStateNotFoundException {
         super(BlockState.of(data), pos);
         this.nbtData = nbtData;
-        System.out.println("Created new block entity archetype: " + data + " at " + pos + ", nbt data: " + nbtData);
+        System.out.println("Created new block entity archetype: " + data + " at " + pos + ", nbt data: " + nbtData); // debug
     }
 
     // FIXME: parameters need to be swapped
-    public BlockEntityArchetype(BlockState<?> state, Vec3i pos, CompoundTag nbtData) {
+    public BlockEntityArchetype(BlockState<?> state, CompoundTag nbt, Vec3i pos) {
         super(state, pos);
-        this.nbtData = nbtData;
+        this.nbtData = nbt;
     }
 
     public CompoundTag getNbtData() {

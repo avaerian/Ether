@@ -27,7 +27,7 @@ public sealed class Option<T> permits Option.Some, Option.None {
     }
 
     public static final class None<T> extends Option<T> {
-        public static final None NONE = new None<>();
+        public static final None NONE = new None();
         private None() {
             // empty
         }

@@ -1,7 +1,6 @@
 package org.minerift.ether.schematic.data;
 
 import org.minerift.ether.nms.world.Biome;
-import org.minerift.ether.world.BiomeArchetype;
 
 public class BiomeVolume extends Volume<Biome<?>> {
     public static BiomeVolume.Builder builder() {

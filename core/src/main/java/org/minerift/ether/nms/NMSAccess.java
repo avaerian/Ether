@@ -11,7 +11,7 @@ import org.minerift.ether.world.EntityLoadException;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface NMSAccess { // TODO: refactor to abstract class?
+public interface NMSAccess {
 
     // TODO: reconsider
     default Chunk getChunkAt(World world, int chunkX, int chunkZ) {

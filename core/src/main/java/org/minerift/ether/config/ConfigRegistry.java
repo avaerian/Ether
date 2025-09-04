@@ -37,11 +37,12 @@ public class ConfigRegistry {
 
     // Attempts to register a config by loading it
     // If the config fails to load, log the exception as a warning; the config will need to be registered again
+    // If the config fails to load, return null
     public <T extends Config<T>> T registerOrWarn(ConfigType<T> type) {
         try {
             return register(type);
         } catch (ConfigFileReadException ex) {
-            Ether.getLogger().log(Level.WARNING, type.getName() + " was unable to load!", ex);
+            Ether.getLogger().log(Level.WARNING, type.getName() + " was unable to load", ex);
             return null;
         }
     }
@@ -49,7 +50,7 @@ public class ConfigRegistry {
     public <T extends Config<T>> T get(ConfigType<T> type) {
         final T config = (T) configs.get(type);
         if(config == null) {
-            throw new IllegalArgumentException(String.format("Config type %s was not found!", type.getName()));
+            throw new IllegalArgumentException(String.format("Config type %s was not found", type.getName()));
         }
         return config;
     }

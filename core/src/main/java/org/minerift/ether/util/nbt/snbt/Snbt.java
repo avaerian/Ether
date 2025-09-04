@@ -10,7 +10,6 @@ import org.minerift.ether.util.nbt.tags.TagTypes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("Duplicates")
 public class Snbt {
 
     public static final Pattern KEY_ACCEPTED_CHARS = Pattern.compile("[a-zA-Z0-9_\\-.+]");
@@ -51,7 +50,7 @@ public class Snbt {
 
     public static class Parser {
 
-        // TODO: review re-adding the optional '+' for testing positive numbers
+        // review re-adding the optional '+' for testing positive numbers
         public static final Pattern BYTE_VALUE    = Pattern.compile("(-?)(\\d+)(b|B)");
         public static final Pattern SHORT_VALUE   = Pattern.compile("(-?)(\\d+)(s|S)");
         public static final Pattern INT_VALUE     = Pattern.compile("(-?)(\\d+)");
@@ -284,7 +283,7 @@ public class Snbt {
             this.strTok = tok;
             this.nToken = nToken;
             this.nextStreamPos = nextStreamPos;
-            System.out.println(this); // TODO: debug
+            System.out.println(this); // debug
         }
 
         public int getStreamPos() {
@@ -397,7 +396,7 @@ public class Snbt {
                     }
                 }
             } while(pos < chars.length());
-            throw new UnreachableException("unexpected"); // FIXME: change to TokenReadException (this is reachable if str is malformed)
+            throw new UnreachableException("unexpected"); // FIXME: change to SnbtReadException (this is reachable if str is malformed)
         }
 
         private boolean isQuoted(char c) {

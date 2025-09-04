@@ -94,7 +94,7 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
             case FloatTag t  -> net.minecraft.nbt.FloatTag.valueOf( t.getAsFloat() );
             case DoubleTag t -> net.minecraft.nbt.DoubleTag.valueOf( t.getAsDouble() );
 
-            case StringTag t -> net.minecraft.nbt.StringTag.valueOf( t.getValue() );
+            case StringTag t -> net.minecraft.nbt.StringTag.valueOf( t.getStrVal() );
 
             // Arrays
             case ByteArrayTag t -> new net.minecraft.nbt.ByteArrayTag( t.getValue() );

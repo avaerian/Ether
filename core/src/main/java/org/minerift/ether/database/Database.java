@@ -1,7 +1,5 @@
 package org.minerift.ether.database;
 
-import org.minerift.ether.database.nusql.NuSQLAccess;
-import org.minerift.ether.database.nusql.NuSQLDatabase;
 import org.minerift.ether.util.Utils;
 
 import java.util.Collection;

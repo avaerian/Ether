@@ -28,7 +28,7 @@ public class NbtFixerOps implements DynamicOps<Tag> {
 
     @Override
     public Tag empty() {
-        return EndTag.INSTANCE;
+        return EndTag.INST;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class NbtFixerOps implements DynamicOps<Tag> {
     @Override
     public DataResult<String> getStringValue(Tag input) {
         if(input instanceof StringTag tag) {
-            return DataResult.success(tag.getValue());
+            return DataResult.success(tag.getStrVal());
         }
         return DataResult.error(() -> "Not a string tag");
     }

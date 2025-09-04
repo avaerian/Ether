@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+// TODO: review
 public class Result<V, E> {
 
     private Object value;
@@ -13,6 +14,11 @@ public class Result<V, E> {
     public Result() {
         this.value = null;
         this.type = ResultType.EMPTY;
+    }
+
+    private Result(Object val, ResultType type) {
+        this.value = val;
+        this.type = type;
     }
 
     public Result<V, E> ok(V value) {

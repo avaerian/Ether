@@ -100,6 +100,6 @@ public class TagBuilderVisitor implements TagVisitor {
     @Override
     public void visitEnd(net.minecraft.nbt.EndTag element) {
         // TODO: log + review
-        result = EndTag.INSTANCE;
+        result = EndTag.INST;
     }
 }

@@ -24,7 +24,7 @@ public abstract class ConfigCodec<T extends Config<T>> {
 
         // If the file isn't null, ensure it exists
         if(file != null && !file.exists()) {
-            throw new FileNotFoundException(type.getName() + " was not found!");
+            throw new FileNotFoundException(type.getName() + " was not found");
         }
 
         return readIt(file);
@@ -35,7 +35,6 @@ public abstract class ConfigCodec<T extends Config<T>> {
     // Throws a ConfigFileReadException if the config fails to read/parse
     protected abstract T readIt(File file) throws ConfigFileReadException;
 
-    // FIXME: refactor to allow file to be a directory
     public final void write(T config, File file) throws ConfigFileWriteException {
         if(file == null && (flags & ALLOWS_NULL_FILE) == 0) {
             throw new ConfigFileWriteException(format("Provided file is null; %s disallows null files", config.getType().getName()));
@@ -55,10 +54,10 @@ public abstract class ConfigCodec<T extends Config<T>> {
                     out.write(res.readAllBytes());
                     out.close();
                 } catch (IOException ex) {
-                    throw new ConfigFileWriteException("Failed to write data to file!", ex);
+                    throw new ConfigFileWriteException("Failed to write data to file", ex);
                 }
             } else if (file.isDirectory()) {
-                // TODO
+                file.mkdirs();
             } else {
                 throw new UnreachableException("Input is neither a file nor directory");
             }

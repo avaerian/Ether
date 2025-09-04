@@ -1,4 +1,4 @@
-package org.minerift.ether.util.iterator;
+package org.minerift.ether.util.iter;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -1,4 +1,7 @@
-package org.minerift.ether.util.iterator;
+package org.minerift.ether.util.iter;
+
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -9,20 +12,27 @@ public interface ByteIterator extends Iterator<Byte> {
     }
 
     static ByteIterator of(byte[] bytes, int pos) {
-        return new ByteIteratorImpl(bytes, pos);
+        return new ByteIteratorImpl(bytes, bytes.length, pos);
+    }
+
+    static ByteIterator of(byte[] bytes, int size, int pos) {
+        return new ByteIteratorImpl(bytes, size, pos);
     }
 
     class ByteIteratorImpl implements ByteIterator {
 
         private final byte[] bytes;
+        private final int size;
         private int pos;
 
         protected ByteIteratorImpl(byte[] bytes) {
-            this(bytes, 0);
+            this(bytes, bytes.length, 0);
         }
 
-        protected ByteIteratorImpl(byte[] bytes, int pos) {
+        protected ByteIteratorImpl(byte[] bytes, int size, int pos) {
+            Preconditions.checkArgument(size <= bytes.length, "Size " + size + " exceeds array size " + bytes.length);
             this.bytes = bytes;
+            this.size = size;
             this.pos = pos;
         }
 
@@ -33,7 +43,7 @@ public interface ByteIterator extends Iterator<Byte> {
 
         @Override
         public boolean hasNext() {
-            return pos < bytes.length;
+            return pos < size;
         }
     }
 
