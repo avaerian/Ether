@@ -2,21 +2,21 @@ package org.minerift.ether.util.nbt.tags.container;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.util.Either;
+import org.minerift.ether.util.nbt.NbtException;
+import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.*;
-import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
-import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import static org.minerift.ether.util.nbt.tags.PrimitiveTagType.*;
+import static org.minerift.ether.util.nbt.tags.TagTypes.*;
 
 public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
@@ -46,36 +46,84 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     public void addTag(Tag tag, boolean replace) {
         if(!replace) {
-            Preconditions.checkArgument(!tags.containsKey(tag.getName()), "Tag already exists with name " + tag.getName() + " in CompoundTag!");
+            Preconditions.checkArgument(!tags.containsKey(tag.getName()), "Tag already exists with name " + tag.getName() + " in CompoundTag");
         }
         tags.put(tag.getName(), tag);
     }
 
-    public Tag getTag(String name) {
-        return tags.get(name);
+    public boolean has(String name) {
+        return tags.containsKey(name);
     }
 
-    public <T extends Tag> T getTag(String name, Class<? extends T> clazz) {
-        return getTag(name, TagTypes.lookup(clazz));
+    public boolean has(String name, TagType<?> type) {
+        Tag tag = tags.get(name);
+        return tag != null && tag.is(type);
     }
 
-    public <T extends Tag> T getTag(String name, TagType<T> type) {
-        Tag tag = getTag(name);
+    public <T extends Tag> T getTag(String name, @NotNull Class<T> clazz) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, lookup(clazz));
+    }
+
+    public <T extends Tag> T getTag(String name, @NotNull TagType<T> type) throws NoTagFoundException, MismatchedTypeException {
+        Tag tag = tags.get(name);
         if(tag == null) {
-            return null;
+            throw new NoTagFoundException("Tag " + name + " not found in compound tag");
         }
 
         if(!tag.is(type)) {
-            throw new IllegalArgumentException("Found tag " + name + "; expected type " + type.getTagClass() + ", got " + tag.getType());
+            throw new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.getType());
         }
         return (T) tag;
     }
 
-    // TODO
-    public <T extends Tag> ListTag<T> getListTag(String name, TagType<T> childType) {
-        ListTag<?> tag = getTag(name, TagTypes.LIST);
-        //if(tag.isHolding())
-        throw new UnreachableException("unimplemented");
+    public <T extends Tag, E extends Exception> T getTag(String name, @NotNull TagType<T> type, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, type);
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+    // Return tag, or null if not found
+    public Tag tryGetTag(String name) {
+        return tags.get(name);
+    }
+
+    public <T extends Tag> T tryGetTag(String name, Class<T> clazz) {
+        try {
+            return getTag(name, lookup(clazz));
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            return null;
+        }
+        //return tryGetTag(name, TagTypes.lookup(clazz)); // removed due to confusion
+    }
+
+    public <T extends Tag> T tryGetTag(String name, TagType<T> type) {
+        try {
+            return getTag(name, type);
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            return null;
+        }
+    }
+
+    public Either<Tag, NbtException> getTagResult(String name) {
+        Tag tag = tags.get(name);
+        return tag != null
+                ? Either.left(tag)
+                : Either.right(new NoTagFoundException("Tag " + name + " not found in compound tag"));
+    }
+
+    // TODO: consider updating this to TagResult (extends Either) with more util/retrieval methods (unwrap <- runtime exception, getOrThrow, etc.)
+    public <T extends Tag> Either<T, NbtException> getTagResult(String name, TagType<T> type) {
+        Tag tag = tags.get(name);
+        if(tag == null) {
+            return Either.right(new NoTagFoundException("Tag " + name + " not found in compound tag"));
+        }
+
+        if(!tag.is(type)) {
+            return Either.right(new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.getType()));
+        }
+        return Either.left((T) tag);
     }
 
     public void removeTag(Tag tag) {
@@ -99,115 +147,220 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
     // TODO: add getOrThrow methods to throw NbtTagGetException for better IO exception handling
     //  (for schematic handling, if nbt fails to retrieve, catch nbt except and throw as SchematicFileReadException)
 
-    // TODO: create additional primitive Optional classes to avoid autoboxing if possible?
-    public Optional<Byte> getByte(String name) {
-        ByteTag tag = getTag(name, TagTypes.BYTE);
-        return tag != null
-                ? Optional.of(tag.getAsByte())
-                : Optional.empty();
+    public byte getByte(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, BYTE).getAsByte();
     }
 
-    public Optional<Short> getShort(String name) {
-        ShortTag tag = getTag(name, TagTypes.SHORT);
-        return tag != null
-                ? Optional.of(tag.getAsShort())
-                : Optional.empty();
+    public <E extends Exception> byte getByte(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, BYTE).getAsByte();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
     }
 
-    public OptionalInt getInt(String name) {
-        IntTag tag = getTag(name, TagTypes.INT);
-        return tag != null
-                ? OptionalInt.of(tag.getAsInt())
-                : OptionalInt.empty();
+
+    public short getShort(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, SHORT).getAsShort();
     }
 
-    public OptionalLong getLong(String name) {
-        LongTag tag = getTag(name, TagTypes.LONG);
-        return tag != null
-                ? OptionalLong.of(tag.getAsLong())
-                : OptionalLong.empty();
+    public <E extends Exception> short getShort(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, SHORT).getAsShort();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
     }
 
-    public Optional<Float> getFloat(String name) {
-        FloatTag tag = getTag(name, TagTypes.FLOAT);
-        return tag != null
-                ? Optional.of(tag.getAsFloat())
-                : Optional.empty();
+
+    public int getInt(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, INT).getAsInt();
     }
 
-    public OptionalDouble getDouble(String name) {
-        DoubleTag tag = getTag(name, TagTypes.DOUBLE);
-        return tag != null
-                ? OptionalDouble.of(tag.getAsDouble())
-                : OptionalDouble.empty();
+    public <E extends Exception> int getInt(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, INT).getAsInt();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
     }
 
-    public Optional<String> getString(String name) {
-        StringTag tag = getTag(name, TagTypes.STRING);
-        return tag != null
-                ? Optional.of(tag.getValue())
-                : Optional.empty();
+
+    public long getLong(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, LONG).getAsLong();
     }
 
-    public <T extends Tag> Optional<ListTag<T>> getList(String name, @Nullable TagType<T> childType) {
+    public <E extends Exception> long getLong(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, LONG).getAsLong();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    public float getFloat(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, FLOAT).getAsFloat();
+    }
+
+    public <E extends Exception> float getFloat(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, FLOAT).getAsFloat();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    public double getDouble(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, DOUBLE).getAsDouble();
+    }
+
+    public <E extends Exception> double getDouble(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, DOUBLE).getAsDouble();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+    public String getString(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, STRING).getStrVal();
+    }
+
+    public <E extends Exception> String getString(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, STRING).getStrVal();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    public <T extends Tag> ListTag<T> tryGetList(String name, @NotNull TagType<T> childType) {
+        try {
+            return getList(name, childType);
+        } catch (NoTagFoundException | MismatchedTypeException | MismatchedChildTypeException e) {
+            return null;
+        }
+    }
+
+    // Child type should not be null; use the getTag method instead for getting untyped list tags
+    public <T extends Tag> ListTag<T> getList(String name, @NotNull TagType<T> childType)
+            throws NoTagFoundException, MismatchedTypeException, MismatchedChildTypeException {
+        Preconditions.checkNotNull(childType);
         ListTag<?> tag = getTag(name, TagTypes.LIST);
-        if(tag == null) {
-            return Optional.empty();
+        ListTag<T> cast = tag.withChildType(childType);
+
+        if(cast == null) {
+            throw new MismatchedChildTypeException("Expected child type"); // FIXME: write rest of message
         }
+        return cast;
+    }
 
-        if(childType != null && !tag.getChildType().equals(childType)) {
-            // Mismatching children types
+    public <T extends Tag> ListTag<T> getList(String name, Class<T> childClazz)
+            throws NoTagFoundException, MismatchedTypeException, MismatchedChildTypeException {
+        return getList(name, lookup(childClazz));
+    }
+
+    public <T extends Tag, E extends Exception> ListTag<T> getList(String name, TagType<T> childType, Function<NbtException, E> ex) throws E {
+        try {
+            return getList(name, childType);
+        } catch (NoTagFoundException | MismatchedTypeException | MismatchedChildTypeException e) {
+            throw ex.apply(e);
         }
-
-        return Optional.of((ListTag<T>) tag);
     }
 
-    public <T extends Tag> Optional<ListTag<T>> getList(String name, Class<T> childClazz) {
-        return getList(name, TagTypes.lookup(childClazz));
-    }
-
-
-
-    public Optional<CompoundTag> getCompound(String name) {
-        CompoundTag tag = getTag(name, TagTypes.COMPOUND);
-        return Optional.ofNullable(tag);
-    }
-
-    public Optional<byte[]> getByteArray(String name) {
-        ByteArrayTag tag = getTag(name, TagTypes.BYTE_ARRAY);
-        return tag != null
-                ? Optional.of(tag.getValue())
-                : Optional.empty();
-    }
-
-    public Optional<int[]> getIntArray(String name) {
-        IntArrayTag tag = getTag(name, TagTypes.INT_ARRAY);
-        return tag != null
-                ? Optional.of(tag.getValue())
-                : Optional.empty();
-    }
-
-    public Optional<long[]> getLongArray(String name) {
-        LongArrayTag tag = getTag(name, TagTypes.LONG_ARRAY);
-        return tag != null
-                ? Optional.of(tag.getValue())
-                : Optional.empty();
-    }
-
-    // TODO: refactor these methods by remove Optional ????
-    // TODO: refactor by moving this out of CompoundTag and into ListTag ?
-    public Optional<double[]> getDoubleArray(String name) {
-        ListTag<DoubleTag> listTag = getListTag(name, TagTypes.DOUBLE);
-        if(listTag == null) {
-            return Optional.empty();
+    public <T extends Tag, E extends Exception> ListTag<T> getList(String name, Class<T> clazz, Function<NbtException, E> ex) throws E {
+        try {
+            return getList(name, clazz);
+        } catch (NoTagFoundException | MismatchedTypeException | MismatchedChildTypeException e) {
+            throw ex.apply(e);
         }
+    }
 
+
+    public <T extends Tag> Either<ListTag<T>, NbtException> getListTagResult(String name, TagType<T> childType) {
+        try {
+            ListTag<T> tag = getList(name, childType);
+            return Either.left(tag);
+        } catch (NoTagFoundException | MismatchedTypeException | MismatchedChildTypeException e) {
+            return Either.right(e);
+        }
+    }
+
+
+    public CompoundTag getCompound(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, COMPOUND);
+    }
+
+    public <E extends Exception> CompoundTag getCompound(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, COMPOUND);
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    public byte[] getByteArray(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, BYTE_ARRAY).getValue();
+    }
+
+    public <E extends Exception> byte[] getByteArray(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, BYTE_ARRAY).getValue();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    public int[] getIntArray(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, INT_ARRAY).getValue();
+    }
+
+    public <E extends Exception> int[] getIntArray(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, INT_ARRAY).getValue();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+    public long[] getLongArray(String name) throws NoTagFoundException, MismatchedTypeException {
+        return getTag(name, LONG_ARRAY).getValue();
+    }
+
+    public <E extends Exception> long[] getLongArray(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name, LONG_ARRAY).getValue();
+        } catch (NoTagFoundException | MismatchedTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
+
+    // extended NBT
+    // NOTE: this uses a ListTag to read the double array; may be confusing
+    //       from the abstraction; should change this
+    public double[] getDoubleArray(String name) throws NoTagFoundException, MismatchedTypeException, MismatchedChildTypeException {
+        ListTag<DoubleTag> listTag = getList(name, TagTypes.DOUBLE);
         double[] buf = new double[listTag.getValue().size()];
         for(int i = 0; i < listTag.size(); i++) {
             buf[i] = listTag.getTag(i).getAsDouble();
         }
-        return Optional.of(buf);
+        return buf;
     }
+
+    public <E extends Exception> double[] getDoubleArray(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getDoubleArray(name);
+        } catch (NoTagFoundException | MismatchedTypeException | MismatchedChildTypeException e) {
+            throw ex.apply(e);
+        }
+    }
+
 
     public Map<String, Tag> getValue() {
         return tags;
@@ -263,11 +416,11 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     public static class Codec implements TagCodec<CompoundTag> {
         @Override
-        public CompoundTag readTag(NbtTraverser nbt, String name) {
+        public CompoundTag readTag(NbtTraverser nbt, String name) throws NbtReadException {
             CompoundTag compound = new CompoundTag(name);
             do {
                 byte childTypeId = nbt.readByte();
-                PrimitiveTagType childType = lookup(childTypeId);
+                TagType<?> childType = TagTypes.lookup(childTypeId);
                 if(childType == END) {
                     break;
                 }
@@ -275,9 +428,9 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
                 String childName = nbt.readUTF8();
                 NbtTraverser.TagHeader header = new NbtTraverser.TagHeader(childTypeId, childName);
                 if(nbt.tagSelector.test(header)) {
-                    compound.addTag(childType.readTag(nbt, childName));
+                    compound.addTag(childType.codec().readTag(nbt, childName));
                 } else {
-                    childType.skip(nbt);
+                    childType.codec().skip(nbt);
                 }
             } while(true);
 
@@ -307,7 +460,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
                     break;
                 }
             } while (snbt.nextIf(","));
-            // TODO: better exception handling for malformed snbt?
+            // TODO: better exception handling for malformed snbt
 
             return compound;
         }
@@ -319,7 +472,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
                 nbt.writeUTF8(childTag.getName());
                 ((TagType<Tag>)childTag.getType()).codec().writeTag(nbt, childTag);
             }
-            END.writeTag(nbt, EndTag.INSTANCE);
+            END.codec().writeTag(nbt, EndTag.INST);
         }
 
         @Override
@@ -328,12 +481,12 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
             do {
                 byte childTypeId = nbt.readByte();
                 bytes++;
-                PrimitiveTagType childType = lookup(childTypeId);
+                TagType<?> childType = TagTypes.lookup(childTypeId);
                 if(childType == END) {
                     break;
                 }
-                bytes += STRING.skip(nbt); // child name
-                bytes += childType.skip(nbt);
+                bytes += STRING.codec().skip(nbt); // child name
+                bytes += childType.codec().skip(nbt);
             } while(true);
 
             return bytes;
