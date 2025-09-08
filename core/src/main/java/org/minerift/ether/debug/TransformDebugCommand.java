@@ -16,6 +16,7 @@ import org.minerift.ether.schematic.transform.Rotate;
 import org.minerift.ether.util.Option;
 
 import java.io.File;
+import java.util.Optional;
 
 import static org.minerift.ether.nms.world.ChunkGetter.SYNC;
 import static org.minerift.ether.schematic.data.BlockVolume.ROTATE_BLK_DIRS;
@@ -46,7 +47,7 @@ public class TransformDebugCommand implements CommandExecutor {
             default -> throw new IllegalStateException("Unexpected value: " + args[1]);
         };
 
-        Option<Rotate.Angle> angle = Rotate.Angle.ofDeg(Integer.parseInt(args[2]));
+        Optional<Rotate.Angle> angle = Rotate.Angle.ofDeg(Integer.parseInt(args[2]));
 
         try {
             SpongeSchematic schem = (SpongeSchematic) Schematic.fromFile(SchematicType.SPONGE, file);

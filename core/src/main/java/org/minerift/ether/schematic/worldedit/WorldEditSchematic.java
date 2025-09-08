@@ -60,7 +60,24 @@ public class WorldEditSchematic implements Schematic {
         return new Vec3i(offset.getX(), offset.getY(), offset.getZ());
     }
 
+    // TODO: needs a lot of work
     @Override
+    public WorldEditSchematic transform(Transforms ts) {
+        for (Transform t : ts) {
+            if(t instanceof Rotate r) {
+                if(r.isIdentity()) {
+                    continue;
+                }
+
+                AffineTransform wt = new AffineTransform();
+            } else {
+                throw new IllegalStateException("unexpected transform: " + t);
+            }
+        }
+        return this;
+    }
+
+    /*@Override // uses java 21 switch pattern
     public WorldEditSchematic transform(Transforms ts) {
         for (Transform t : ts) {
             switch (t) {
@@ -76,8 +93,8 @@ public class WorldEditSchematic implements Schematic {
             }
         }
 
-        return this; // FIXME
-    }
+        return this;
+    }*/
 
     @Override
     public Schematic transformMut(Transforms ts) {

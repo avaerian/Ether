@@ -11,6 +11,7 @@ import org.minerift.ether.util.Option;
 import org.minerift.ether.util.UnreachableException;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 
 import static java.lang.Math.TAU;
@@ -48,18 +49,18 @@ public class Rotate implements Transform {
             return rad;
         }
 
-        public static Option<Angle> ofDeg(int dg) {
+        public static Optional<Angle> ofDeg(int dg) {
             dg %= 360;
-            Option<Angle> angle = switch (dg) {
-                case 90, -270 -> some(DG_90);
-                case 180, -180 -> some(DG_180);
-                case 270, -90 -> some(DG_NEG_90);
-                default -> none();
+            Optional<Angle> angle = switch (dg) {
+                case 90, -270 -> Optional.of(DG_90);
+                case 180, -180 -> Optional.of(DG_180);
+                case 270, -90 -> Optional.of(DG_NEG_90);
+                default -> Optional.empty();
             };
             return angle;
         }
 
-        public static Option<Angle> ofRad(double rad) {
+        public static Optional<Angle> ofRad(double rad) {
             //rad %= TAU;
             int dg = (int) ((rad / TAU) * 360);
             return ofDeg(dg);
@@ -71,13 +72,8 @@ public class Rotate implements Transform {
         return new Rotate(axis, angle);
     }
 
-    public static Rotate of(Axis axis, Option<Angle> angle) {
-        Rotate transform = switch (angle) {
-            case Option.Some<Angle> s -> of(axis, s.value());
-            case Option.None<Angle> n -> Identity.INST;
-            default -> throw new IllegalStateException("Unexpected value: " + angle);
-        };
-        return transform;
+    public static Rotate of(Axis axis, Optional<Angle> _angle) {
+        return _angle.map(angle -> of(axis, angle)).orElse(Identity.INST);
     }
 
     /*public static Rotate of(Axis axis, int dg) {
