@@ -3,9 +3,10 @@ plugins {
 }
 
 repositories {
+    maven("https://repo.carm.cc/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     gradlePluginPortal()
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {

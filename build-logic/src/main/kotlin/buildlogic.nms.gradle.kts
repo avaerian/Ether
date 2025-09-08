@@ -8,10 +8,11 @@ plugins {
     id("io.papermc.paperweight.userdev")
 }
 
+// TODO: for properly declaring: https://docs.gradle.org/current/userguide/declaring_repositories.html
 repositories {
-    gradlePluginPortal()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.carm.cc/repository/maven-public/")
+    gradlePluginPortal()
     mavenCentral()
     mavenLocal()
 }
