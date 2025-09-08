@@ -5,7 +5,7 @@ import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.world.block.BlockState;
 
 // Represents a single block ready for world placement
-public class BlockArchetype implements Archetype {
+public class BlockArchetype {
 
     protected final BlockState<?> state;
     protected final Vec3i.Mutable pos;

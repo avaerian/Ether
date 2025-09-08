@@ -4,7 +4,7 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.world.Biome;
 
-public class BiomeArchetype implements Archetype/*<Vec3i>*/ {
+public class BiomeArchetype {
 
     private Biome<?> biome;
     private Vec3i pos;

@@ -6,7 +6,7 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.math.Vec3i;
 
 // A block containing a block entity
-public class BlockEntityArchetype extends BlockArchetype implements Archetype {
+public class BlockEntityArchetype extends BlockArchetype {
 
     private CompoundTag nbtData;
 
