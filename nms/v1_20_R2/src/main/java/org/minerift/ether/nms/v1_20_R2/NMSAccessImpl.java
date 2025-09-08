@@ -172,7 +172,9 @@ public class NMSAccessImpl implements NMSAccess {
     @Override
     public void clearChunks(ChunkGetter cg, Chunk e1, Chunk e2, boolean clearEntities) {
         clearChunksLogic(e1, e2, pos -> {
-            cg.accept(e1.getWorld(), pos.x, pos.z, chunk -> clearChunk(chunk, clearEntities));
+            cg.getChunkWCallback(e1.getWorld(), pos.x, pos.z, chunk -> {
+                clearChunk(chunk, clearEntities); return chunk;
+            });
         });
     }
 

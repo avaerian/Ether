@@ -73,8 +73,8 @@ public class ExperimentsImpl implements Experiments {
 
         int radius = (diameter - 1) / 2;
 
-        final CompletableFuture<Chunk> cf1 = cg.accept(world, centerX - radius, centerZ - radius, null);
-        final CompletableFuture<Chunk> cf2 = cg.accept(world, centerX + radius, centerZ + radius, null);
+        final CompletableFuture<Chunk> cf1 = cg.getChunk(world, centerX - radius, centerZ - radius);
+        final CompletableFuture<Chunk> cf2 = cg.getChunk(world, centerX + radius, centerZ + radius);
 
         CompletableFuture<Object2IntMap<BlockState>> statesf = CompletableFuture.allOf(cf1, cf2).thenApply(__ -> {
             final Object2IntMap<BlockState> stateCounts = new Object2IntOpenHashMap<>();

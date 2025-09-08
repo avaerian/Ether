@@ -9,20 +9,7 @@ import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 
-import java.util.concurrent.CompletableFuture;
-
 public interface NMSAccess {
-
-    // TODO: reconsider
-    default Chunk getChunkAt(World world, int chunkX, int chunkZ) {
-        return Chunk.of(world.getChunkAt(chunkX, chunkZ));
-    }
-
-    // TODO: reconsider
-    default CompletableFuture<Chunk> getChunkAtAsync(World world, int chunkX, int chunkZ) {
-        return world.getChunkAtAsync(chunkX, chunkZ)
-                .thenApply(Chunk::of);
-    }
 
     // TODO: review; looking into local FixerUpper that emulates native MC FixerUpper
     <T extends Tag> T fixUpItemName(T nbt, int dataVersion);
@@ -44,6 +31,15 @@ public interface NMSAccess {
     void clearChunk(Chunk chunk, boolean clearEntities);
     void clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
     void clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
+
+    /*default Chunk getChunkAt(World world, int chunkX, int chunkZ) {
+        return Chunk.of(world.getChunkAt(chunkX, chunkZ));
+    }
+
+    default CompletableFuture<Chunk> getChunkAtAsync(World world, int chunkX, int chunkZ) {
+        return world.getChunkAtAsync(chunkX, chunkZ)
+                .thenApply(Chunk::of);
+    }*/
 
     int getDataVersion(); // TODO: review for DataFixerUpper
     RegistryAccess registryAccess();

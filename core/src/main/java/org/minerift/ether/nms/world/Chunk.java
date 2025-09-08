@@ -14,6 +14,8 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 
+import java.util.concurrent.CompletableFuture;
+
 import static java.lang.String.format;
 
 public interface Chunk<NBS, NC, NCS, NB> {
@@ -22,8 +24,14 @@ public interface Chunk<NBS, NC, NCS, NB> {
         return Ether.getNms().getConverter().asChunk(bukkitChunk);
     }
 
+    static CompletableFuture<Chunk> of(World world, int cx, int cz) {
+        return ChunkGetter.SYNC.getChunk(world, cx, cz);
+    }
+
     int getX();
     int getZ();
+
+    NCS[] getNativeSections();
 
     default Section[] getSections() {
         NCS[] nativeSections = getNativeSections();
@@ -40,18 +48,21 @@ public interface Chunk<NBS, NC, NCS, NB> {
         return getConverter().asChunkSection(getNativeSection(yIndex), yIndex);
     }
 
-    NCS[] getNativeSections();
 
 
     NBS getNativeBlockState(int x, int y, int z);
 
+    default NBS getNativeBlockState(Vec3 pos) {
+        return getNativeBlockState(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    default BlockState<NBS> getBlockState(Vec3 vec) {
+        return getBlockState(vec.getX(), vec.getY(), vec.getZ());
+    }
+
     default BlockState<NBS> getBlockState(int x, int y, int z) {
         NBS nativeState = getNativeBlockState(x, y, z);
         return getConverter().asBlockState(nativeState);
-    }
-
-    default NBS getBlockState(Vec3 pos) {
-        return getNativeBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
     NBS setNativeBlockState(int x, int y, int z, NBS nativeState);
