@@ -10,7 +10,7 @@ import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
-import static org.minerift.ether.util.nbt.tags.PrimitiveTagType.COMPOUND;
+import static org.minerift.ether.util.nbt.tags.TagTypes.COMPOUND;
 
 public class ItemStackImpl implements ItemStack<net.minecraft.world.item.ItemStack> {
 

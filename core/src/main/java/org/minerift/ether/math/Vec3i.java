@@ -27,6 +27,14 @@ public class Vec3i implements Vec3, Serializable {
         );
     }
 
+    public static Vec3i max(Vec3i vec1, Vec3i vec2) {
+        return new Vec3i(
+                Math.max(vec1.getX(), vec2.getX()),
+                Math.max(vec1.getY(), vec2.getY()),
+                Math.max(vec1.getZ(), vec2.getZ())
+        );
+    }
+
     public Vec3i(int x, int y, int z) {
         this.x = x;
         this.y = y;

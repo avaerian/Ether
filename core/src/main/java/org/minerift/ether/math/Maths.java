@@ -26,6 +26,7 @@ public class Maths {
     private static final Function<Stream<String>, int[]> INT_ARGS_ADAPTER = (stream) -> stream.mapToInt(Integer::parseInt).toArray();
     private static final Function<Stream<String>, double[]> DOUBLE_ARGS_ADAPTER = (stream) -> stream.mapToDouble(Double::parseDouble).toArray();
 
+    // TODO: move this to MathsTest unit test
     @Debug
     public static void main(String[] args) {
         System.out.println(Maths.strToVec3i("    1738,  -69,   420   "));

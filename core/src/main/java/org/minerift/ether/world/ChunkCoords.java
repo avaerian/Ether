@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 // Represents generic chunk coordinates across versions
+// should review this class
 public class ChunkCoords {
 
     // Util class helpful for doing math on regions of chunks

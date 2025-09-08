@@ -2,13 +2,18 @@ package org.minerift.ether.nms.v1_20_R2.data;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.bukkit.Material;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.world.block.Attribute;
 import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
 import org.minerift.ether.nms.world.block.BlockState;
+import org.minerift.ether.util.nbt.tags.StringTag;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.time.Duration;
+import java.util.Map;
 
 public class BlockStateImpl implements BlockState<net.minecraft.world.level.block.state.BlockState> {
 
@@ -75,6 +80,20 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
         net.minecraft.world.level.block.state.BlockState nState =
                 AttributeRegistry.access().trySetValue(state, attr, val);
         return BlockStateImpl.of(nState);
+    }
+
+    // may be able to cache this if needed
+    @NeedsTesting
+    @Override
+    public CompoundTag propsAsNbt() {
+        CompoundTag compound = new CompoundTag();
+
+        for(Map.Entry<Property<?>, Comparable<?>> entry : state.getValues().entrySet()) {
+            Property prop = entry.getKey();
+            compound.addTag(new StringTag(prop.getName(), prop.getName(entry.getValue())));
+        }
+
+        return compound;
     }
 
     @Override

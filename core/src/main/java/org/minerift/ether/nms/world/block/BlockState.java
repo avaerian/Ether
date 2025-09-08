@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.Ether;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.NativeTypeConversions;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
 
@@ -37,10 +38,10 @@ public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
     <T> BlockState<NBS> setAttribute(Attribute<T> attr, T val);
     <T> BlockState<NBS> trySetAttribute(Attribute<T> attr, T val);
 
+    CompoundTag propsAsNbt();
     boolean hasBlockEntity();
 
     boolean canBeReplaced();
-
     boolean isAir();
 
     Material getBukkitMaterial();

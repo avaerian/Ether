@@ -20,7 +20,7 @@ public class IslandCreationRoutine {
 
     public static Island run(IslandGrid grid, EtherUser user) {
 
-        final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island!"));
+        final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
         final World islandWorld = plr.getWorld(); // TODO: change this to island world (add config thing and load in Ether class)
 
         final MainConfig config = Ether.getConfig(ConfigType.MAIN);

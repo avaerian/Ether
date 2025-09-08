@@ -10,9 +10,9 @@ import org.minerift.ether.database.Database;
 import org.minerift.ether.database.DatabaseConnectionSettings;
 import org.minerift.ether.database.DatabaseException;
 import org.minerift.ether.database.Result;
-import org.minerift.ether.database.models.NuIslandModel;
-import org.minerift.ether.database.models.NuUserModel;
-import org.minerift.ether.database.nusql.NuSQLDatabase;
+import org.minerift.ether.database.models.IslandModel;
+import org.minerift.ether.database.models.UserModel;
+import org.minerift.ether.database.sql.SQLDatabase;
 import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandManager;
@@ -69,7 +69,7 @@ public class Ether {
         configRegistry = new ConfigRegistry();
         try {
             configRegistry.register(ConfigType.MAIN);
-            //configRegistry.register(ConfigType.SCHEM_LIST);
+            configRegistry.register(ConfigType.ISLAND_SPECS_LIST);
         } catch (ConfigFileReadException ex) {
             // If failed, log error and abort plugin loading
             logger.log(Level.SEVERE, "Failed to register configs when enabling Ether: ", ex);
@@ -117,13 +117,13 @@ public class Ether {
                 .setPassword(config.getSqlPassword())
                 .build();
 
-        db = new NuSQLDatabase(login, NuIslandModel::new, NuUserModel::new);
+        db = new SQLDatabase(login, IslandModel::new, UserModel::new);
         try {
             DatabaseException result = db.accessSync((access) -> {
-                var islandModel = access.getModel(NuIslandModel.class);
+                var islandModel = access.getModel(IslandModel.class);
 
-                Result<EtherUser> usersResult = access.selectAll(NuUserModel.class);
-                Result<Island> islandsResult = access.selectAll(NuIslandModel.class);
+                Result<EtherUser> usersResult = access.selectAll(UserModel.class);
+                Result<Island> islandsResult = access.selectAll(IslandModel.class);
 
                 //islandsResult.streamBuilders().
             }).get();
@@ -135,7 +135,7 @@ public class Ether {
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
         isEnabled = true;
-        logger.info("Ether plugin enabled!");
+        logger.info("Ether plugin enabled");
     }
 
     // For JavaPlugin
