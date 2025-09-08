@@ -10,10 +10,10 @@ plugins {
 
 repositories {
     gradlePluginPortal()
-    mavenCentral()
-    mavenLocal()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.carm.cc/repository/maven-public/")
+    mavenCentral()
+    mavenLocal()
 }
 
 configurations.all {

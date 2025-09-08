@@ -9,10 +9,10 @@ plugins {
 //sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 
 repositories {
+    maven("https://maven.enginehub.org/repo/")
+    maven("https://repo.carm.cc/repository/maven-public/")
     mavenCentral()
     mavenLocal()
-    maven ("https://maven.enginehub.org/repo/")
-    maven("https://repo.carm.cc/repository/maven-public/")
     //maven("https://libraries.minecraft.net")
 }
 
