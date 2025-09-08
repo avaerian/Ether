@@ -10,7 +10,9 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven ("https://maven.enginehub.org/repo/")
+    maven("https://repo.carm.cc/repository/maven-public/")
     //maven("https://libraries.minecraft.net")
 }
 
