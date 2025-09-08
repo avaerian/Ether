@@ -1,5 +1,6 @@
 package org.minerift.ether.util;
 
+@Deprecated // TODO: replace with Optional.class
 public sealed class Option<T> permits Option.Some, Option.None {
 
     public static <T> Some<T> some(T val) {

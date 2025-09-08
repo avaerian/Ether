@@ -9,9 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntUnaryOperator;
 
+@Deprecated
 public class Stack<T> /* implements Collection<T>; for later */ {
-
-    // TODO: insertAfter(), Iterable<T>, unit tests
 
     public static final int DEFAULT_CAPACITY = 16;
     public static final IntUnaryOperator DEFAULT_GROWER = (i) -> i + Math.max(i >> 1, 1); // i * 1.5, almost equivalent
@@ -99,7 +98,7 @@ public class Stack<T> /* implements Collection<T>; for later */ {
         stack[size++] = element;
     }
 
-    @SafeVarargs // TODO: review annotation
+    @SafeVarargs
     public final void pushAll(T... elements) {
         growIfNeeded(elements.length);
         System.arraycopy(elements, 0, stack, size, elements.length);
