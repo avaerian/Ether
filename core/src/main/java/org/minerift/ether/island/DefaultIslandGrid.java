@@ -12,6 +12,9 @@ import java.util.logging.Level;
 
 public class DefaultIslandGrid implements IslandGrid {
 
+    // TODO: refactor to allow for selecting impl between binary search
+    //  island grid and one-to-one id map (Int2ObjectMap from fastutil, if
+    //  not own interface, and replace IndexedList with id map
     // All islands on the grid, including deleted islands
     private final IndexedList<Island> islands;
 

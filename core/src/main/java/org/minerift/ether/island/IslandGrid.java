@@ -6,6 +6,10 @@ import org.minerift.ether.math.Vec2i;
 
 import java.util.Optional;
 
+// TODO: for async island management, Island's may not necessarily be locked, but their
+//  regions can/will be. different features may also come with different ways of accessing
+//  to allow for freedom and performance without redundancy and unneeded protections;
+//  more on this soon
 public interface IslandGrid {
 
     // Registers an island onto the grid.
@@ -30,6 +34,10 @@ public interface IslandGrid {
 
     // Returns an island at a given tile
     // If activeOnly, return the island only if active
+
+    /* NOTE: If the island tile is write-locked, block until write-lock is freed.
+         If the island grid is write-locked, block until write-lock is freed.
+     */
     default Optional<Island> getIslandAt(Vec2i tile, boolean activeOnly) {
         return getIslandAt(GridAlgorithm.computeTileId(tile), activeOnly);
     }
