@@ -15,6 +15,7 @@ java {
 }
 
 repositories {
+    maven("https://repo.carm.cc/repository/maven-public/")
     gradlePluginPortal()
     mavenCentral()
 }
