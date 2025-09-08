@@ -3,6 +3,7 @@ package org.minerift.ether.work;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.Ether;
+import org.minerift.ether.work.deprecated.Task;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -65,4 +66,5 @@ public class WorkQueue {
             }
         }
     }
+
 }

@@ -1,4 +1,4 @@
-package org.minerift.ether.work;
+package org.minerift.ether.work.deprecated;
 
 public class SingleTask extends Task {
 
@@ -9,7 +9,7 @@ public class SingleTask extends Task {
     }
 
     @Override
-    protected boolean completeNextTask() {
+    public boolean completeNextTask() {
         task.run();
         //runCallback(success ? Status.OP_COMPLETE : Status.TASK_FAILED);
         runCallback(Status.OP_COMPLETE);

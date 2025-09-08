@@ -1,4 +1,4 @@
-package org.minerift.ether.work;
+package org.minerift.ether.work.deprecated;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,7 +16,7 @@ public class ErrorProneTask extends Task {
     }
 
     @Override
-    protected boolean completeNextTask() {
+    public boolean completeNextTask() {
         return false;
     }
 }

@@ -1,4 +1,4 @@
-package org.minerift.ether.work;
+package org.minerift.ether.work.deprecated;
 
 import com.google.common.collect.ImmutableList;
 
@@ -42,7 +42,7 @@ public class BatchedTask extends Task {
     // Completes a single task
     // Returns whether the operation has finished
     @Override
-    protected boolean completeNextTask() {
+    public boolean completeNextTask() {
         Runnable task = tasks.poll();
         if(task == null) {
             runCallback(Task.Status.OP_COMPLETE);

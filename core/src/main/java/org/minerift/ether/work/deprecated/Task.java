@@ -1,9 +1,7 @@
-package org.minerift.ether.work;
+package org.minerift.ether.work.deprecated;
 
 import com.google.common.base.Preconditions;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public abstract class Task {
@@ -26,7 +24,7 @@ public abstract class Task {
      * Completes the next task from a simple or batched task.
      * @return boolean indicating whether the task finished
      */
-    protected abstract boolean completeNextTask();
+    public abstract boolean completeNextTask();
 
     public Task whenComplete(Consumer<Task.Status> callback) {
         this.callback = callback;
