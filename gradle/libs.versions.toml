@@ -7,7 +7,7 @@ jmh = { id = "me.champeau.jmh", version = "0.7.2" } # for benchmarking
 paperApi = { module = "io.papermc.paper:paper-api", version.ref = "paperApi" }
 paperweight = "io.papermc.paperweight.userdev:io.papermc.paperweight.userdev.gradle.plugin:1.7.2"
 
-dataFixerUpper = "com.mojang:datafixerupper:6.0.8"
+dataFixerUpper = { module = "com.mojang:datafixerupper", version.ref = "dataFixerUpper" }
 
 shadow = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "8.3.1" }
 
@@ -43,6 +43,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 
 [versions]
 paperApi = "1.20.2-R0.1-SNAPSHOT"
+dataFixerUpper = "8.0.16"
 
 jmhImplementation = "1.36"
 junitImplementation = "5.9.2"

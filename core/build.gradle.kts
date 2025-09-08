@@ -11,7 +11,7 @@ plugins {
 repositories {
     mavenCentral()
     maven ("https://maven.enginehub.org/repo/")
-    maven("https://libraries.minecraft.net")
+    //maven("https://libraries.minecraft.net")
 }
 
 dependencies {
