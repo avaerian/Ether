@@ -11,9 +11,10 @@ public class ReadInitStep implements IReaderStep {
 
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
+        int _version = ctx.root.getInt(NBT_VERSION,
+                        (e) -> new SchematicFileReadException("Failed to read version", e));
 
-        int iVersion = ctx.root.getInt(NBT_VERSION).orElseThrow(() -> new SchematicFileReadException("Failed to read version!"));
-        SpongeVersion version = switch (iVersion) {
+        SpongeVersion version = switch (_version) {
             case 1 -> SpongeVersion.V1;
             case 2 -> SpongeVersion.V2;
             case 3 -> SpongeVersion.V3;
@@ -21,11 +22,9 @@ public class ReadInitStep implements IReaderStep {
         };
         ctx.builder.setVersion(version);
 
-        int width  = ctx.root.getShort(NBT_WIDTH).orElseThrow(() -> new SchematicFileReadException("Failed to read width!"));
-        int height = ctx.root.getShort(NBT_HEIGHT).orElseThrow(() -> new SchematicFileReadException("Failed to read height!"));
-        int length = ctx.root.getShort(NBT_LENGTH).orElseThrow(() -> new SchematicFileReadException("Failed to read length!"));
-
-        ctx.builder.setDimensions(width, height, length);
-
+        short w = ctx.root.getShort(NBT_WIDTH, (e) -> new SchematicFileReadException("Failed to read width", e));
+        short h = ctx.root.getShort(NBT_HEIGHT, (e) -> new SchematicFileReadException("Failed to read height", e));
+        short l = ctx.root.getShort(NBT_LENGTH, (e) -> new SchematicFileReadException("Failed to read length", e));
+        ctx.builder.setDimensions(w, h, l);
     }
 }

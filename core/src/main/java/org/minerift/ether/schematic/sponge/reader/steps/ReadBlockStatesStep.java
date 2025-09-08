@@ -15,10 +15,10 @@ import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.util.Map;
-import java.util.OptionalInt;
 
 import static java.lang.String.format;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
+import static org.minerift.ether.util.nbt.tags.TagTypes.INT;
 
 public class ReadBlockStatesStep implements IReaderStep {
 
@@ -28,34 +28,29 @@ public class ReadBlockStatesStep implements IReaderStep {
         final SpongeSchematic.Builder builder = ctx.builder;
         final CompoundTag root = ctx.root;
 
-        /*final int width = builder.getWidth();
-        final int height = builder.getHeight();
-        final int length = builder.getLength();*/
-
-        Map<String, Tag> paletteRaw = root.getCompound(NBT_PALETTE)
-                .orElseThrow(() -> new SchematicFileReadException("Failed to read block state palette!"))
+        Map<String, Tag> paletteRaw = root.getCompound(NBT_PALETTE,
+                (e) -> new SchematicFileReadException("Failed to read block state palette", e))
                 .getValue();
 
         BytePalette<BlockState<?>> palette;
 
         // Get palette size
-        OptionalInt paletteMax = root.getInt(NBT_PALETTE_MAX);
-        if(paletteMax.isPresent()) {
+        IntTag paletteMax = root.tryGetTag(NBT_PALETTE_MAX, INT);
+        if(paletteMax != null) {
             if(paletteRaw.size() != paletteMax.getAsInt()) {
                 // TODO: proper logger
                 System.out.println(format("Expected a palette size of %d, but actually got %d", paletteMax.getAsInt(), paletteRaw.size()));
             }
-            palette = new BytePalette<>(paletteRaw.size());
+            palette = BytePalette.of(paletteRaw.size());
         } else {
-            palette = new BytePalette<>();
+            palette = BytePalette.of();
         }
 
         // Map raw palette to actual palette
         paletteRaw.forEach((data, idx) -> {
-
             // FIXME: review this item/block name upgrader
             // TODO: create fixer-upper ops class for nunbt/other needs
-            data = Ether.getNms().fixUpItemName(StringTag.valueOf(data), -1).getValue();
+            data = Ether.getNms().fixUpItemName(StringTag.valueOf(data), -1).getStrVal();
 
             BlockState<?> state = BlockState.of(data, null);
             if(state == null) {
@@ -68,7 +63,8 @@ public class ReadBlockStatesStep implements IReaderStep {
         });
 
         // Read block data
-        byte[] blockDataRaw = root.getByteArray(NBT_BLOCK_DATA).orElseThrow(() -> new SchematicFileReadException("Failed to read block data!"));
+        byte[] blockDataRaw = root.getByteArray(NBT_BLOCK_DATA,
+                (e) -> new SchematicFileReadException("Failed to read block data", e));
         Vec3i dim = builder.getDimensions();
         System.out.println("blockDataRaw: " + blockDataRaw.length + ", dim: " + dim.getX() * dim.getY() * dim.getZ());
 
