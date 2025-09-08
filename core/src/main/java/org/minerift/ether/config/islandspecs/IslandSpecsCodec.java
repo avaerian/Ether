@@ -1,7 +1,7 @@
 package org.minerift.ether.config.islandspecs;
 
 import com.google.common.base.Preconditions;
-import org.minerift.ether.Secrets;
+//import org.minerift.ether.Secrets;
 import org.minerift.ether.config.ConfigCodec;
 import org.minerift.ether.config.ConfigFileReadException;
 import org.minerift.ether.config.ConfigFileWriteException;
@@ -88,7 +88,8 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
         config.islandSpecs.add(spec);
 
         IslandSpecsCodec writer = new IslandSpecsCodec();
-        writer.writeIt(config, Secrets.LOCAL_ISLAND_SPECS_DIR.transform(File::new));
+        // TODO: update reference
+        /*writer.writeIt(config, Secrets.LOCAL_ISLAND_SPECS_DIR.transform(File::new));*/
 
     }
 

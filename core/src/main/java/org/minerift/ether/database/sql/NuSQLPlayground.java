@@ -20,12 +20,14 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.minerift.ether.Secrets.HIDDEN;
+//import static org.minerift.ether.Secrets.HIDDEN;
 
 @SuppressWarnings("Duplicates")
 @Debug
 public class NuSQLPlayground {
 
+    // TODO: allow for locating where database is created
+    @Debug
     public static void main(String[] args) throws Exception {
 
         SQLDatabaseCreationContext dbCtx = new SQLDatabaseCreationContext(SQLDialect.POSTGRES, IslandModel::new, UserModel::new);
@@ -40,7 +42,7 @@ public class NuSQLPlayground {
                 .setUrl(HostAndPort.fromHost("localhost"))
                 .setDbName("ether")
                 .setUsername("postgres")
-                .setPassword(HIDDEN)
+                /*.setPassword(HIDDEN)*/
                 .build();
 
         DatabaseConnectionSettings h2Settings = DatabaseConnectionSettings.builder()
