@@ -8,20 +8,17 @@ import org.minerift.ether.util.nbt.tags.container.AbstractContainerTag;
 
 public class TagType<T extends Tag> {
 
-    private final PrimitiveTagType type;
-    private final Class<? extends T> tagClazz;
+    private final byte id;
+    private final String name;
+    private final Class<T> tagClazz;
 
     private final Supplier<TagCodec<T>> codec;
 
-    public TagType(PrimitiveTagType type, Class<? extends T> tagClazz, Supplier<TagCodec<T>> codec) {
-        this.type = type;
+    public TagType(byte id, String name, Class<T> tagClazz, Supplier<TagCodec<T>> codec) {
+        this.id = id;
+        this.name = name;
         this.tagClazz = tagClazz;
         this.codec = Suppliers.memoize(codec);
-    }
-
-    // get the primitive type that a [custom] tag represents
-    public PrimitiveTagType getPrimitiveType() {
-        return type;
     }
 
     public Class<? extends T> getTagClass() {
@@ -33,11 +30,15 @@ public class TagType<T extends Tag> {
     }
 
     public byte getId() {
-        return type.getId();
+        return id;
     }
 
     public String getName() {
-        return "TAG_" + getPrimitiveType().name();
+        return "TAG_" + name;
+    }
+
+    public String getRawName() {
+        return name;
     }
 
     public boolean isArray() {
@@ -46,5 +47,15 @@ public class TagType<T extends Tag> {
 
     public boolean isContainer() {
         return AbstractContainerTag.class.isAssignableFrom(tagClazz);
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
     }
 }

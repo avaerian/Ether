@@ -9,7 +9,7 @@ public interface TagCodec<T extends Tag> {
     // TODO: return bytes written
     void writeTag(NbtTraverser nbt, T tag);
 
-    T readTag(NbtTraverser nbt, String name);
+    T readTag(NbtTraverser nbt, String name) throws NbtReadException;
 
     T readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException;
 

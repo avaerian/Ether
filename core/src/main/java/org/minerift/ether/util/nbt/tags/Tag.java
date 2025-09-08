@@ -16,13 +16,13 @@ public abstract class Tag {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    // implemented to distinct between the tag name and type name
+    public String getTypeName() {
+        return getType().getName();
     }
 
-    @Deprecated
-    public boolean is(PrimitiveTagType type) {
-        return type == getPrimitiveType();
+    public void setName(String name) {
+        this.name = name;
     }
 
     public boolean is(TagType<?> type) {
@@ -33,10 +33,6 @@ public abstract class Tag {
 
     public boolean isPrimitiveType() {
         return false;
-    }
-
-    public PrimitiveTagType getPrimitiveType() {
-        return getType().getPrimitiveType();
     }
 
     public abstract Tag copy();

@@ -6,9 +6,11 @@ import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
+import static org.minerift.ether.util.nbt.tags.TagTypes.END;
+
 public class EndTag extends Tag {
 
-    public static final EndTag INSTANCE = new EndTag();
+    public static final EndTag INST = new EndTag();
 
     private EndTag(String name) {
         super();
@@ -30,7 +32,7 @@ public class EndTag extends Tag {
 
     @Override
     public TagType<EndTag> getType() {
-        return TagTypes.END;
+        return END;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class EndTag extends Tag {
     public static class Codec implements TagCodec<EndTag> {
         @Override
         public EndTag readTag(NbtTraverser nbt, @Nullable String name) {
-            return EndTag.INSTANCE;
+            return EndTag.INST;
         }
 
         @Override
@@ -50,7 +52,7 @@ public class EndTag extends Tag {
         }
 
         public EndTag readTag(NbtTraverser nbt) {
-            return EndTag.INSTANCE;
+            return EndTag.INST;
         }
 
         @Override
@@ -59,7 +61,7 @@ public class EndTag extends Tag {
         }
 
         public void writeTag(NbtTraverser nbt) {
-            nbt.writeByte(PrimitiveTagType.END.getId());
+            nbt.writeByte(END.getId());
         }
 
         @Override
