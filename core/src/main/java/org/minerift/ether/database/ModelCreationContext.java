@@ -1,12 +1,12 @@
 package org.minerift.ether.database;
 
 import com.google.common.collect.ImmutableMap;
-import org.minerift.ether.database.nusql.fallback.NuFallback;
-import org.minerift.ether.database.nusql.adapters.Adapter;
+import org.minerift.ether.database.sql.fallback.Fallback;
+import org.minerift.ether.database.sql.adapters.Adapter;
 
 import java.util.function.Function;
 
-import static org.minerift.ether.database.nusql.SQLUtils.getPossibleFallback;
+import static org.minerift.ether.database.sql.SQLUtils.getPossibleFallback;
 
 public class ModelCreationContext<MO> {
 
@@ -30,21 +30,21 @@ public class ModelCreationContext<MO> {
 
     // MO = Modeled object
     public <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader) {
-        NuFallback<T, F> fallback = (NuFallback<T, F>) getPossibleFallback(type, dbCtx);
+        Fallback<T, F> fallback = (Fallback<T, F>) getPossibleFallback(type, dbCtx);
         return createField(name, type, objFieldReader, fallback);
     }
 
-    private <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader, NuFallback<T, F> fallback) {
+    private <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader, Fallback<T, F> fallback) {
         Field<MO, T, F> field = new Field<>(name, type, objFieldReader, fallback);
         fields.put(field.getName(), field);
         return field;
     }
 
     public <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter) {
-        return createField(name, type, objFieldReader, adapter, (NuFallback<T, F>) getPossibleFallback(type, dbCtx));
+        return createField(name, type, objFieldReader, adapter, (Fallback<T, F>) getPossibleFallback(type, dbCtx));
     }
 
-    private <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter, NuFallback<T, F> fallback) {
+    private <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
         Field.FieldWithAdapter<MO, C, T, F> field = new Field.FieldWithAdapter<>(name, type, objFieldReader, adapter, fallback);
         fields.put(field.getName(), field);
         return field;

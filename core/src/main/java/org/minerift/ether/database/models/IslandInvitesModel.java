@@ -40,7 +40,7 @@ public class IslandInvitesModel extends Model<IslandInvite, Integer> {
     protected void createModel(ModelCreationContext<IslandInvite> ctx) {
         ctx.setTableName("island_invites");
 
-        NuIslandModel islandModel = ctx.getModel(NuIslandModel.class);
+        IslandModel islandModel = ctx.getModel(IslandModel.class);
 
         INVITE_ID = ctx.createField("invite_id", DataType.INT, IslandInvite::getInviteId); // TODO: temporary until refactor to UUIDv7
         SENDER = ctx.createField("sender", DataType.UUID, IslandInvite::getSender);

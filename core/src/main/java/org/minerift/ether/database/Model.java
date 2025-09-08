@@ -1,8 +1,7 @@
 package org.minerift.ether.database;
 
-import org.minerift.ether.database.nusql.op.bind.NamedBindValues;
+import org.minerift.ether.database.sql.op.bind.NamedBindValues;
 import org.minerift.ether.util.fn.IBuilder;
-import org.minerift.ether.util.pair.Pair;
 
 import java.util.*;
 
