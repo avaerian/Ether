@@ -7,8 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.Ether;
-import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.data.BlockVolume;
@@ -51,7 +49,7 @@ public class NMSSetBlocksDebugCommand implements CommandExecutor {
 
         plr.sendMessage("Setting blocks...");
 
-        BytePalette<BlockState<?>> palette = new BytePalette<>(4);
+        BytePalette<BlockState<?>> palette = BytePalette.of(4);
         palette.add((byte) 0, BlockState.of("glowstone", Material.GLOWSTONE.getKey().asString()));
         palette.add((byte) 1, BlockState.of("sponge", Material.SPONGE.getKey().asString()));
         palette.add((byte) 2, BlockState.of("air", Material.AIR.getKey().asString()));

@@ -23,6 +23,8 @@ commands:
     description: Debug command for item, nbt, and island spec testing
   dbgbvt:
     description: Debug command for BlockVolume transformations
+  dbgbb:
+    description: Debug command for BoundingBox testing
   #nmsentity:
   #  description: Debug command for spawning an entity via NMS
 softdepend: [WorldEdit]

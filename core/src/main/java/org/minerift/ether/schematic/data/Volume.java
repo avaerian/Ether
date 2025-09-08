@@ -30,7 +30,7 @@ public abstract class Volume<T> {
     }
 
     public Volume(int width, int height, int length) {
-        this(Array3DOrder.YZX, new byte[width * height * length], new BytePalette<>(), width, height, length);
+        this(Array3DOrder.YZX, new byte[width * height * length], BytePalette.of(), width, height, length);
     }
 
     public byte setData(byte b, Vec3i loc) {
@@ -100,7 +100,6 @@ public abstract class Volume<T> {
         protected byte[] data;
         protected BytePalette<T> palette;
 
-
         // defaults
         protected Builder() {
             this.width = 0;
@@ -128,7 +127,7 @@ public abstract class Volume<T> {
 
         public B addPaletteEntry(byte id, T data) {
             if(palette == null) {
-                this.palette = new BytePalette<>();
+                this.palette = BytePalette.of();
             }
             palette.add(id, data, false);
             return (B) this;
@@ -143,6 +142,32 @@ public abstract class Volume<T> {
 
         public B setDimensions(Vec3i dim) {
             return setDimensions(dim.getX(), dim.getY(), dim.getZ());
+        }
+
+        // Getters
+
+        public Array3DOrder getOrder() {
+            return order;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        public int getLength() {
+            return length;
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public BytePalette<T> getPalette() {
+            return palette;
         }
     }
 }

@@ -13,7 +13,7 @@ import org.minerift.ether.nms.world.ChunkSectionChanges;
 import org.minerift.ether.nms.world.Section;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-import org.minerift.ether.work.BatchedTask;
+import org.minerift.ether.work.deprecated.BatchedTask;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.ChunkCoords;
 
@@ -23,6 +23,7 @@ import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 @SuppressWarnings("Duplicates") // TODO: remove once finished
 public class Pasters {
 
+    // TODO: refactor to instead use schedulers?? (controls sync, async, chunk/region locking, etc.)
     public static void pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
         Vec3i end = loc.copy().asMutable().add(bv.getDimensions());
         bv.getBlockEntities().forEach((be) -> be.getPos().add(loc));
@@ -54,11 +55,12 @@ public class Pasters {
                 int finalCx = cx;
                 int finalCz = cz;
                 operation.addTask(() -> {
-                    cg.accept(world, finalCx, finalCz, (chunk) -> {
+                    cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> {
                         for(int sy = startSecY; sy <= endSecY; sy++) {
                             pasteSection(chunk, sy, bv, loc);
                         }
                         chunk.setUnsaved(true);
+                        return chunk;
                     });
                 });
             }
@@ -95,11 +97,13 @@ public class Pasters {
         int normY = roundChunk(loc.getY());
         int normZ = roundChunk(loc.getZ());
 
+        /* DEBUG */
         Vec2i startChunk = ChunkCoords.getChunkAt(loc);
         Vec2i.Mutable normalizedChunk = new Vec2i.Mutable(cx, cz);
         //System.out.println("Chunk: " + normalizedChunk);
         normalizedChunk.subtract(startChunk);
         //System.out.println("Normalized: " + normalizedChunk);
+        /* END DEBUG */
 
         int realStartSecY = getSectionReal(loc.getY());
         int normStartSecY = realSectionY - realStartSecY;
@@ -118,9 +122,6 @@ public class Pasters {
         int startY = chunkStart.getY();
         int startZ = chunkStart.getZ();
 
-        /*int endX = Math.min(16, roundChunk(loc.getX()) + bv.getWidth()  - (normalizedChunk.getX() * 16));
-        int endY = Math.min(16, roundChunk(loc.getY()) + bv.getHeight() - (normStartSecY * 16));
-        int endZ = Math.min(16, roundChunk(loc.getZ()) + bv.getLength() - (normalizedChunk.getZ() * 16));*/
         int endX = Math.min(16, normX + bv.getWidth() - (normalizedChunk.getX() * 16));
         int endY = Math.min(16, normY + bv.getHeight() - (normStartSecY * 16));
         int endZ = Math.min(16, normZ + bv.getLength() - (normalizedChunk.getZ() * 16));
@@ -177,7 +178,6 @@ public class Pasters {
 
                         sectionChanges.add(worldBlockX, worldBlockY, worldBlockZ, block);
 
-                        //idxs.add(idx); // FIXME: for testing
                         /*System.out.println(format("world: %d, %d, %d, norm: %d, %d, %d, array: %d, block: %s",
                                 worldBlockX, worldBlockY, worldBlockZ,
                                 arrayBlockX, arrayBlockY, arrayBlockZ,
@@ -191,7 +191,7 @@ public class Pasters {
                 }
             }
 
-            //section.updateSectionChanges(sy, sectionChanges); // TODO: review
+            //section.updateSectionChanges(sy, sectionChanges); // review
             section.broadcastSectionUpdatesPacket(sectionChanges, true);
         } finally {
             section.release();

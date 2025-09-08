@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.block.Attribute;
@@ -12,7 +14,6 @@ import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.transform.Direction;
 import org.minerift.ether.schematic.transform.Transform;
 import org.minerift.ether.schematic.transform.Transforms;
-import org.minerift.ether.world.BlockArchetype;
 import org.minerift.ether.world.BlockEntityArchetype;
 
 import java.util.BitSet;
@@ -42,8 +43,8 @@ public class BlockVolume extends Volume<BlockState<?>> {
         ALL_FLAGS = (1 << flag) - 1;
     }
 
-    public static BlockVolume.Builder builder() {
-        return new BlockVolume.Builder();
+    public static Builder builder() {
+        return new Builder();
     }
 
     public final Int2ObjectMap<BlockEntityArchetype> blockEntities;
@@ -147,14 +148,14 @@ public class BlockVolume extends Volume<BlockState<?>> {
                         case Z -> EAST;
                     };
                     Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = Direction.fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Direction rotated = fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(Attributes.AXIS, rotated.getAxis()), true);
                 } else if ((dir = state.tryGetAttribute(dirAttr = Attributes.FACING)) != null
                         || ((dir = state.tryGetAttribute(dirAttr = Attributes.HORIZONTAL_FACING)) != null)) {
 
                     Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = Direction.fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Direction rotated = fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(dirAttr, rotated), true);
                 }
@@ -169,14 +170,14 @@ public class BlockVolume extends Volume<BlockState<?>> {
             Vec3i oldPos = order.unflatten(width, length, be.getIntKey());
             Transform.Result<Vec3i> newPos = ts.apply(width, height, length, oldPos);
             int newFlat = order.flatten(res.dim.getX(), res.dim.getZ(), newPos.out);
-            BlockEntityArchetype newBe = new BlockEntityArchetype(be.getValue().getState(), newPos.out, be.getValue().getNbtData());
+            BlockEntityArchetype newBe = new BlockEntityArchetype(be.getValue().getState(), be.getValue().getNbtData(), newPos.out);
             newBlockEntities.put(newFlat, newBe);
         }
 
         return new BlockVolume(order, res.out, palette, res.dim, newBlockEntities);
     }
 
-    public static class Builder extends Volume.Builder<BlockVolume, BlockVolume.Builder, BlockState<?>> {
+    public static class Builder extends Volume.Builder<BlockVolume, Builder, BlockState<?>> {
 
         public static final Supplier<Int2ObjectMap<BlockEntityArchetype>> NEW_BLOCK_ENTITY_MAP = Int2ObjectOpenHashMap::new;
 
@@ -207,6 +208,31 @@ public class BlockVolume extends Volume<BlockState<?>> {
 
             int idx = order.flatten(width, length, pos.getX(), pos.getY(), pos.getZ());
             blockEntities.put(idx, bEntity);
+            return this;
+        }
+
+        // TODO: review
+        @NeedsTesting
+        public Builder setBlock(@NotNull BlockState<?> state, int x, int y, int z) {
+            Preconditions.checkNotNull(state);
+            if(palette == null) {
+                BytePalette<BlockState<?>> palette = BytePalette.of();
+                palette.add((byte) 0, state);
+
+                // the array is zeroed out anyways, so we don't have to do anything more here
+                //int i = order.flatten(width, length, x, y, z);
+                //data[i] = 0;
+                return this;
+            }
+
+            if(!palette.containsValue(state)) {
+                byte id = palette.nextId();
+                palette.add(id, state);
+
+                //if dim isn't set or order is changed, that's the user's problem to resolve
+                int i = order.flatten(width, length, x, y, z);
+                data[i] = id;
+            }
             return this;
         }
 
