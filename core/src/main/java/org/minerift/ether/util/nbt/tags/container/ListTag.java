@@ -2,8 +2,7 @@ package org.minerift.ether.util.nbt.tags.container;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.debug.Debug;
-import org.minerift.ether.util.Note;
+import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.snbt.Snbt;
@@ -17,11 +16,12 @@ import java.util.function.UnaryOperator;
 
 import static java.lang.String.format;
 import static org.minerift.ether.util.nbt.tags.TagTypes.END;
+import static org.minerift.ether.util.nbt.tags.TagTypes.lookup;
 
-public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implements Iterable<T> {// TODO: review Iterable<T> vs Iterable<List<Tag>> /*permits ListTag.Untyped*/
+public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implements Iterable<T> {
 
     public static ListTag<?> empty(String name) {
-        return new ListTag<>(name, TagTypes.END, Collections.emptyList());
+        return new ListTag<>(name, END, Collections.emptyList());
     }
 
     protected TagType<T> childType;
@@ -36,31 +36,19 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         this(name, childType, Collections.emptyList());
     }
 
+    // note: don't be retarded and provide a list with multiple tag variants; use it properly
     public ListTag(String name, TagType<T> childType, List<T> tagList) {
         this.name = name;
         this.childType = childType;
         this.tagList = tagList;
     }
 
+    /* what the fuck is this????
     public ListTag(String name, TagType<T> childType, Supplier<List<T>> tagList) {
-        loadListTag(name, childType, tagList);
-    }
-
-    // TODO: review; ???????????
-    @Note("This method acts as the constructor for this class")
-    protected void loadListTag(String name, TagType<T> childType, Supplier<List<T>> tagList) {
         this.name = name;
+        this.childType = childType;
         this.tagList = tagList.get();
-        this.childType = childType; // TODO: warn about childType being null (should prevent this in other ctor)
-    }
-
-    @Debug
-    public static void main(String[] args) {
-        ListTag<StringTag> test = new ListTag<>("test_list", TagTypes.STRING, new LinkedList<>());
-        System.out.println(test.tagList.getClass());
-    }
-
-    // TODO: remove dead methods, classes, code, etc.; clean up codebase
+    }*/
 
     // Transform an empty ListTag (one which may not be typed) into a typed one
     public <U extends Tag> ListTag<U> transform(TagType<U> type) {
@@ -81,7 +69,6 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         tagList.add(tag); // TODO: if appending first tag, set child type
     }
 
-    // TODO
     public boolean tryAddTag(Tag tag) {
         try {
             addTagOrThrow(tag);
@@ -90,14 +77,12 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
             // TODO: logger
             return false;
         }
-
-
     }
 
     public void addTagOrThrow(Tag tag) throws IllegalArgumentException {
         addTagOrThrow(tag, () -> new IllegalArgumentException(
                 format("List tag '%s' contains %s tags; tag '%s' is type %s",
-                        name, childType.getPrimitiveType().name(), tag.getName(), tag.getPrimitiveType().name())
+                        name, childType, tag.getName(), tag.getTypeName())
         ));
     }
 
@@ -108,12 +93,8 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         tagList.add((T) tag);
     }
 
-    public void removeTag(T tag) {
-        Preconditions.checkArgument(tag.getType() == childType);
-        if(!tagList.remove(tag)) {
-            // TODO: review this; exception not necessary???
-            throw new NoSuchElementException(tag.getName() + " was not found in " + getName() + ", thus not being removed");
-        }
+    public boolean removeTag(T tag) {
+        return tagList.remove(tag);
     }
 
     public void removeTag(int index) {
@@ -140,6 +121,12 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
     // Test if this List Tag is holding elements of requested type
     public boolean childTypeIs(TagType<?> type) {
         return childType.equals(type);
+    }
+
+    // If list tag has child type, return with cast, otherwise null
+    // For cases where the list tag child type is unknown and we want to get/test for it
+    public <U extends Tag> ListTag<U> withChildType(TagType<U> type) {
+        return childType.equals(type) ? (ListTag<U>) this : null;
     }
 
     public int size() {
@@ -197,10 +184,9 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
 
     public static class Codec implements TagCodec<ListTag/*<?>*/> {
         @Override
-        public ListTag<?> readTag(NbtTraverser nbt, String name) {
+        public ListTag<?> readTag(NbtTraverser nbt, String name) throws NbtReadException {
             byte childTypeId = nbt.readByte();
-            //PrimitiveTagType childType = PrimitiveTagType.lookup(childTypeId);
-            TagType childType = TagTypes.lookup(childTypeId);
+            TagType childType = lookup(childTypeId);
             TagCodec childCodec = childType.codec();
             int len = nbt.readInt();
             ListTag<Tag> list = new ListTag<>(name, childType, new ArrayList<>(len));
@@ -257,12 +243,12 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         @Override
         public int skip(NbtTraverser nbt) {
             byte childTypeId = nbt.readByte();
-            PrimitiveTagType childType = PrimitiveTagType.lookup(childTypeId);
+            TagType<?> childType = lookup(childTypeId);
             int len = nbt.readInt();
 
             int bytes = Byte.BYTES + Integer.BYTES;
             for(int i = 0; i < len; i++) {
-                bytes += childType.skip(nbt);
+                bytes += childType.codec().skip(nbt);
             }
 
             return bytes;
