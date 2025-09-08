@@ -11,12 +11,30 @@ import static java.lang.String.format;
 public abstract class ConfigCodec<T extends Config<T>> {
 
     protected static final int NO_FLAGS = 0;
-    protected static final int ALLOWS_NULL_FILE = 1;
+    protected static final int ALLOWS_NULL_SRC = 1;
 
-    private final int flags;
+    // TODO: implement Source interface and enums? (FileSystemSrc)
+    protected static final int TYPE_FILE = 2; // temp
+    protected static final int TYPE_DIR = 4; // temp
+    protected static final int TYPES_MASK = TYPE_FILE | TYPE_DIR; // temp
+    //protected static final int TYPE_OUT_OF_BOX = 8;
+
+    protected final int flags;
 
     protected ConfigCodec(int flags) {
+        if((flags & TYPES_MASK) == TYPES_MASK) { // both or all types flagged
+            // TODO: logger;
+            System.out.println("WARNING: cfg registered with all types flagged");
+        }
         this.flags = flags;
+    }
+
+    boolean isFileType() {
+        return (flags & TYPE_FILE) != 0;
+    }
+
+    boolean isDirectoryType() {
+        return (flags & TYPE_DIR) != 0;
     }
 
     public final T read(ConfigType<T> type) throws FileNotFoundException, ConfigFileReadException {
@@ -30,19 +48,26 @@ public abstract class ConfigCodec<T extends Config<T>> {
         return readIt(file);
     }
 
+    /*@Debug
+    public static void main(String[] args) throws URISyntaxException, IOException {
+        BasicFileAttributes attrs = java.nio.file.Files
+            .readAttributes(new File("C:\\tests").toPath(), BasicFileAttributes.class);
+        System.out.println(attrs.isDirectory());
+    }*/
+
     // Reads a config as an object
     // File is guaranteed to exist at this point
     // Throws a ConfigFileReadException if the config fails to read/parse
     protected abstract T readIt(File file) throws ConfigFileReadException;
 
     public final void write(T config, File file) throws ConfigFileWriteException {
-        if(file == null && (flags & ALLOWS_NULL_FILE) == 0) {
+        if(file == null && (flags & ALLOWS_NULL_SRC) == 0) {
             throw new ConfigFileWriteException(format("Provided file is null; %s disallows null files", config.getType().getName()));
         }
 
         // If a file doesn't exist, load default resource
         if(file != null && !file.exists()) {
-            if(file.isFile()) {
+            if(isFileType() /*file.isFile()*/) {
                 InputStream res = Ether.plugin().getResource(file.getName());
                 try {
                     // Create dirs + file
@@ -56,8 +81,8 @@ public abstract class ConfigCodec<T extends Config<T>> {
                 } catch (IOException ex) {
                     throw new ConfigFileWriteException("Failed to write data to file", ex);
                 }
-            } else if (file.isDirectory()) {
-                file.mkdirs();
+            } else if (isDirectoryType() /*file.isDirectory()*/) {
+                file.mkdirs(); // warn if mkdirs failed
             } else {
                 throw new UnreachableException("Input is neither a file nor directory");
             }

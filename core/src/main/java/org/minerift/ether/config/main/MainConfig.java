@@ -3,7 +3,7 @@ package org.minerift.ether.config.main;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.database.Database;
-import org.minerift.ether.database.nusql.SQLDialect;
+import org.minerift.ether.database.sql.SQLDialect;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;

@@ -5,7 +5,7 @@ import org.minerift.ether.config.ConfigFileReadException;
 import org.minerift.ether.config.YamlConfigView;
 import org.minerift.ether.config.ConfigFileWriteException;
 import org.minerift.ether.database.Database;
-import org.minerift.ether.database.nusql.SQLDialect;
+import org.minerift.ether.database.sql.SQLDialect;
 import org.minerift.ether.util.UnreachableException;
 
 import java.io.File;
@@ -18,7 +18,7 @@ public class MainConfigCodec extends ConfigCodec<MainConfig> {
     public static final MainConfigCodec CODEC = new MainConfigCodec();
 
     private MainConfigCodec() {
-        super(NO_FLAGS);
+        super(TYPE_FILE | NO_FLAGS);
     }
 
     @Override

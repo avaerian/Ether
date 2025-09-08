@@ -7,16 +7,12 @@ import org.minerift.ether.config.ConfigFileReadException;
 import org.minerift.ether.config.ConfigFileWriteException;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.util.nbt.Compression;
-import org.minerift.ether.util.nbt.NbtReader;
-import org.minerift.ether.util.nbt.NbtWriter;
+import org.minerift.ether.util.nbt.*;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.StringTag;
-import org.minerift.ether.util.nbt.tags.TagTypes;
 import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.tags.container.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,13 +23,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.minerift.ether.util.Utils.ensure;
+import static org.minerift.ether.util.nbt.tags.TagTypes.STRING;
 
 public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
 
     public static final IslandSpecsCodec CODEC = new IslandSpecsCodec();
 
     private IslandSpecsCodec() {
-        super(NO_FLAGS);
+        super(TYPE_DIR | NO_FLAGS);
     }
 
     @Override
@@ -42,32 +39,37 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
         Preconditions.checkArgument(dir.exists(), dir.getName() + " does not exist!");
         IslandSpecsConfig config = new IslandSpecsConfig();
 
-        // TODO: parallelize by queuing tasks and waiting for all tasks to complete?
+        //  parallelize by queuing tasks and waiting for all tasks to complete?
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(dir.toPath(), "*.spec")) {
             for(Path p : stream) {
 
-                File specFile = p.toFile();
-                IslandSpec spec = new IslandSpec();
-                // TODO: do reading of files here
+                try {
+                    File specFile = p.toFile();
+                    IslandSpec spec = new IslandSpec();
 
-                NbtReader reader = NbtReader.from(specFile, Compression.GZIP);
-                CompoundTag root = (CompoundTag) reader.readNextTag();
+                    NbtReader reader = NbtReader.from(specFile, Compression.GZIP);
+                    CompoundTag root = (CompoundTag) reader.readNextTag();
 
-                spec.setIslandName(root.getString("IslandName").orElseThrow());
-                spec.setDescription(root.getList("IslandDesc", StringTag.class).orElseThrow().unwrapTags(StringTag::getValue));
-                spec.setIconData(root.getString("IslandIcon").orElseThrow()); // snbt data
+                    spec.setIslandName(root.getString("IslandName"));
+                    spec.setDescription(root.getList("IslandDesc", StringTag.class).unwrapTags(StringTag::getStrVal));
+                    spec.setIconData(root.getString("IslandIcon")); // snbt data
 
-                CompoundTag iconData = (CompoundTag) Snbt.readTag(spec.getIconData()); // DEBUG; just messing around
+                    CompoundTag iconData = (CompoundTag) Snbt.readTag(spec.getIconData()); // DEBUG; just messing around
 
-                int[] loc = root.getIntArray("IslandPlayerSpawn").orElseThrow();
-                ensure(loc.length == 3, () -> new ConfigFileReadException("IslandPlayerSpawn must only be XYZ"));
+                    int[] loc = root.getIntArray("IslandPlayerSpawn");
+                    ensure(loc.length == 3, () -> new ConfigFileReadException("IslandPlayerSpawn must only be XYZ"));
 
-                spec.setDefaultSpawnLoc(new Vec3i(loc));
+                    spec.setDefaultSpawnLoc(new Vec3i(loc));
 
-                config.islandSpecs.add(spec);
+                    config.add(spec);
+                } catch (NbtException e) {
+                    // TODO: logger
+                    // skip this file and log
+                    System.out.printf("Failed to load %s (%s): %s\n", p.getFileName(), p, e.getMessage()); // consider e.getLocalizedMessage()
+                }
             }
-        } catch (IOException | UnexpectedTokenException ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new ConfigFileReadException(ex);
         }
 
         return config;
@@ -112,16 +114,23 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
             List<StringTag> desc = spec.getDescription().stream()
                     .map((line) -> new StringTag("", line))
                     .toList();
-            tag.addTag(new ListTag<>("IslandDesc", TagTypes.STRING, desc));
+            tag.addTag(new ListTag<>("IslandDesc", STRING, desc));
             tag.addTag(new IntArrayTag("IslandPlayerSpawn", spec.getDefaultSpawnLoc().getXYZ()));
 
             writer.writeTag(tag);
 
-            // Debug
+            /* DEBUG START */
             System.out.println(writer);
             System.out.println(Arrays.toString(writer.buffer.array()));
-            CompoundTag test = (CompoundTag) new NbtReader(writer.buffer.flip(), true).readNextTag();
-            System.out.println(test);
+            CompoundTag test;
+            try {
+                test = (CompoundTag) new NbtReader(writer.buffer.flip(), true).readNextTag();
+                System.out.println(test);
+            } catch (NbtReadException e) {
+                System.out.println("DEBUG: Failed to read nbt buffer");
+                e.printStackTrace();
+            }
+            /* DEBUG END */
         }
 
     }

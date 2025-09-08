@@ -18,6 +18,13 @@ public class IslandSpecsConfig extends Config<IslandSpecsConfig> implements Iter
         this.islandSpecs = new ArrayList<>();
     }
 
+    // TODO: review
+    public boolean add(IslandSpec spec) {
+        islandSpecs.add(spec);
+        setChanged(true);
+        return true;
+    }
+
     @Override
     protected void copyFrom(IslandSpecsConfig other) {
         if(!other.equals(this)) {
