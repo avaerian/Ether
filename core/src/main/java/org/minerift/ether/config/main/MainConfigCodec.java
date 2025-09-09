@@ -49,9 +49,8 @@ public class MainConfigCodec extends ConfigCodec<MainConfig> {
                     config.setSqlUsername(view.get(String.class, SQL_USERNAME).orElseThrow(() -> new ConfigFileReadException("Failed to read SQL username")));
                     config.setSqlPassword(view.get(String.class, SQL_PASSWORD).orElseThrow(() -> new ConfigFileReadException("Failed to read SQL password")));
                 }
-                case BIN -> throw new UnsupportedOperationException("Unimplemented");
-                case null -> throw new UnreachableException("This should be unreachable");
-                default -> throw new UnsupportedOperationException(dbType + " is not being handled yet");
+                case BIN -> throw new UnsupportedOperationException("unimplemented");
+                default -> throw new UnsupportedOperationException(dbType + " has no impl right now");
             }
 
 
@@ -85,8 +84,7 @@ public class MainConfigCodec extends ConfigCodec<MainConfig> {
                     view.set(SQL_PASSWORD, config.getSqlPassword());
                 }
                 case BIN -> throw new UnsupportedOperationException("Unimplemented");
-                case null -> throw new UnreachableException("This should be unreachable");
-                default -> throw new UnsupportedOperationException(config.getPersistMethod() + " is not handled yet");
+                default -> throw new UnsupportedOperationException(config.getPersistMethod() + " has no impl right now");
             }
 
             view.save(file);
