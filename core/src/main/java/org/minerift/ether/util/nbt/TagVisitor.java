@@ -7,7 +7,7 @@ import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
 
-// TODO: review; needed?
+// available as a util if needed
 public interface TagVisitor {
 
     void visitEnd(EndTag tag);

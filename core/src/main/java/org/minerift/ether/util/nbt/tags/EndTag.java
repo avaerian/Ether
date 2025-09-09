@@ -3,6 +3,7 @@ package org.minerift.ether.util.nbt.tags;
 import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
@@ -28,6 +29,11 @@ public class EndTag extends Tag {
     @Override
     public void setName(String name) {
         throw new UnsupportedOperationException("Unable to set name for NBT end tag!");
+    }
+
+    @Override
+    public void accept(TagVisitor visit) {
+
     }
 
     @Override

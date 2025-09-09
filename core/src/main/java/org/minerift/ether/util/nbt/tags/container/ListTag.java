@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.*;
@@ -103,6 +104,11 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
 
     public T getTag(int i) {
         return tagList.get(i);
+    }
+
+    @Override
+    public void accept(TagVisitor visit) {
+        visit.visitList(this);
     }
 
     @Override

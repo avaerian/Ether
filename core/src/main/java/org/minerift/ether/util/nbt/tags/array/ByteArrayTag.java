@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.bytes.ByteList;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.TagType;
@@ -16,6 +17,11 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
 
     public ByteArrayTag(String name) {
         super(name, new byte[0]);
+    }
+
+    @Override
+    public void accept(TagVisitor visit) {
+        visit.visitByteArray(this);
     }
 
     @Override

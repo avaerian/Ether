@@ -3,10 +3,7 @@ package org.minerift.ether.util.nbt.tags.container;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.util.Either;
-import org.minerift.ether.util.nbt.NbtException;
-import org.minerift.ether.util.nbt.NbtReadException;
-import org.minerift.ether.util.nbt.NbtTraverser;
-import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.*;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.*;
@@ -18,7 +15,7 @@ import java.util.function.UnaryOperator;
 
 import static org.minerift.ether.util.nbt.tags.TagTypes.*;
 
-public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
+public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implements Iterable<Map.Entry<String, Tag>> {
 
     protected Map<String, Tag> tags;
 
@@ -132,6 +129,11 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
 
     public void removeTag(String name) {
         tags.remove(name);
+    }
+
+    @Override
+    public void accept(TagVisitor visit) {
+        visit.visitCompound(this);
     }
 
     /*private <R, F extends Function<Tag, R>> R getTagValue(String name, TagType<> expectedType, F none, F some) {
@@ -392,6 +394,11 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> {
                 "tags=" + tags +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public @NotNull Iterator<Map.Entry<String, Tag>> iterator() {
+        return tags.entrySet().iterator();
     }
 
     public static class LazyCompoundTag extends CompoundTag {

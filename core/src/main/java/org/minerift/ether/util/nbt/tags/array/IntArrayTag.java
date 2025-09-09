@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
+import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.TagType;
@@ -18,6 +19,11 @@ public final class IntArrayTag extends ArrayTag<int[]> {
 
     public IntArrayTag(String name, int[] value) {
         super(name, value);
+    }
+
+    @Override
+    public void accept(TagVisitor visit) {
+        visit.visitIntArray(this);
     }
 
     @Override

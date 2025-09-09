@@ -69,14 +69,21 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         return INST;
     }
 
-    public Tag asTag(net.minecraft.nbt.Tag nativeTag) {
-        if(nativeTag == null) {
+    public Tag asTag(net.minecraft.nbt.Tag ntag) {
+        if(ntag == null) {
             return null;
         }
-
-        return new TagBuilderVisitor().visit(nativeTag);
+        return new CoreTagBuilderVisitor().visit(ntag);
     }
 
+    public net.minecraft.nbt.Tag asNativeTag(Tag ctag) {
+        if(ctag == null) {
+            return null;
+        }
+        return new NativeTagBuilderVisitor().visit(ctag);
+    }
+
+    /* for java 21; will use soon
     public net.minecraft.nbt.Tag asNativeTag(Tag tag) {
         if(tag == null) {
             return null;
@@ -119,7 +126,7 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
             // TODO: review and update this
             default -> throw new IllegalStateException("Unexpected value: " + tag);
         };
-    }
+    }*/
 
     // Returns the native BlockState for BlockData (null if data is null)
     public net.minecraft.world.level.block.state.BlockState asNativeBlockState(BlockData data) {

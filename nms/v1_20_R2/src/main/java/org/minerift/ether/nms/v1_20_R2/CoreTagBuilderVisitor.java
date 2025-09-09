@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TagBuilderVisitor implements TagVisitor {
+public class CoreTagBuilderVisitor implements TagVisitor {
 
     private Tag result;
 
-    public TagBuilderVisitor() {
+    public CoreTagBuilderVisitor() {
         this.result = null;
     }
 
@@ -80,7 +80,7 @@ public class TagBuilderVisitor implements TagVisitor {
         TagType childType = TagTypes.lookup(element.getElementType());
         ListTag tag = new ListTag<>("", childType, new ArrayList<>(element.size()));
         for(net.minecraft.nbt.Tag value : element) {
-            Tag childTag = new TagBuilderVisitor().visit(value);
+            Tag childTag = new CoreTagBuilderVisitor().visit(value);
             tag.addTag(childTag);
         }
         result = tag;
@@ -90,7 +90,7 @@ public class TagBuilderVisitor implements TagVisitor {
     public void visitCompound(net.minecraft.nbt.CompoundTag compound) {
         CompoundTag tag = new CompoundTag("", new HashMap<>(compound.tags.size()));
         for(Map.Entry<String, net.minecraft.nbt.Tag> entry : compound.tags.entrySet()) {
-            Tag childTag = new TagBuilderVisitor().visit(entry.getValue());
+            Tag childTag = new CoreTagBuilderVisitor().visit(entry.getValue());
             childTag.setName(entry.getKey());
             tag.addTag(childTag);
         }
