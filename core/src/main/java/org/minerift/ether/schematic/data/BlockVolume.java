@@ -148,14 +148,14 @@ public class BlockVolume extends Volume<BlockState<?>> {
                         case Z -> EAST;
                     };
                     Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Direction rotated = fromNVector(res.out.asMutableCopy().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(Attributes.AXIS, rotated.getAxis()), true);
                 } else if ((dir = state.tryGetAttribute(dirAttr = Attributes.FACING)) != null
                         || ((dir = state.tryGetAttribute(dirAttr = Attributes.HORIZONTAL_FACING)) != null)) {
 
                     Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = fromVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Direction rotated = fromNVector(res.out.asMutableCopy().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(dirAttr, rotated), true);
                 }

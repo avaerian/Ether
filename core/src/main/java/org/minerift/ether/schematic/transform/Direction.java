@@ -1,9 +1,12 @@
 package org.minerift.ether.schematic.transform;
 
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.math.Vec3;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.util.Option;
 
+import java.util.Optional;
+
+import static java.lang.String.format;
 import static org.minerift.ether.schematic.transform.Rotate.Angle.DG_90;
 import static org.minerift.ether.schematic.transform.Rotate.Angle.DG_NEG_90;
 
@@ -40,7 +43,7 @@ public enum Direction {
     public static void main(String[] args) {
         System.out.println(Integer.toBinaryString(0xFF << 24));
         for(Direction d : Direction.values()) {
-            System.out.println(d + " " + d.vec + " -> " + Direction.fromVector(d.vec) + " -> " + d.getClockwise());
+            System.out.println(d + " " + d.vec + " -> " + Direction.fromNVector(d.vec) + " -> " + d.getClockwise());
         }
     }
 
@@ -90,19 +93,34 @@ public enum Direction {
         };
     }
 
-    private static int key(Vec3i vec) {
-        return ((vec.getX() & 0xFF) << 16)
-                | ((vec.getY() & 0xFF) << 8)
-                | (vec.getZ() & 0xFF);
+    private static int key(int nx, int ny, int nz) {
+        return ((nx & 0xFF) << 16)
+                | ((ny & 0xFF) << 8)
+                | (nz & 0xFF);
+    }
+
+    private static int key(Vec3i nvec) {
+        return key(nvec.getX(), nvec.getY(), nvec.getZ());
     }
 
     private static int key(Direction d) {
         return key(d.vec);
     }
 
-    // TODO: create fn for non-normalized vecs
     public static Direction fromVector(Vec3i vec) {
-        int key = key(vec);
+        return fromVector(vec.getX(), vec.getY(), vec.getZ());
+    }
+
+    public static Direction fromVector(int x, int y, int z) {
+        return fromNVector(Integer.signum(x), Integer.signum(y), Integer.signum(z));
+    }
+
+    public static Direction fromNVector(Vec3i nvec) {
+        return fromNVector(nvec.getX(), nvec.getY(), nvec.getZ());
+    }
+
+    public static Direction fromNVector(int nx, int ny, int nz) {
+        int key = key(nx, ny, nz);
         return switch (key) {
             case (1 << 16 /*| 0 << 8 | 0*/) -> NORTH;
             case (0xFF << 16 /*| 0 << 8 | 0*/) -> SOUTH;
@@ -110,7 +128,8 @@ public enum Direction {
             case (0xFF) -> WEST;
             case (1 << 8) -> UP;
             case (0xFF << 8) -> DOWN;
-            default -> throw new IllegalStateException("Unexpected value: " + key);
+            default -> throw new IllegalStateException(
+                    format("unexpected vec: (%d, %d, %d), key: %d", nx, ny, nz, key));
         };
     }
 
@@ -124,17 +143,13 @@ public enum Direction {
         }
     }
 
-    public Direction rotate(Axis axis, Option<Rotate.Angle> angle, int flags) {
-        return switch (angle) {
-            case Option.Some<Rotate.Angle> s -> rotate(axis, angle, flags);
-            case Option.None<Rotate.Angle> n -> this;
-            default -> throw new IllegalStateException("Unexpected value: " + angle);
-        };
+    public Direction rotate(Axis axis, Optional<Rotate.Angle> angle, int flags) {
+        return angle.map(_angle -> rotate(axis, _angle, flags)).orElse(this);
     }
 
     public Direction rotate(Axis axis, Rotate.Angle angle) {
         Vec3i.Mutable gridLoc = vec.asMutableCopy().add(1, 1, 1);
         Vec3i rotated = Rotate.transformVec(axis, angle, ROT_MATRIX_SIZE, gridLoc).out;
-        return fromVector(rotated.asMutableCopy().subtract(1,1,1));
+        return fromNVector(rotated.asMutableCopy().subtract(1,1,1));
     }
 }
