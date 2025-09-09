@@ -16,10 +16,12 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Math.PI;
 
 // Class for all things math-related
 public class Maths {
 
+    public static final double TAU = PI * 2;
     public static final int TICKS_PER_SEC = 20;
 
     private static final Pattern VEC_STRING_PATTERN = Pattern.compile("[^\\d\\-,.]");

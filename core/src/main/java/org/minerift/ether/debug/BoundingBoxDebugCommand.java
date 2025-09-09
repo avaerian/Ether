@@ -65,7 +65,7 @@ public class BoundingBoxDebugCommand implements CommandExecutor {
 
                 // experiment with thread pooling / virtual threads
                 box.getBlocksMut(plr.getWorld(),
-                        Array3DOrder.YZX, cg, Executors.newFixedThreadPool(10, Thread.ofVirtual().factory()))
+                        Array3DOrder.YZX, cg, Executors.newFixedThreadPool(10 /*, Thread.ofVirtual().factory()*/))
                         .thenApply(BlockVolume.Builder::build)
                         .thenAccept((bv) -> Pasters.pasteBlockVolume(bv, plr.getWorld(), asVec3i(plr.getLocation()), cg))
                         .thenAccept((__) -> plr.sendMessage("Pasted successfully?"));

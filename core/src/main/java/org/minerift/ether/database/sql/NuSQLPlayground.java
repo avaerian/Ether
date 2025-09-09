@@ -131,7 +131,7 @@ public class NuSQLPlayground {
 
             for(int i = 0; i < 10; i++) {
                 System.out.println("Hello, world!");
-                Thread.sleep(Duration.ofMillis(25));
+                Thread.sleep(Duration.ofMillis(25).toMillis());
             }
 
             result.get();

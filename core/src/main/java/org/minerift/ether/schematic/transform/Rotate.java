@@ -7,16 +7,13 @@ import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.data.Array3DOrder;
-import org.minerift.ether.util.Option;
 import org.minerift.ether.util.UnreachableException;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 
-import static java.lang.Math.TAU;
-import static org.minerift.ether.util.Option.none;
-import static org.minerift.ether.util.Option.some;
+import static org.minerift.ether.math.Maths.TAU;
 
 public class Rotate implements Transform {
 
