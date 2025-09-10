@@ -1,7 +1,10 @@
-package org.minerift.ether.util.io;
+package org.minerift.ether.util.io.buf;
 
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.debug.Experimental;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.util.io.Endianness;
 
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -10,9 +13,10 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.function.IntUnaryOperator;
 
-// TODO: write unit tests for this class
 @SuppressWarnings("Duplicates")
-public class DynBuf {
+@Experimental
+@NeedsTesting // write unit tests for this class
+public class BBufByteArray {
     // Thread safety is also a desire
 
     public static final int CHUNK_SIZE = 4096;
@@ -42,37 +46,37 @@ public class DynBuf {
     // TODO: move all ctors to static methods and create single all-parameter ctor
 
     @Debug
-    public static DynBuf createChunkBuf() { // example
+    public static BBufByteArray createChunkBuf() { // example
         return create(CHUNK_SIZE, (capacity) -> capacity + CHUNK_SIZE);
     }
 
     @Debug
-    public static DynBuf createTestBuf() {
+    public static BBufByteArray createTestBuf() {
         return create(32);
     }
 
 
-    public static DynBuf create(int capacity, IntUnaryOperator grower) {
-        return new DynBuf(new byte[capacity], 0, 0, grower);
+    public static BBufByteArray create(int capacity, IntUnaryOperator grower) {
+        return new BBufByteArray(new byte[capacity], 0, 0, grower);
     }
 
-    public static DynBuf create(int capacity) {
-        return new DynBuf(new byte[capacity], 0, 0, DEFAULT_GROWER);
+    public static BBufByteArray create(int capacity) {
+        return new BBufByteArray(new byte[capacity], 0, 0, DEFAULT_GROWER);
     }
 
     // Wraps the raw byte array in a DynBuf
-    public static DynBuf wrap(byte[] bytes, int len) {
-        return new DynBuf(bytes, 0, len, DEFAULT_GROWER);
+    public static BBufByteArray wrap(byte[] bytes, int len) {
+        return new BBufByteArray(bytes, 0, len, DEFAULT_GROWER);
     }
 
-    private DynBuf(byte[] bytes, int offset, int len, IntUnaryOperator grower) {
+    private BBufByteArray(byte[] bytes, int offset, int len, IntUnaryOperator grower) {
         this.buf = bytes;
         this.len = len;
         this.cursor = offset;
         this.lockedRegions = new ArrayDeque<>();
         this.grower = grower;
 
-        this.order = Endianness.LITTLE_ENDIAN;
+        this.order = Endianness.BIG_ENDIAN;
         this.endianByteShift = order.isLittleEndian() ? 8 : -8;
         this.endianByteInitPos = new int[6];
         if(order.isBigEndian()) {
@@ -99,7 +103,7 @@ public class DynBuf {
         return buf.length;
     }
 
-    public DynBuf write(byte[] bytes) {
+    public BBufByteArray write(byte[] bytes) {
         ensureCapacityFor(bytes.length);
         System.arraycopy(bytes, 0, buf, len, bytes.length);
         cursor += bytes.length;
@@ -125,7 +129,7 @@ public class DynBuf {
         return result;
     }
 
-    public DynBuf writeShort(short s) {
+    public BBufByteArray writeShort(short s) {
         ensureCapacityFor(Short.BYTES);
         int shift = endianByteInitPos[SHORT];
 
@@ -146,7 +150,7 @@ public class DynBuf {
         return result;
     }
 
-    public DynBuf writeInt(int i) {
+    public BBufByteArray writeInt(int i) {
         ensureCapacityFor(Integer.BYTES);
         int shift = endianByteInitPos[INT];
 
@@ -201,7 +205,7 @@ public class DynBuf {
         return (i >>> 1) ^ -(i & 1);
     }
 
-    public DynBuf writeVarIntSigned(int i) {
+    public BBufByteArray writeVarIntSigned(int i) {
         return writeVarInt(encodeZigZagInt(i));
     }
 
@@ -216,7 +220,7 @@ public class DynBuf {
         //int test = Short.MAX_VALUE;
         int test = -420;
 
-        DynBuf buffer = DynBuf.createChunkBuf();
+        BBufByteArray buffer = BBufByteArray.createChunkBuf();
         System.out.println("Initial buffer:");
         System.out.println(buffer);
 
@@ -231,7 +235,7 @@ public class DynBuf {
         System.out.println(buffer);
 
         ///////////////////////////
-        buffer = DynBuf.createChunkBuf();
+        buffer = BBufByteArray.createChunkBuf();
         System.out.println("\nInitial buffer:");
         System.out.println(buffer);
 
@@ -247,7 +251,7 @@ public class DynBuf {
 
 
         ///////////////////////////
-        buffer = DynBuf.createTestBuf();
+        buffer = BBufByteArray.createTestBuf();
         System.out.println("\nInitial buffer:");
         System.out.println(buffer);
 
@@ -265,7 +269,7 @@ public class DynBuf {
         System.out.println(buffer);
 
         ///////////////////////////
-        buffer = DynBuf.createTestBuf();
+        buffer = BBufByteArray.createTestBuf();
         System.out.println("\nInitial buffer:");
         System.out.println(buffer);
 
@@ -273,7 +277,7 @@ public class DynBuf {
 
     }
 
-    public DynBuf writeLong(long l) {
+    public BBufByteArray writeLong(long l) {
         ensureCapacityFor(Long.BYTES);
         int shift = endianByteInitPos[LONG];
 
@@ -315,7 +319,7 @@ public class DynBuf {
         return result;
     }
 
-    public DynBuf writeFloat(float f) {
+    public BBufByteArray writeFloat(float f) {
         ensureCapacityFor(Float.BYTES);
         int shift = endianByteInitPos[FLOAT];
         int fb = Float.floatToRawIntBits(f);
@@ -341,7 +345,7 @@ public class DynBuf {
         return Float.intBitsToFloat(result);
     }
 
-    public DynBuf writeDouble(double d) {
+    public BBufByteArray writeDouble(double d) {
         ensureCapacityFor(Double.BYTES);
         int shift = endianByteInitPos[DOUBLE];
         long db = Double.doubleToRawLongBits(d);
@@ -376,7 +380,7 @@ public class DynBuf {
     }
 
     // TODO: allow for storing bytes with specific endianness?
-    public DynBuf writeVarInt(int num) {
+    public BBufByteArray writeVarInt(int num) {
         // 0 -> (2^7 - 1)
         // 0100 0101 1011 0011
         if(num == 0) {
@@ -420,7 +424,7 @@ public class DynBuf {
     }
 
     // TODO: allow for custom length type (byte, short, int, long)
-    public DynBuf writeUTF8(String str) {
+    public BBufByteArray writeUTF8(String str) {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         ensureCapacityFor(Integer.BYTES + bytes.length);
         writeInt(bytes.length);
