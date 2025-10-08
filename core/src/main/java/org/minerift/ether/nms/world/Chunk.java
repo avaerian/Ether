@@ -90,7 +90,7 @@ public interface Chunk<NBS, NC, NCS, NB> {
 
     default boolean setBlockEntity(BlockEntityArchetype blockEntity) throws BlockStateNotFoundException {
         NBS nativeState = (NBS) blockEntity.getState().asNative();
-        return setNativeBlockEntity(blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), nativeState, blockEntity.getNbtData());
+        return setNativeBlockEntity(blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), nativeState, blockEntity.getAsNbt());
     }
 
     default boolean setBlockEntity(Vec3i pos, BlockState<?> block, CompoundTag nbt) {

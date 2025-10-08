@@ -172,9 +172,9 @@ public class BoundingBox {
                                     worldBlockX, worldBlockY, worldBlockZ,
                                     arrayBlockX, arrayBlockY, arrayBlockZ, idx);
 
-                            bv.addBlockEntity(new BlockEntityArchetype(state, state.propsAsNbt(),
-                                    new Vec3i(arrayBlockX,
-                                    arrayBlockY,arrayBlockZ)));
+                            bv.addBlockEntity(new BlockEntityArchetype(state, new Vec3i(arrayBlockX,
+                            arrayBlockY,arrayBlockZ), state.propsAsNbt()
+                            ));
                         }
                     }
                 }

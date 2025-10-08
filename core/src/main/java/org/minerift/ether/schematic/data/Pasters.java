@@ -171,7 +171,7 @@ public class Pasters {
                             if(be == null) {
                                 System.out.println("block entity has no associated archetype");
                             } else {
-                                CompoundTag nbt = be.getNbtData();
+                                CompoundTag nbt = be.getAsNbt();
                                 chunk.setBlockEntity(worldBlockX, worldBlockY, worldBlockZ, block, nbt);
                             }
                         }

@@ -147,15 +147,15 @@ public class BlockVolume extends Volume<BlockState<?>> {
                         case Y -> UP;
                         case Z -> EAST;
                     };
-                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = fromNVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().copyMutable().add(1, 1, 1));
+                    Direction rotated = fromNVector(res.out.copyMutable().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(Attributes.AXIS, rotated.getAxis()), true);
                 } else if ((dir = state.tryGetAttribute(dirAttr = Attributes.FACING)) != null
                         || ((dir = state.tryGetAttribute(dirAttr = Attributes.HORIZONTAL_FACING)) != null)) {
 
-                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().asMutableCopy().add(1, 1, 1));
-                    Direction rotated = fromNVector(res.out.asMutableCopy().subtract(1, 1, 1));
+                    Transform.Result<Vec3i> res = ts.apply(ROT_MATRIX_SIZE, dir.getNormal().copyMutable().add(1, 1, 1));
+                    Direction rotated = fromNVector(res.out.copyMutable().subtract(1, 1, 1));
 
                     palette.add(entry.getKey(), state.trySetAttribute(dirAttr, rotated), true);
                 }
@@ -170,7 +170,7 @@ public class BlockVolume extends Volume<BlockState<?>> {
             Vec3i oldPos = order.unflatten(width, length, be.getIntKey());
             Transform.Result<Vec3i> newPos = ts.apply(width, height, length, oldPos);
             int newFlat = order.flatten(res.dim.getX(), res.dim.getZ(), newPos.out);
-            BlockEntityArchetype newBe = new BlockEntityArchetype(be.getValue().getState(), be.getValue().getNbtData(), newPos.out);
+            BlockEntityArchetype newBe = new BlockEntityArchetype(be.getValue().getState(), newPos.out, be.getValue().getAsNbt());
             newBlockEntities.put(newFlat, newBe);
         }
 

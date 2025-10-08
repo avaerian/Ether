@@ -22,7 +22,7 @@ public interface NMSAccess {
             return true;
         } catch(EntityLoadException ex) {
             // TODO: proper logging
-            System.out.println("Failed to add entity: " + entity.getType());
+            System.out.println("Failed to add entity: " + entity.getId());
             ex.printStackTrace();
             return false;
         }
