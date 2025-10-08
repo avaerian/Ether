@@ -1,31 +1,33 @@
 package org.minerift.ether.schematic;
 
 import org.minerift.ether.Ether;
+import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.SpongeSchematicPaster;
 import org.minerift.ether.schematic.worldedit.WESchematicPaster;
-import org.minerift.ether.schematic.sponge.reader.SpongeSchematicReader;
-import org.minerift.ether.schematic.worldedit.WESchematicReader;
+import org.minerift.ether.schematic.sponge.SpongeSchematicCodec;
+import org.minerift.ether.schematic.worldedit.WESchematicCodec;
+import org.minerift.ether.schematic.worldedit.WorldEditSchematic;
 
-public class SchematicType {
+public class SchematicType<S extends Schematic> {
 
     private final static SchematicType UNSUPPORTED;
-    public final static SchematicType SPONGE;
-    public final static SchematicType WORLDEDIT;
+    public final static SchematicType<SpongeSchematic> SPONGE;
+    public final static SchematicType<WorldEditSchematic> WORLDEDIT;
 
     static {
         //UNSUPPORTED = new SchematicType(null, null);
         UNSUPPORTED = null;
-        SPONGE = new SchematicType(new SpongeSchematicReader(), new SpongeSchematicPaster());
+        SPONGE = new SchematicType<>(SpongeSchematicCodec.INST, new SpongeSchematicPaster());
         // Initialize only if WorldEdit is supported
         WORLDEDIT = Ether.isUsingWorldEdit()
-                ? new SchematicType(new WESchematicReader(), new WESchematicPaster())
+                ? new SchematicType<>(new WESchematicCodec(), new WESchematicPaster())
                 : UNSUPPORTED;
     }
 
-    private final SchematicReader<? extends Schematic> reader;
-    private final SchematicPaster<? extends Schematic> paster;
-    private SchematicType(SchematicReader<? extends Schematic> reader, SchematicPaster<? extends Schematic> paster) {
-        this.reader = reader;
+    private final SchematicCodec<S> codec;
+    private final SchematicPaster<S> paster;
+    private SchematicType(SchematicCodec<S> codec, SchematicPaster<S> paster) {
+        this.codec = codec;
         this.paster = paster;
     }
 
@@ -33,21 +35,21 @@ public class SchematicType {
         return this != UNSUPPORTED;
     }
 
-    public SchematicReader<? extends Schematic> getReader() {
+    public SchematicCodec<S> codec() {
         if(!isSupported()) {
             throw new UnsupportedOperationException("Reader unavailable because schematic type was unable to load!");
         }
-        return reader;
+        return codec;
     }
 
-    public SchematicPaster<? extends Schematic> getPaster() {
+    public SchematicPaster<S> getPaster() {
         if(!isSupported()) {
             throw new UnsupportedOperationException("Paster unavailable because schematic type was unable to load!");
         }
         return paster;
     }
 
-    public <P extends SchematicPaster<? extends Schematic>> P getPaster(Class<P> clazz) {
+    public <P extends SchematicPaster<S>> P getPaster(Class<P> clazz) {
         return clazz.cast(getPaster());
     }
 

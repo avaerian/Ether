@@ -1,27 +1,78 @@
 package org.minerift.ether.schematic;
 
 import com.google.common.base.Preconditions;
+import io.netty.buffer.ByteBuf;
 import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.transform.Transforms;
+import org.minerift.ether.util.nbt.NbtSerializable;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.io.File;
 
-public interface Schematic {
+public interface Schematic extends NbtSerializable {
 
-    static Schematic fromFile(SchematicType type, File file) throws SchematicFileReadException {
-        Preconditions.checkNotNull(file, "File cannot be null!");
-        return type.getReader().read(file);
+    static <S extends Schematic> S fromFile(SchematicType<S> type, File file) throws SchematicReadException {
+        Preconditions.checkNotNull(file, "File cannot be null");
+        return type.codec().read(file);
     }
 
-    static Schematic fromFile(File file) throws SchematicFileReadException {
-        final SchematicType type = Ether.isUsingWorldEdit()
+    static Schematic fromFile(File file) throws SchematicReadException {
+        /*final SchematicType type = Ether.isUsingWorldEdit()
                 ? SchematicType.WORLDEDIT
-                : SchematicType.SPONGE;
+                : SchematicType.SPONGE;*/
+        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
         return fromFile(type, file);
     }
 
-    SchematicType getType();
+    static Schematic from(ByteBuf buf) throws SchematicReadException {
+        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
+        return fromTyped(type, buf);
+    }
+
+    static <S extends Schematic> S fromTyped(SchematicType<S> type, ByteBuf buf) throws SchematicReadException {
+        return type.codec().read(buf);
+    }
+
+    static Schematic from(CompoundTag nbt) throws SchematicReadException {
+        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
+        return fromTyped(type, nbt);
+    }
+
+    static <S extends Schematic> S fromTyped(SchematicType<S> type, CompoundTag nbt) throws SchematicReadException {
+        return type.codec().read(nbt);
+    }
+
+    SchematicType type();
+
+    default SchematicCodec codec() {
+        return type().codec();
+    }
+
+    default int write(ByteBuf buf) {
+        return codec().write(this, buf);
+    }
+
+    default int write(ByteBuf buf, int flags) {
+        return codec().write(this, buf, flags);
+    }
+
+    default int write(File f) {
+        return codec().write(this, f);
+    }
+
+    default int write(File f, int flags) {
+        return codec().write(this, f, flags);
+    }
+
+    default CompoundTag serializeNbt() {
+        return codec().writeAsNbt(this, SchematicCodec.NO_FLAGS);
+    }
+
+    default CompoundTag writeAsNbt(int flags) {
+        return codec().writeAsNbt(this, flags);
+    }
 
     void paste(Vec3i pos, String worldName, SchematicPasteOptions options);
 
