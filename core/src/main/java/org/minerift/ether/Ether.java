@@ -19,6 +19,7 @@ import org.minerift.ether.island.IslandManager;
 import org.minerift.ether.island.invites.IslandInviteManager;
 import org.minerift.ether.nms.NMS;
 import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;

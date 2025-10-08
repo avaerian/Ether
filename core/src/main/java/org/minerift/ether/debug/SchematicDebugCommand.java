@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.util.BukkitUtils;
@@ -42,7 +42,7 @@ public class SchematicDebugCommand implements CommandExecutor {
             Schematic schem = Schematic.fromFile(file);
             schem.paste(pos, worldName, SchematicPasteOptions.DEFAULT);
             plr.sendMessage("Schematic pasted successfully!");
-        } catch (SchematicFileReadException ex) {
+        } catch (SchematicReadException ex) {
             plr.sendMessage("Schematic failed to read! Check console for details");
             ex.printStackTrace();
         }

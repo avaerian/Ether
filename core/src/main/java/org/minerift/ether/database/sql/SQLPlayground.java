@@ -24,9 +24,10 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("Duplicates")
 @Debug
-public class NuSQLPlayground {
+public class SQLPlayground {
 
-    // TODO: allow for locating where database is created
+    // TODO: allow setting location for creating db.
+    //  In addition, create test directory within project for locating dbs.
     @Debug
     public static void main(String[] args) throws Exception {
 

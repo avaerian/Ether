@@ -6,14 +6,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.schematic.Schematic;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.data.Pasters;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.transform.Axis;
 import org.minerift.ether.schematic.transform.Rotate;
-import org.minerift.ether.util.Option;
 
 import java.io.File;
 import java.util.Optional;
@@ -53,7 +52,7 @@ public class TransformDebugCommand implements CommandExecutor {
             SpongeSchematic schem = (SpongeSchematic) Schematic.fromFile(SchematicType.SPONGE, file);
             BlockVolume bv = schem.getBlocks().transform(Rotate.of(axis, angle), ROTATE_BLK_DIRS);
             Pasters.pasteBlockVolume(bv, plr.getWorld(), asVec3i(plr.getLocation()), SYNC);
-        } catch (SchematicFileReadException ex) {
+        } catch (SchematicReadException ex) {
             throw new RuntimeException(ex);
         }
 

@@ -6,14 +6,6 @@ import java.util.Set;
 
 public class SQLDbStartupScript {
 
-    /**
-     * - Main priority now should be to fix up the issues with column inconsistencies/etc.
-     * - Remove old SQL API in favor of NuSQL
-     * - Push changes to GitHub
-     */
-
-
-
     public static void run(SQLAccess access) {
 
         // TODO: upgraders will need to run before table creation is handled

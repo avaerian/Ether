@@ -11,11 +11,11 @@ public class ColumnInfo {
     public String type;
     public String order; // ASC, DESC
     public String collation;
+    public List<String> checks;
+    public OnConflict onConflict;
     public boolean notNull;
     public boolean unique;
-    public List<String> checks;
     public boolean autoincrement;
-    public OnConflict onConflict;
 
     public ColumnInfo() {
         this.checks = new ArrayList<>();

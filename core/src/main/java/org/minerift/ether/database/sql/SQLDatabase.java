@@ -66,7 +66,6 @@ public class SQLDatabase extends Database {
             throw new RuntimeException(ex);
         }
 
-
         try {
             SQLDbStartupScript.run(new SQLAccess(this, dataSource.getConnection()));
         } catch (SQLException ex) {

@@ -8,6 +8,7 @@ import org.minerift.ether.math.Vec3i;
 // A block containing a block entity
 public class BlockEntityArchetype extends BlockArchetype {
 
+    // TODO: consider updating to use BlockState NBT data?
     private CompoundTag nbtData;
 
     public BlockEntityArchetype(String data, Vec3i pos, CompoundTag nbtData) throws BlockStateNotFoundException {
@@ -16,13 +17,12 @@ public class BlockEntityArchetype extends BlockArchetype {
         System.out.println("Created new block entity archetype: " + data + " at " + pos + ", nbt data: " + nbtData); // debug
     }
 
-    // FIXME: parameters need to be swapped
-    public BlockEntityArchetype(BlockState<?> state, CompoundTag nbt, Vec3i pos) {
+    public BlockEntityArchetype(BlockState<?> state, Vec3i pos, CompoundTag nbt) {
         super(state, pos);
         this.nbtData = nbt;
     }
 
-    public CompoundTag getNbtData() {
+    public CompoundTag getAsNbt() {
         return nbtData;
     }
 

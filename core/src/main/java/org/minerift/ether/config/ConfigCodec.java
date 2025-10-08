@@ -13,7 +13,7 @@ public abstract class ConfigCodec<T extends Config<T>> {
     protected static final int NO_FLAGS = 0;
     protected static final int ALLOWS_NULL_SRC = 1;
 
-    // TODO: implement Source interface and enums? (FileSystemSrc)
+    // TODO: implement Source interface and enums? (i.e. FileSystemSrc)
     protected static final int TYPE_FILE = 2; // temp
     protected static final int TYPE_DIR = 4; // temp
     protected static final int TYPES_MASK = TYPE_FILE | TYPE_DIR; // temp
@@ -82,7 +82,7 @@ public abstract class ConfigCodec<T extends Config<T>> {
                     throw new ConfigFileWriteException("Failed to write data to file", ex);
                 }
             } else if (isDirectoryType() /*file.isDirectory()*/) {
-                file.mkdirs(); // warn if mkdirs failed
+                file.mkdirs(); // warn if mkdirs fails
             } else {
                 throw new UnreachableException("Input is neither a file nor directory");
             }

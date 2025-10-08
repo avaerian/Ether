@@ -1,7 +1,5 @@
 package org.minerift.ether.util.io;
 
-import java.util.function.IntUnaryOperator;
-
 public enum Endianness {
     LITTLE_ENDIAN,
     BIG_ENDIAN,
