@@ -43,16 +43,10 @@ import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.Section;
 import org.minerift.ether.util.Note;
 import org.minerift.ether.util.nbt.tags.Tag;
-import org.minerift.ether.util.nbt.tags.*;
-import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
-import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
-import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-import org.minerift.ether.util.nbt.tags.container.ListTag;
+import org.minerift.ether.util.nbt.transmute.NbtTransmuteException;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.world.BlockEntityArchetype;
-
-import java.util.Map;
 
 public class NativeTypeConversionsImpl implements NativeTypeConversions
         <net.minecraft.world.level.block.state.BlockState,
@@ -76,11 +70,20 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         return new CoreTagBuilderVisitor().visit(ntag);
     }
 
-    public net.minecraft.nbt.Tag asNativeTag(Tag ctag) {
+    public net.minecraft.nbt.Tag tryAsNativeTag(Tag ctag) {
+        try {
+            return asNativeTag(ctag);
+        } catch (NbtTransmuteException e) {
+            // TODO: log
+            return null;
+        }
+    }
+
+    public net.minecraft.nbt.Tag asNativeTag(Tag ctag) throws NbtTransmuteException {
         if(ctag == null) {
             return null;
         }
-        return new NativeTagBuilderVisitor().visit(ctag);
+        return NativeTagBuilder.from(ctag);
     }
 
     /* for java 21; will use soon
@@ -160,7 +163,7 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
 
     @Override
     public ItemStack asNativeItemStack(CompoundTag nbt) {
-        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) asNativeTag(nbt);
+        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) tryAsNativeTag(nbt);
         return ItemStack.of(nativeTag);
     }
 

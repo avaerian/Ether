@@ -10,6 +10,7 @@ import org.minerift.ether.util.nbt.tags.container.ListTag;
 
 import java.util.Map;
 
+@Deprecated
 public class NativeTagBuilderVisitor implements TagVisitor {
 
     private net.minecraft.nbt.Tag result;
@@ -79,7 +80,7 @@ public class NativeTagBuilderVisitor implements TagVisitor {
     }
 
     @Override
-    public void visitList(ListTag<?> tag) {
+    public <T extends Tag> void visitList(ListTag<T> tag) {
         net.minecraft.nbt.ListTag nt = new net.minecraft.nbt.ListTag();
         for(Tag c : tag) {
             nt.add(new NativeTagBuilderVisitor().visit(c));
