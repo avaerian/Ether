@@ -44,6 +44,16 @@ public class Vec2i implements Vec2, Serializable {
         return 0;
     }
 
+    @Override
+    public int[] getXZ() {
+        return new int[]{ x, z };
+    }
+
+    @Override
+    public double[] getXZd() {
+        return new double[]{ x, z };
+    }
+
     public int getTileId() {
         return GridAlgorithm.computeTileId(this);
     }
@@ -81,6 +91,11 @@ public class Vec2i implements Vec2, Serializable {
 
         public Mutable(int x, int z) {
             super(x, z);
+        }
+
+        @Override
+        public boolean isMutable() {
+            return true;
         }
 
         @Override

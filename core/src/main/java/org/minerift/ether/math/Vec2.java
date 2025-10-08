@@ -10,4 +10,11 @@ public interface Vec2 {
     double getXd();
     double getZd();
 
+    int[] getXZ();
+    double[] getXZd();
+
+    default boolean isMutable() {
+        return false;
+    }
+
 }

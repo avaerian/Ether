@@ -88,8 +88,14 @@ public class Vec3i implements Vec3, Serializable {
         return this;
     }
 
+    @Override
     public int[] getXYZ() {
         return new int[] { x, y, z };
+    }
+
+    @Override
+    public double[] getXYZd() {
+        return new double[]{ x, y, z };
     }
 
     @Override
@@ -97,13 +103,17 @@ public class Vec3i implements Vec3, Serializable {
         return new Vec3i(x, y, z);
     }
 
-    // Return either this object as mutable, or a copy if immutable
-    public Vec3i.Mutable asMutable() {
-        return this instanceof Mutable ? (Mutable) this : new Mutable(this);
+    public Vec3i copyImmutable() {
+        return new Vec3i(x, y, z);
     }
 
-    // More explicit; creates a mutable copy of this Vec3i
-    public Vec3i.Mutable asMutableCopy() {
+    // Return either this object as mutable, or a copy if immutable
+    public Vec3i.Mutable asMutable() {
+        return isMutable() ? (Mutable) this : new Mutable(this);
+    }
+
+    // Explicit; creates a mutable copy of this Vec3i
+    public Vec3i.Mutable copyMutable() {
         return new Vec3i.Mutable(this);
     }
 
@@ -181,6 +191,11 @@ public class Vec3i implements Vec3, Serializable {
 
         public Mutable(int[] xyz) {
             super(xyz);
+        }
+
+        @Override
+        public boolean isMutable() {
+            return true;
         }
 
         public Vec3i.Mutable setX(int x) {

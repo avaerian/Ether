@@ -24,15 +24,10 @@ public class Vec3d implements Vec3, Serializable {
     }
 
     public Vec3d(double[] xyz) {
-        Preconditions.checkArgument(xyz.length == 3, "Array has to have 3 coordinates!");
+        Preconditions.checkArgument(xyz.length == 3, "Expected 3 array elements, found " + xyz.length);
         this.x = xyz[0];
         this.y = xyz[1];
         this.z = xyz[2];
-    }
-
-    @Override
-    public Vec3d copy() {
-        return new Vec3d(x, y, z);
     }
 
     @Override
@@ -67,6 +62,16 @@ public class Vec3d implements Vec3, Serializable {
     }
 
     @Override
+    public int[] getXYZ() {
+        return new int[]{ getX(), getY(), getZ() };
+    }
+
+    @Override
+    public double[] getXYZd() {
+        return new double[]{ x, y, z };
+    }
+
+    @Override
     public Vec3d asVec3d() {
         return this;
     }
@@ -76,8 +81,21 @@ public class Vec3d implements Vec3, Serializable {
         return new Vec3i((int)x, (int)y, (int)z);
     }
 
-    public Mutable asMutable() {
-        return this instanceof Mutable ? (Mutable) this : new Mutable(this);
+    @Override
+    public Vec3d copy() {
+        return new Vec3d(x, y, z);
+    }
+
+    public Vec3d copyImmutable() {
+        return new Vec3d(x, y, z);
+    }
+
+    public Vec3d.Mutable copyMutable() {
+        return new Vec3d.Mutable(x, y, z);
+    }
+
+    public Vec3d.Mutable asMutable() {
+        return isMutable() ? (Mutable) this : new Mutable(this);
     }
 
 
@@ -144,6 +162,11 @@ public class Vec3d implements Vec3, Serializable {
     public static class Mutable extends Vec3d {
         public Mutable(double x, double y, double z) {
             super(x, y, z);
+        }
+
+        @Override
+        public boolean isMutable() {
+            return true;
         }
 
         @Override
