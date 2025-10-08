@@ -25,7 +25,7 @@ public class DoubleTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<DoubleTag> getType() {
+    public TagType<DoubleTag> type() {
         return TagTypes.DOUBLE;
     }
 
@@ -84,7 +84,7 @@ public class DoubleTag extends Tag implements ScalarTag {
     public static class Codec implements TagCodec<DoubleTag> {
         @Override
         public DoubleTag readTag(NbtTraverser nbt, String name) {
-            return new DoubleTag(name, nbt.buffer.getDouble());
+            return new DoubleTag(name, nbt.readDouble());
         }
 
         @Override
@@ -96,6 +96,12 @@ public class DoubleTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, DoubleTag tag) {
             nbt.writeDouble(tag.getAsDouble());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, DoubleTag tag) {
+            str.append(tag.getAsDouble());
+            str.append('d');
         }
 
         @Override

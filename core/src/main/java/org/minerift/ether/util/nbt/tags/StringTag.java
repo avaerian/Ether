@@ -25,7 +25,7 @@ public class StringTag extends Tag {
     }
 
     @Override
-    public TagType<StringTag> getType() {
+    public TagType<StringTag> type() {
         return TagTypes.STRING;
     }
 
@@ -59,6 +59,13 @@ public class StringTag extends Tag {
         @Override
         public void writeTag(NbtTraverser nbt, StringTag tag) {
             nbt.writeUTF8(tag.getStrVal());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, StringTag tag) {
+            str.append('"');
+            str.append(tag.getStrVal());
+            str.append('"');
         }
 
         @Override

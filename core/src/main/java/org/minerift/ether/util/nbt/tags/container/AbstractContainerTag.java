@@ -9,4 +9,6 @@ import java.util.function.UnaryOperator;
 public abstract class AbstractContainerTag<C> extends Tag {
 
     public abstract Tag copy(@NotNull UnaryOperator<C> copyContainerFn);
+    public abstract int size();
+
 }

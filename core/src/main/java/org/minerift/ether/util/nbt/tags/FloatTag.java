@@ -25,7 +25,7 @@ public class FloatTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<FloatTag> getType() {
+    public TagType<FloatTag> type() {
         return TagTypes.FLOAT;
     }
 
@@ -84,7 +84,7 @@ public class FloatTag extends Tag implements ScalarTag {
     public static class Codec implements TagCodec<FloatTag> {
         @Override
         public FloatTag readTag(NbtTraverser nbt, String name) {
-            return new FloatTag(name, nbt.buffer.getFloat());
+            return new FloatTag(name, nbt.readFloat());
         }
 
         @Override
@@ -96,6 +96,12 @@ public class FloatTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, FloatTag tag) {
             nbt.writeFloat(tag.getAsFloat());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, FloatTag tag) {
+            str.append(tag.getAsFloat());
+            str.append('f');
         }
 
         @Override

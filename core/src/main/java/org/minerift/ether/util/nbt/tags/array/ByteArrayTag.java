@@ -2,6 +2,7 @@ package org.minerift.ether.util.nbt.tags.array;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.bytes.ByteList;
+import org.minerift.ether.util.iter.ByteIterator;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.TagVisitor;
@@ -25,7 +26,7 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
     }
 
     @Override
-    public TagType<ByteArrayTag> getType() {
+    public TagType<ByteArrayTag> type() {
         return TagTypes.BYTE_ARRAY;
     }
 
@@ -43,13 +44,14 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
         @Override
         public ByteArrayTag readTag(NbtTraverser nbt, String name) {
             int len = nbt.readInt();
-            byte[] bytes = nbt.read(len);
+            byte[] bytes = nbt.readBytes(len);
             return new ByteArrayTag(name, bytes);
         }
 
         @Override
         public ByteArrayTag readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException {
             snbt.nextIf("[");
+            //snbt.expect("B;"); // TODO: review
             if(snbt.nextIf("]")) {
                 return new ByteArrayTag(name, new byte[0]);
             }
@@ -68,6 +70,22 @@ public final class ByteArrayTag extends ArrayTag<byte[]> {
         public void writeTag(NbtTraverser nbt, ByteArrayTag tag) {
             nbt.writeInt(tag.getValue().length);
             nbt.write(tag.getValue());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, ByteArrayTag tag) {
+            str.append("[B");
+            ByteIterator it = ByteIterator.of(tag.getValue());
+            while(it.hasNext()) {
+                byte b = it.nextByte();
+                str.append(b);
+                str.append('b'); // TODO: impl Snbt.Writer for additional settings?
+
+                if(it.hasNext()) {
+                    str.append(',');
+                }
+            }
+            str.append(']');
         }
 
         @Override

@@ -25,7 +25,7 @@ public class LongTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<LongTag> getType() {
+    public TagType<LongTag> type() {
         return TagTypes.LONG;
     }
 
@@ -82,7 +82,6 @@ public class LongTag extends Tag implements ScalarTag {
     }
 
     public static class Codec implements TagCodec<LongTag> {
-
         @Override
         public LongTag readTag(NbtTraverser nbt, String name) {
             return new LongTag(name, nbt.readLong());
@@ -97,6 +96,12 @@ public class LongTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, LongTag tag) {
             nbt.writeLong(tag.getAsLong());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, LongTag tag) {
+            str.append(tag.getAsLong());
+            str.append('l');
         }
 
         @Override

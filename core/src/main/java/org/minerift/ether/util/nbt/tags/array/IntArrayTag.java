@@ -1,7 +1,10 @@
 package org.minerift.ether.util.nbt.tags.array;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.minerift.ether.util.iter.ByteIterator;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.TagVisitor;
@@ -27,7 +30,7 @@ public final class IntArrayTag extends ArrayTag<int[]> {
     }
 
     @Override
-    public TagType<IntArrayTag> getType() {
+    public TagType<IntArrayTag> type() {
         return TagTypes.INT_ARRAY;
     }
 
@@ -54,8 +57,7 @@ public final class IntArrayTag extends ArrayTag<int[]> {
         public IntArrayTag readTag(NbtTraverser nbt, String name) {
             int len = nbt.readInt();
             int[] ints = new int[len];
-            nbt.buffer.asIntBuffer().get(ints);
-            nbt.skip(Integer.BYTES * len); // move forward in main buffer
+            nbt.readInts(ints);
             return new IntArrayTag(name, ints);
         }
 
@@ -80,6 +82,21 @@ public final class IntArrayTag extends ArrayTag<int[]> {
         public void writeTag(NbtTraverser nbt, IntArrayTag tag) {
             nbt.writeInt(tag.getValue().length);
             nbt.writeIntArray(tag.getValue());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, IntArrayTag tag) {
+            str.append("[I");
+            IntIterator it = IntIterators.wrap(tag.getValue());
+            while(it.hasNext()) {
+                int i = it.nextInt();
+                str.append(i);
+
+                if(it.hasNext()) {
+                    str.append(",");
+                }
+            }
+            str.append(']');
         }
 
         @Override

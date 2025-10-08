@@ -9,13 +9,18 @@ import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.*;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static org.minerift.ether.util.nbt.tags.TagTypes.*;
 
 public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implements Iterable<Map.Entry<String, Tag>> {
+
+    /* NOTE: if a tag inside of this compound updates name, compound will not update to reflect changes.
+     *  A solution could be having a "reference count" for each contained tag, pointing to
+     *  their containers; WeakHashMap may be a good impl candidate.
+     */
 
     protected Map<String, Tag> tags;
 
@@ -33,7 +38,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
     }
 
     @Override
-    public TagType<CompoundTag> getType() {
+    public TagType<CompoundTag> type() {
         return TagTypes.COMPOUND;
     }
 
@@ -57,6 +62,22 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         return tag != null && tag.is(type);
     }
 
+    public Tag getTag(String name) throws NoTagFoundException {
+        Tag tag = tags.get(name);
+        if(tag == null) {
+            throw new NoTagFoundException("Tag " + name + " not found in compound tag");
+        }
+        return tag;
+    }
+
+    public <E extends Exception> Tag getTag(String name, Function<NbtException, E> ex) throws E {
+        try {
+            return getTag(name);
+        } catch (NoTagFoundException e) {
+            throw ex.apply(e);
+        }
+    }
+
     public <T extends Tag> T getTag(String name, @NotNull Class<T> clazz) throws NoTagFoundException, MismatchedTypeException {
         return getTag(name, lookup(clazz));
     }
@@ -68,7 +89,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         }
 
         if(!tag.is(type)) {
-            throw new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.getType());
+            throw new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.type());
         }
         return (T) tag;
     }
@@ -118,7 +139,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         }
 
         if(!tag.is(type)) {
-            return Either.right(new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.getType()));
+            return Either.right(new MismatchedTypeException("Found tag " + name + "; expected type " + type + ", got " + tag.type()));
         }
         return Either.left((T) tag);
     }
@@ -160,7 +181,6 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
             throw ex.apply(e);
         }
     }
-
 
     public short getShort(String name) throws NoTagFoundException, MismatchedTypeException {
         return getTag(name, SHORT).getAsShort();
@@ -389,6 +409,11 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
     }
 
     @Override
+    public int size() {
+        return tags.size();
+    }
+
+    @Override
     public String toString() {
         return "CompoundTag{" +
                 "tags=" + tags +
@@ -399,6 +424,10 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
     @Override
     public @NotNull Iterator<Map.Entry<String, Tag>> iterator() {
         return tags.entrySet().iterator();
+    }
+
+    public void forEach(BiConsumer<String, Tag> action) {
+        forEach((e) -> action.accept(e.getKey(), e.getValue()));
     }
 
     public static class LazyCompoundTag extends CompoundTag {
@@ -475,11 +504,28 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         @Override
         public void writeTag(NbtTraverser nbt, CompoundTag tag) {
             for(Tag childTag : tag.getValue().values()) {
-                nbt.writeByte(childTag.getType().getId());
+                nbt.writeByte(childTag.type().getId());
                 nbt.writeUTF8(childTag.getName());
-                ((TagType<Tag>)childTag.getType()).codec().writeTag(nbt, childTag);
+                ((TagType<Tag>)childTag.type()).codec().writeTag(nbt, childTag);
             }
             END.codec().writeTag(nbt, EndTag.INST);
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, CompoundTag tag) {
+            str.append('{');
+            Iterator<Map.Entry<String, Tag>> it = tag.iterator();
+            while(it.hasNext()) {
+                var e = it.next();
+                str.append(e.getKey());
+                str.append(": ");
+                ((TagCodec<Tag>)e.getValue().type().codec()).writeTag(str, e.getValue());
+
+                if(it.hasNext()) {
+                    str.append(',');
+                }
+            }
+            str.append('}');
         }
 
         @Override

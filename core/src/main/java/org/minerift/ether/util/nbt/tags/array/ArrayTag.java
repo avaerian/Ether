@@ -2,7 +2,8 @@ package org.minerift.ether.util.nbt.tags.array;
 
 import org.minerift.ether.util.nbt.tags.Tag;
 
-public sealed abstract class ArrayTag<T> extends Tag permits ByteArrayTag, IntArrayTag, LongArrayTag {
+// T is array
+public abstract class ArrayTag<T> extends Tag {
 
     protected T value;
 
@@ -23,7 +24,7 @@ public sealed abstract class ArrayTag<T> extends Tag permits ByteArrayTag, IntAr
 
     @Override
     public String toString() {
-        return getType().getName() + "{" +
+        return type().getName() + "{" +
                 "value=" + value +
                 ", name='" + name + '\'' +
                 '}';

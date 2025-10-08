@@ -26,7 +26,7 @@ public class ByteTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<ByteTag> getType() {
+    public TagType<ByteTag> type() {
         return TagTypes.BYTE;
     }
 
@@ -102,6 +102,12 @@ public class ByteTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, ByteTag tag) {
             nbt.writeByte(tag.getAsByte());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, ByteTag tag) {
+            str.append(tag.getAsByte());
+            str.append('b');
         }
 
         @Override

@@ -25,7 +25,7 @@ public class ShortTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<ShortTag> getType() {
+    public TagType<ShortTag> type() {
         return TagTypes.SHORT;
     }
 
@@ -86,6 +86,12 @@ public class ShortTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, ShortTag tag) {
             nbt.writeShort(tag.getAsShort());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, ShortTag tag) {
+            str.append(tag.getAsShort());
+            str.append('s');
         }
 
         @Override

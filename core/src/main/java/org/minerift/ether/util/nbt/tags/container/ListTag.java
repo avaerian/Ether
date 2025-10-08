@@ -2,6 +2,7 @@ package org.minerift.ether.util.nbt.tags.container;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.util.Note;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
@@ -63,7 +64,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
     }
 
     public void addTag(T tag) {
-        Preconditions.checkArgument(tag.getType() == childType, "Requested tag " + tag.getType() + " is not of list child type " + childType);
+        Preconditions.checkArgument(tag.type() == childType, "Requested tag " + tag.type() + " is not of list child type " + childType);
         if(tagList == Collections.EMPTY_LIST) {
             this.tagList = new ArrayList<>();
         }
@@ -112,7 +113,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
     }
 
     @Override
-    public TagType<ListTag> getType() {
+    public TagType<ListTag> type() {
         return TagTypes.LIST;
     }
 
@@ -135,6 +136,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         return childType.equals(type) ? (ListTag<U>) this : null;
     }
 
+    @Override
     public int size() {
         return tagList.size();
     }
@@ -244,6 +246,20 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
             for(Tag tag : (ListTag<Tag>)list) {
                 childCodec.writeTag(nbt, tag);
             }
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, ListTag tag) {
+            str.append('[');
+            Iterator<Tag> it = tag.iterator();
+            while(it.hasNext()) {
+                Tag child = it.next();
+                ((TagCodec<Tag>)child.type().codec()).writeTag(str, child);
+                if(it.hasNext()) {
+                    str.append(',');
+                }
+            }
+            str.append(']');
         }
 
         @Override

@@ -1,6 +1,10 @@
 package org.minerift.ether.util.nbt.tags.array;
 
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongIterators;
 import it.unimi.dsi.fastutil.longs.LongList;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
@@ -21,7 +25,7 @@ public final class LongArrayTag extends ArrayTag<long[]> {
     }
 
     @Override
-    public TagType<LongArrayTag> getType() {
+    public TagType<LongArrayTag> type() {
         return TagTypes.LONG_ARRAY;
     }
 
@@ -40,8 +44,7 @@ public final class LongArrayTag extends ArrayTag<long[]> {
         public LongArrayTag readTag(NbtTraverser nbt, String name) {
             int len = nbt.readInt();
             long[] longs = new long[len];
-            nbt.buffer.asLongBuffer().get(longs); // increments cursor for new buffer, but not for original
-            nbt.skip(Long.BYTES * len); // move forward in main buffer
+            nbt.readLongs(longs);
             return new LongArrayTag(name, longs);
         }
 
@@ -66,6 +69,22 @@ public final class LongArrayTag extends ArrayTag<long[]> {
         public void writeTag(NbtTraverser nbt, LongArrayTag tag) {
             nbt.writeInt(tag.getValue().length);
             nbt.writeLongArray(tag.getValue());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, LongArrayTag tag) {
+            str.append("[L");
+            LongIterator it = LongIterators.wrap(tag.getValue());
+            while(it.hasNext()) {
+                long l = it.nextLong();
+                str.append(l);
+                str.append('l');
+
+                if(it.hasNext()) {
+                    str.append(",");
+                }
+            }
+            str.append(']');
         }
 
         @Override

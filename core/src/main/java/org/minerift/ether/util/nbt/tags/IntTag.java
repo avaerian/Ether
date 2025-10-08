@@ -25,7 +25,7 @@ public class IntTag extends Tag implements ScalarTag {
     }
 
     @Override
-    public TagType<IntTag> getType() {
+    public TagType<IntTag> type() {
         return TagTypes.INT;
     }
 
@@ -96,6 +96,11 @@ public class IntTag extends Tag implements ScalarTag {
         @Override
         public void writeTag(NbtTraverser nbt, IntTag tag) {
             nbt.writeInt(tag.getAsInt());
+        }
+
+        @Override
+        public void writeTag(StringBuilder str, IntTag tag) {
+            str.append(tag.getAsInt());
         }
 
         @Override

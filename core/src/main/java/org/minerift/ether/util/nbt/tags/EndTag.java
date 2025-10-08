@@ -1,6 +1,7 @@
 package org.minerift.ether.util.nbt.tags;
 
 import org.jetbrains.annotations.Nullable;
+import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.TagVisitor;
@@ -13,10 +14,6 @@ public class EndTag extends Tag {
 
     public static final EndTag INST = new EndTag();
 
-    private EndTag(String name) {
-        super();
-    }
-
     private EndTag() {
         super();
     }
@@ -28,16 +25,16 @@ public class EndTag extends Tag {
 
     @Override
     public void setName(String name) {
-        throw new UnsupportedOperationException("Unable to set name for NBT end tag!");
+        throw new UnsupportedOperationException("Unable to set name for NBT end tag");
     }
 
     @Override
     public void accept(TagVisitor visit) {
-
+        visit.visitEnd(this);
     }
 
     @Override
-    public TagType<EndTag> getType() {
+    public TagType<EndTag> type() {
         return END;
     }
 
@@ -66,13 +63,18 @@ public class EndTag extends Tag {
             writeTag(nbt);
         }
 
+        @Override
+        public void writeTag(StringBuilder str, EndTag tag) {
+            throw new UnreachableException("End tag cannot be written as SNBT");
+        }
+
         public void writeTag(NbtTraverser nbt) {
             nbt.writeByte(END.getId());
         }
 
         @Override
         public int skip(NbtTraverser nbt) {
-            return 0; // TODO: review this; doesn't seem correct?
+            return 1; // TODO: log, review this
         }
     }
 }
