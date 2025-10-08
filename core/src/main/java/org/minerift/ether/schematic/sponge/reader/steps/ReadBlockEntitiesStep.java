@@ -3,7 +3,7 @@ package org.minerift.ether.schematic.sponge.reader.steps;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.BlockStateNotFoundException;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.util.nbt.NbtException;
 import org.minerift.ether.util.nbt.tags.IntTag;
@@ -13,36 +13,32 @@ import org.minerift.ether.util.nbt.tags.container.*;
 import org.minerift.ether.world.BlockEntityArchetype;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.minerift.ether.schematic.sponge.SpongeVersion.V1;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
 
 public class ReadBlockEntitiesStep implements IReaderStep {
     @Override
-    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicReadException {
 
         final String blockEntitiesKey =
                 ctx.builder.getVersion() == V1 ? NBT_TILE_ENTITIES : NBT_BLOCK_ENTITIES;
 
-        final ListTag<CompoundTag> tagList;
+        final ListTag<CompoundTag> bEntities;
         try {
-            tagList = ctx.root.getList(blockEntitiesKey, TagTypes.COMPOUND);
+            bEntities = ctx.root.getList(blockEntitiesKey, TagTypes.COMPOUND);
         } catch (NoTagFoundException e) {
-            // pass
+            // pass; no block entities
             System.out.println("Read block entities: " + ctx.builder.getBlocks().blockEntities);
             return;
         } catch (MismatchedTypeException | MismatchedChildTypeException e) {
             // TODO: logger
             System.out.println("Read block entities: " + ctx.builder.getBlocks().blockEntities);
+            e.printStackTrace();
             return;
         }
 
-        //Vec3i dim = ctx.builder.getDimensions();
-
-        List<CompoundTag> blockEntitiesRaw = tagList.getValue();
-        for(CompoundTag bEntityTag : blockEntitiesRaw) {
-
+        for(CompoundTag bEntityTag : bEntities) {
             final String id;
             final int[] rawPos;
             try {

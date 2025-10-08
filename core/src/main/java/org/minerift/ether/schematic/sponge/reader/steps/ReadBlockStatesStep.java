@@ -3,7 +3,7 @@ package org.minerift.ether.schematic.sponge.reader.steps;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.block.BlockState;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.data.Array3DOrder;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.data.BytePalette;
@@ -11,10 +11,7 @@ import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.util.nbt.tags.IntTag;
 import org.minerift.ether.util.nbt.tags.StringTag;
-import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-
-import java.util.Map;
 
 import static java.lang.String.format;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
@@ -23,18 +20,17 @@ import static org.minerift.ether.util.nbt.tags.TagTypes.INT;
 public class ReadBlockStatesStep implements IReaderStep {
 
     @Override
-    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicReadException {
 
         final SpongeSchematic.Builder builder = ctx.builder;
         final CompoundTag root = ctx.root;
 
-        Map<String, Tag> paletteRaw = root.getCompound(NBT_PALETTE,
-                (e) -> new SchematicFileReadException("Failed to read block state palette", e))
-                .getValue();
+        CompoundTag paletteRaw = root.getCompound(NBT_PALETTE,
+                (e) -> new SchematicReadException("Failed to read block state palette", e) );
 
         BytePalette<BlockState<?>> palette;
 
-        // Get palette size
+        // Get/check palette size
         IntTag paletteMax = root.tryGetTag(NBT_PALETTE_MAX, INT);
         if(paletteMax != null) {
             if(paletteRaw.size() != paletteMax.getAsInt()) {
@@ -47,10 +43,14 @@ public class ReadBlockStatesStep implements IReaderStep {
         }
 
         // Map raw palette to actual palette
-        paletteRaw.forEach((data, idx) -> {
+        paletteRaw.forEach((e) -> {
             // FIXME: review this item/block name upgrader
             // TODO: create fixer-upper ops class for nunbt/other needs
+            String data = e.getKey();
             data = Ether.getNms().fixUpItemName(StringTag.valueOf(data), -1).getStrVal();
+
+            // should probably check before casting; everything would fail regardless
+            IntTag idx = (IntTag) e.getValue();
 
             BlockState<?> state = BlockState.of(data, null);
             if(state == null) {
@@ -58,13 +58,15 @@ public class ReadBlockStatesStep implements IReaderStep {
                 System.out.println("Block state " + data + " failed to create, defaulting to air");
                 state = BlockState.of("minecraft:air", null);
             }
-            System.out.println((byte)((IntTag)idx).getAsInt() + " " + state);
-            palette.add((byte)((IntTag)idx).getAsInt(), state);
+            // should check if int has larger value than byte to handle wrapping; we'll worry about that later
+            // even if value is larger, the palette may already have an entry for that id; unreplaceable here
+            System.out.println(idx.getAsByte() + " " + state);
+            palette.add(idx.getAsByte(), state);
         });
 
         // Read block data
         byte[] blockDataRaw = root.getByteArray(NBT_BLOCK_DATA,
-                (e) -> new SchematicFileReadException("Failed to read block data", e));
+                (e) -> new SchematicReadException("Failed to read block data", e));
         Vec3i dim = builder.getDimensions();
         System.out.println("blockDataRaw: " + blockDataRaw.length + ", dim: " + dim.getX() * dim.getY() * dim.getZ());
 

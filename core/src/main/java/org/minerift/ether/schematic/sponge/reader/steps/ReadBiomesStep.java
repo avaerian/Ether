@@ -3,7 +3,7 @@ package org.minerift.ether.schematic.sponge.reader.steps;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.nms.BiomeNotFoundException;
 import org.minerift.ether.nms.world.Biome;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.data.Array3DOrder;
 import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BytePalette;
@@ -24,7 +24,7 @@ public class ReadBiomesStep implements IReaderStep {
 
     @NeedsTesting
     @Override
-    public void read(SchematicReaderContext ctx) throws SchematicFileReadException {
+    public void read(SchematicReaderContext ctx) throws SchematicReadException {
 
         final int width = ctx.builder.getWidth();
         final int height = ctx.builder.getHeight();
@@ -34,34 +34,39 @@ public class ReadBiomesStep implements IReaderStep {
                 .setOrder(Array3DOrder.YZX)
                 .setDimensions(width, height, length);
 
-        final CompoundTag tagList;
+        final CompoundTag biomePaletteTag;
         try {
-            tagList = ctx.root.getCompound(NBT_BIOME_PALETTE);
+            biomePaletteTag = ctx.root.getCompound(NBT_BIOME_PALETTE);
         } catch(NoTagFoundException | MismatchedTypeException e) {
+            // TODO: fix up biome palette to have lazy variation;
+            //  assumption is schematics typically don't have biomes
+            //  saved, so why not optimize?
             BytePalette<String> biomePalette = BytePalette.of(1);
-            biomePalette.add((byte) 0, "minecraft:air"); // TODO: review
-            biomeVolume.setData(new byte[width * height * length]); // TODO: fix this with EmptyBiomeVolume
+            biomePalette.add((byte) 0, "minecraft:plains");
+            biomeVolume.setData(new byte[width * height * length]);
 
             ctx.builder.setBiomes(biomeVolume);
             return;
         }
 
         // Read biome palette
-        Map<String, Tag> biomePaletteRaw = tagList.getValue();
-        BytePalette<Biome<?>> biomePalette = BytePalette.of(biomePaletteRaw.size());
+        //Map<String, Tag> biomePaletteTag = biomePaletteTag.getValue();
+        BytePalette<Biome<?>> biomePalette = BytePalette.of(biomePaletteTag.size());
 
         // Verify size
         IntTag _expSize = ctx.root.tryGetTag(NBT_BIOME_PALETTE_MAX, INT);
         if(_expSize != null) {
             int expSize = _expSize.getAsInt(); // optional
-            if(biomePaletteRaw.size() != expSize) {
+            if(biomePaletteTag.size() != expSize) {
                 // TODO: proper logger
-                System.out.printf("Expected a palette size of %d, but actually got %d%n", expSize, biomePaletteRaw.size());
+                System.out.printf("Expected a palette size of %d, but actually got %d\n",
+                        expSize, biomePaletteTag.size());
             }
         }
 
         // Map from raw palette to actual palette
-        biomePaletteRaw.forEach((biomeId, idx) -> {
+        biomePaletteTag.forEach((biomeId, tag) -> {
+            IntTag idx = (IntTag)tag; // TODO: check type before casting
             Biome<?> biome;
             try {
                 biome = Biome.of(biomeId);
@@ -69,12 +74,12 @@ public class ReadBiomesStep implements IReaderStep {
                 // TODO: for invalid biomes, either throw, ignore (no biome), or set to fallback
                 biome = null; // nulls will be ignored
             }
-            biomePalette.add((byte)((IntTag)idx).getAsInt(), biome);
+            biomePalette.add(idx.getAsByte(), biome); // should check int to byte cast doesn't truncate the index
         });
 
         // Prepare to read data
         final byte[] biomesRaw = ctx.root.getByteArray(NBT_BIOME_DATA,
-                (e) -> new SchematicFileReadException("Failed to read biome data", e));
+                (e) -> new SchematicReadException("Failed to read biome data", e));
 
         System.out.println(
                 "biomesRaw size: " + biomesRaw.length + ", total blocks: " + (width * height * length)); // debug
