@@ -4,13 +4,15 @@ import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.Tag;
 
+import java.nio.CharBuffer;
+
 public interface TagCodec<T extends Tag> {
 
-    // TODO: return bytes written
+    // TODO: return bytes written?
     void writeTag(NbtTraverser nbt, T tag);
+    void writeTag(StringBuilder str, T tag);
 
     T readTag(NbtTraverser nbt, String name) throws NbtReadException;
-
     T readTag(Snbt.Parser snbt, String name) throws UnexpectedTokenException;
 
     // return bytes skipped

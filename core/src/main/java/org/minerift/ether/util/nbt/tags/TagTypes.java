@@ -3,7 +3,6 @@ package org.minerift.ether.util.nbt.tags;
 import com.google.common.base.Supplier;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
-import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.nbt.NbtException;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.tags.array.ByteArrayTag;
@@ -11,7 +10,6 @@ import org.minerift.ether.util.nbt.tags.array.IntArrayTag;
 import org.minerift.ether.util.nbt.tags.array.LongArrayTag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
-import org.minerift.ether.util.nbt.tags.container.NoTagFoundException;
 import org.minerift.ether.util.nbt.tags.container.NoTagTypeFoundException;
 
 import java.util.HashMap;
@@ -20,6 +18,7 @@ import java.util.Map;
 import static java.lang.String.format;
 
 public class TagTypes {
+
     public static final TagType<ByteTag> BYTE;
     public static final TagType<ShortTag> SHORT;
     public static final TagType<IntTag> INT;
@@ -69,7 +68,7 @@ public class TagTypes {
         return register(new TagType<>(id, name, tagClazz, codec));
     }
 
-    @NeedsTesting
+    //@NeedsTesting
     public static <T extends Tag> TagType<T> register(TagType<T> type) {
         if((CLASS_TO_TYPE.putIfAbsent(type.getTagClass(), type) != null
             ^ ID_TO_TYPE.putIfAbsent(type.getId(), type) != null)
@@ -79,7 +78,7 @@ public class TagTypes {
         }
         TagType<?> res = ID_TO_TYPE.get(type.getId());
         if(res != type) {
-            throw new RuntimeException(new NbtException("Tag type already exists with id " + type.getId())); // review double obj instantiation
+            throw new RuntimeException(new NbtException("Tag type already exists with id " + type.getId()));
         }
         return type;
     }

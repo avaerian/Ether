@@ -1,91 +1,69 @@
 package org.minerift.ether.util.nbt;
 
-import com.google.common.base.Predicates;
-import com.google.common.io.LittleEndianDataInputStream;
+import io.netty.buffer.ByteBuf;
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.util.Note;
 
-import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.InflaterInputStream;
 
-import static java.nio.ByteOrder.BIG_ENDIAN;
-import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.minerift.ether.util.nbt.tags.TagTypes.END;
 
-public class NbtTraverser {
-
-    // references https://isc.sans.edu/diary/25182
-    // tentatively check for zlib/gzip compression
-    public static NbtReader from(File f) throws IOException {
-        try(RandomAccessFile file = new RandomAccessFile(f, "r")) {
-            short magic = file.readShort(); // big-endian
-            final Compression cmps;
-            if(magic == 0x7801 /* zlib no/low compression */
-                    || magic == 0x789c /* zlib default compression */
-                    || magic == 0x78da /* zlib best compression */) {
-                cmps = Compression.ZLIB;
-            } else if(magic == 0x1f8b) { /* gzip compression */
-                cmps = Compression.GZIP;
-            } else {
-                cmps = Compression.NONE;
-            }
-
-            file.seek(0);
-            return from(file, cmps);
-        }
-    }
-
-    // Doesn't close the RandomAccessFile
-    // NOTE: it seems GZipInputStream (GZIPInputStream.GZIP_MAGIC specifically)
-    // uses little-endian (Intel) byte ordering, so keep that in-mind.
-    protected static NbtReader from(RandomAccessFile file, Compression compress) throws IOException {
-        byte[] _buf;
-        switch (compress) {
-            case NONE -> {
-                _buf = new byte[(int) file.length()]; // handle this in the future? should never expect a file this big
-                file.read(_buf);
-            }
-            case GZIP -> {
-                InputStream is = new GZIPInputStream(new FileInputStream(file.getFD()));
-                _buf = is.readAllBytes();
-            }
-            case ZLIB -> { // needs testing
-                InputStream is = new InflaterInputStream(new FileInputStream(file.getFD()));
-                _buf = is.readAllBytes();
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + compress);
-        }
-
-        ByteBuffer buf = ByteBuffer.wrap(_buf);
-        return new NbtReader(buf, true);
-    }
-
-    public static NbtReader from(File f, Compression compress) throws IOException {
-        try(RandomAccessFile file = new RandomAccessFile(f, "r")) {
-            return from(file, compress);
-        }
-    }
-
-
-    public ByteBuffer buffer;
-    public Predicate<TagHeader> tagSelector; // true for tags to be read, false for tags to be ignored
+public abstract class NbtTraverser {
 
     @Debug public static final Predicate<TagHeader> TEST_TAG_SELECTOR = (header) -> Set.of("Data", "BorderSafeZone", "SpawnAngle", "LevelName", "Time").contains(header.name());
+    public static final NbtOption[] NO_OPTIONS = new NbtOption[0];
 
+    public final ByteBuf buf;
+    public final Predicate<TagHeader> tagSelector; // true for tags to be read, false for tags to be ignored
+    protected final NbtOption[] options;
 
-    public NbtTraverser(ByteBuffer buffer, boolean bigEndian) {
-        this(buffer, bigEndian, Predicates.alwaysTrue());
+    // FIXME: review byte ordering bullshit later
+    public NbtTraverser(ByteBuf buf/*, boolean bigEndian*/, Predicate<TagHeader> tagSelector, NbtOption ... options) {
+        this.buf = buf;
+        //this.buf = this.buf.order(bigEndian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
+        this.tagSelector = tagSelector;
+        this.options = options;
     }
 
-    public NbtTraverser(ByteBuffer buffer, boolean bigEndian, Predicate<TagHeader> tagSelector) {
-        this.buffer = buffer;
-        buffer.order(bigEndian ? BIG_ENDIAN : LITTLE_ENDIAN);
-        this.tagSelector = tagSelector;
+    public <T extends NbtOption> T get(Class<T> option) {
+        for(NbtOption o : options) {
+            if(o.getClass() == option) {
+                return (T) o;
+            }
+        }
+        return null;
+    }
+
+    // finds the first NbtOption of the desired class
+    public boolean supports(Class<? extends NbtOption> option) {
+        for(NbtOption o : options) {
+            if(o.getClass() == option) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean supports(Enum<? extends NbtOption> flag) {
+        for(NbtOption o : options) {
+            if(o == flag) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @SafeVarargs
+    public final boolean supports(Enum<? extends NbtOption>... flags) {
+        for(Enum<? extends NbtOption> flag : flags) {
+            if(!supports(flag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public record TagHeader(byte id, String name) {
@@ -99,108 +77,165 @@ public class NbtTraverser {
         return header;
     }
 
+    // skips the number of bytes for the reader index
+    @Note("For NbtWriter, if we want to implement the skip functionality we can ")
     public void skip(int bytes) {
-        buffer.position(buffer.position() + bytes);
+        buf.readerIndex(buf.readerIndex() + bytes);
     }
 
     public byte readByte() {
-        return buffer.get();
+        return buf.readByte();
     }
 
-    public void read(byte[] dst) {
-        buffer.get(dst);
+    public void readBytes(byte[] dst) {
+        buf.readBytes(dst);
     }
 
-    public byte[] read(int bytes) {
+    public void readShorts(short[] dst) {
+        buf.nioBuffer().asShortBuffer().get(dst);
+        buf.skipBytes(Short.BYTES * dst.length);
+    }
+
+    public void readInts(int[] dst) {
+        buf.nioBuffer().asIntBuffer().get(dst);
+        buf.skipBytes(Integer.BYTES * dst.length);
+    }
+
+    public void readLongs(long[] dst) {
+        buf.nioBuffer().asLongBuffer().get(dst);
+        buf.skipBytes(Long.BYTES * dst.length);
+    }
+
+    public void readFloats(float[] dst) {
+        buf.nioBuffer().asFloatBuffer().get(dst);
+        buf.skipBytes(Float.BYTES * dst.length);
+    }
+
+    public void readDoubles(double[] dst) {
+        buf.nioBuffer().asDoubleBuffer().get(dst);
+        buf.skipBytes(Double.BYTES * dst.length);
+    }
+
+    public byte[] readBytes(int bytes) {
         byte[] dst = new byte[bytes];
-        read(dst);
+        readBytes(dst);
+        return dst;
+    }
+
+    public int[] readInts(int ints) {
+        int[] dst = new int[ints];
+        readInts(dst);
+        return dst;
+    }
+
+    public long[] readLongs(int longs) {
+        long[] dst = new long[longs];
+        readLongs(dst);
         return dst;
     }
 
     public short readShort() {
-        return buffer.getShort();
+        return buf.readShort();
     }
 
     public int readInt() {
-        return buffer.getInt();
+        return buf.readInt();
     }
 
     public long readLong() {
-        return buffer.getLong();
+        return buf.readLong();
     }
 
     public String readUTF8() {
         short len = readShort();
-        byte[] bytes = read(len);
+        byte[] bytes = readBytes(len);
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public float readFloat() {
-        return buffer.getFloat();
+        return buf.readFloat();
     }
 
     public double readDouble() {
-        return buffer.getDouble();
-    }
-
-    // for writing; TODO
-    protected void ensureCapacity(int bytes) {
-        if(buffer.position() + bytes > buffer.capacity()) {
-
-        }
+        return buf.readDouble();
     }
 
     public void write(byte[] bytes) {
-        buffer.put(bytes);
+        buf.writeBytes(bytes);
     }
 
     public void writeByte(byte b) {
-        buffer.put(b);
+        buf.writeByte(b);
     }
 
     public void writeShort(short s) {
-        buffer.putShort(s);
+        buf.writeShort(s);
     }
 
     public void writeInt(int i) {
-        buffer.putInt(i);
+        buf.writeInt(i);
     }
 
     public void writeLong(long l) {
-        buffer.putLong(l);
+        buf.writeLong(l);
     }
 
     public void writeFloat(float f) {
-        buffer.putFloat(f);
+        buf.writeFloat(f);
     }
 
     public void writeDouble(double d) {
-        buffer.putDouble(d);
+        buf.writeDouble(d);
     }
 
     public void writeUTF8(String str) {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        buffer.putShort((short) bytes.length);
-        buffer.put(bytes);
+        buf.writeShort((short) bytes.length);
+        buf.writeBytes(bytes);
+    }
+
+    public void writeShortArray(short[] shorts) {
+        ByteBuffer jbuf = ByteBuffer.allocate(Short.BYTES * shorts.length);
+        jbuf.asShortBuffer().put(shorts);
+        buf.writeBytes(jbuf);
     }
 
     public void writeIntArray(int[] ints) {
-        //buffer.putInt(ints.length);
-        buffer.asIntBuffer().put(ints);
-        skip(Integer.BYTES * ints.length); // correct position in main buffer
+        //PooledByteBufAllocator.DEFAULT // <- note for pooled netty bufs
+        ByteBuffer jbuf = ByteBuffer.allocate(Integer.BYTES * ints.length);
+        jbuf.asIntBuffer().put(ints); // doesn't move cursor in main byte buf
+        buf.writeBytes(jbuf);
     }
 
     public void writeLongArray(long[] longs) {
-        //buffer.putInt(longs.length);
-        buffer.asLongBuffer().put(longs);
-        skip(Long.BYTES * longs.length); // correct position in main buffer
+        ByteBuffer jbuf = ByteBuffer.allocate(Long.BYTES * longs.length);
+        jbuf.asLongBuffer().put(longs);
+        buf.writeBytes(jbuf);
+    }
+
+    public void writeFloatArray(float[] floats) {
+        ByteBuffer jbuf = ByteBuffer.allocate(Float.BYTES * floats.length);
+        jbuf.asFloatBuffer().put(floats);
+        buf.writeBytes(jbuf);
+    }
+
+    public void writeDoubleArray(double[] doubles) {
+        ByteBuffer jbuf = ByteBuffer.allocate(Double.BYTES * doubles.length);
+        jbuf.asDoubleBuffer().put(doubles);
+        buf.writeBytes(jbuf);
     }
 
     @Override
     public String toString() {
         return "NbtTraverser{" +
-                "buffer=" + buffer +
+                "buffer=" + buf +
                 ", tagSelector=" + tagSelector +
                 '}';
+    }
+
+    protected static abstract class CommonBuilder<T extends NbtTraverser> {
+
+
+
     }
 }

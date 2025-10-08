@@ -18,9 +18,13 @@ public abstract class Tag {
         return name;
     }
 
+    public boolean hasName() {
+        return !name.isBlank();
+    }
+
     // implemented to distinct between the tag name and type name
     public String getTypeName() {
-        return getType().getName();
+        return type().getName();
     }
 
     public void setName(String name) {
@@ -28,12 +32,12 @@ public abstract class Tag {
     }
 
     public boolean is(TagType<?> type) {
-        return getType().getTagClass().equals(type.getTagClass());
+        return type().getTagClass().equals(type.getTagClass());
     }
 
     public abstract void accept(TagVisitor visit);
 
-    public abstract TagType<?> getType();
+    public abstract TagType<?> type();
 
     public boolean isPrimitiveType() {
         return false;

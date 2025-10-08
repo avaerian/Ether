@@ -8,6 +8,7 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
 
 // available as a util if needed
+@Deprecated
 public interface TagVisitor {
 
     void visitEnd(EndTag tag);
@@ -25,6 +26,6 @@ public interface TagVisitor {
     void visitIntArray(IntArrayTag tag);
     void visitLongArray(LongArrayTag tag);
 
-    void visitList(ListTag<?> tag);
+    <T extends Tag> void visitList(ListTag<T> tag);
     void visitCompound(CompoundTag tag);
 }
