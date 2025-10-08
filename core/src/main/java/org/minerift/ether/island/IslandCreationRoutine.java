@@ -9,13 +9,14 @@ import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.schematic.SchematicFileReadException;
+import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.user.EtherUser;
 
 import java.io.File;
 
+@Deprecated
 public class IslandCreationRoutine {
 
     public static Island run(IslandGrid grid, EtherUser user) {
@@ -76,7 +77,7 @@ public class IslandCreationRoutine {
                     .build();
 
             schem.paste(tileCenterPos, islandWorld.getName(), options);
-        } catch (SchematicFileReadException ex) {
+        } catch (SchematicReadException ex) {
             throw new RuntimeException(ex);
         }
 
