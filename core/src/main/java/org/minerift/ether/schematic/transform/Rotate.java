@@ -11,6 +11,7 @@ import org.minerift.ether.util.UnreachableException;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntUnaryOperator;
 
 import static org.minerift.ether.math.Maths.TAU;
@@ -163,6 +164,7 @@ public class Rotate implements Transform {
         return transformVec(axis, angle, dim, vec);
     }
 
+    @SuppressWarnings("Duplicates")
     public static Result<Vec3i> transformVec(Axis axis, Angle angle, Vec3i dim, Vec3i vec) {
         Vec3i rotDim;
         Vec3i res;
@@ -207,7 +209,49 @@ public class Rotate implements Transform {
 
     @Override
     public Result<Vec3d> transformVec(Vec3i dim, Vec3d vec) {
-        return null; // FIXME
+        return transformVec(axis, angle, dim, vec);
+    }
+
+    @SuppressWarnings("Duplicates")
+    public static Result<Vec3d> transformVec(Axis axis, Angle angle, Vec3i dim, Vec3d vec) {
+        Vec3i rotDim;
+        Vec3d res;
+
+        final int rotX = axis.getRotatingX(dim);
+        final int rotZ = axis.getRotatingZ(dim);
+        final double layer = axis.getLayers(vec);
+
+        switch (angle) {
+            case DG_90 -> {
+                rotDim = axis.rotateDim(dim);
+                final int gridLen;
+                if(rotX == rotZ) {
+                    gridLen = rotX;
+                    res = axis.reorder(gridLen - 1 - axis.getRotatingZ(vec), layer, axis.getRotatingX(vec));
+                } else {
+                    gridLen = Math.max(rotX, rotZ);
+                    final int diff = rotX >= rotZ ? rotX - rotZ : rotZ - rotX;
+                    Vec2i trRotated = new Vec2i(gridLen - 1, rotX - 1); // original: (dimX,0)
+                    DoubleUnaryOperator transform;
+                    if(trRotated.getX() == gridLen - 1 && trRotated.getZ() == gridLen - 1) {
+                        transform = (a) -> (gridLen - 1 - a) - diff;
+                    } else {
+                        transform = (a) -> gridLen - 1 - a;
+                    }
+                    res = axis.reorder(transform.applyAsDouble(axis.getRotatingZ(vec)), layer, axis.getRotatingX(vec));
+                }
+            }
+            case DG_180 -> {
+                rotDim = dim;
+                res = axis.reorder(rotX - 1 - axis.getRotatingX(vec), layer, rotZ - 1 - axis.getRotatingZ(vec));
+            }
+            case DG_NEG_90 -> {
+                rotDim = axis.rotateDim(dim);
+                res = null; // TODO
+            }
+            default -> throw new IllegalStateException("Unexpected exception; angle is " + angle);
+        }
+        return new Result<>(rotDim, res);
     }
 
     /*public <T extends Vec3.Mutable> Transform.Result<T> transformVecMut(Vec3i dim, T vec) {}*/
@@ -395,7 +439,7 @@ public class Rotate implements Transform {
         final int layers = axis.getLayers(dim);
         System.out.println(axis.getRotatingX(dim) + " " + layers + " " + axis.getRotatingZ(dim));
 
-        final int points = len; // x; redundant; for clarity
+        final int points = len; // x; redundant: for clarity
         final int shells = (points + 1) / 2; // z
 
         for(int layer = 0; layer < layers; layer++) {
@@ -410,7 +454,7 @@ public class Rotate implements Transform {
                     Vec2i.Mutable lookAhead = new Vec2i.Mutable(0,0);
                     int nextSwapVal = buf[axis.flatten(order, dim.getX(), dim.getZ(), curr.getX(), layer, curr.getZ())]; // current
                     for(int i = 0; i < 4; i++) {
-                        // TODO: to allow -90 rotations, change this to Consumer<Vec3i>
+                        // TODO: to allow -90deg rotations, change this to Consumer<Vec3i>
                         lookAhead.set(len - 1 - curr.getZ(), curr.getX()); // 90deg rotation
 
                         //int currFlat = axis.flatten(order, len, curr.getX(), layer, curr.getZ()); // unused

@@ -1,7 +1,6 @@
 package org.minerift.ether.schematic.transform;
 
 import org.minerift.ether.debug.Debug;
-import org.minerift.ether.math.Vec3;
 import org.minerift.ether.math.Vec3i;
 
 import java.util.Optional;
@@ -148,8 +147,8 @@ public enum Direction {
     }
 
     public Direction rotate(Axis axis, Rotate.Angle angle) {
-        Vec3i.Mutable gridLoc = vec.asMutableCopy().add(1, 1, 1);
+        Vec3i.Mutable gridLoc = vec.copyMutable().add(1, 1, 1);
         Vec3i rotated = Rotate.transformVec(axis, angle, ROT_MATRIX_SIZE, gridLoc).out;
-        return fromNVector(rotated.asMutableCopy().subtract(1,1,1));
+        return fromNVector(rotated.copyMutable().subtract(1,1,1));
     }
 }

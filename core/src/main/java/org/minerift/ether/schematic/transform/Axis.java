@@ -53,6 +53,31 @@ public enum Axis {
     }
 
     // TODO: move these functions out of this enum?
+    public double getLayers(Vec3d dim) {
+        return switch (this) {
+            case X -> dim.getX(); // YZ
+            case Y -> dim.getY(); // XZ
+            case Z -> dim.getZ(); // XY
+        };
+    }
+
+    public double getRotatingX(Vec3d dim) {
+        return switch (this) {
+            case X -> dim.getY(); // YZ
+            case Y -> dim.getX(); // XZ
+            case Z -> dim.getX(); // XY
+        };
+    }
+
+    public double getRotatingZ(Vec3d dim) {
+        return switch (this) {
+            case X -> dim.getZ(); // YZ
+            case Y -> dim.getZ(); // XZ
+            case Z -> dim.getY(); // XY
+        };
+    }
+
+    // TODO: move these functions out of this enum?
     public int getLayers(Vec3i dim) {
         return switch (this) {
             case X -> dim.getX(); // YZ
