@@ -6,7 +6,6 @@ import org.minerift.ether.config.YamlConfigView;
 import org.minerift.ether.config.ConfigFileWriteException;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.sql.SQLDialect;
-import org.minerift.ether.util.UnreachableException;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,19 +17,19 @@ public class MainConfigCodec extends ConfigCodec<MainConfig> {
     public static final MainConfigCodec CODEC = new MainConfigCodec();
 
     private MainConfigCodec() {
-        super(TYPE_FILE | NO_FLAGS);
+        super(TYPE_FILE);
     }
 
     @Override
-    protected MainConfig readIt(File file) throws ConfigFileReadException {
+    public MainConfig readIt(File file) throws ConfigFileReadException {
 
         try {
             YamlConfigView view = YamlConfigView.from(file);
             MainConfig config = new MainConfig();
 
-            config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile height!")));
-            config.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile size!")));
-            config.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile accessible area!")));
+            config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile height")));
+            config.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile size")));
+            config.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigFileReadException("Failed to read tile accessible area")));
 
             // TODO: this could use some review for better exception explanations, but this is fine for now
             Database.Type dbType = view.get(String.class, PERSIST_METHOD)

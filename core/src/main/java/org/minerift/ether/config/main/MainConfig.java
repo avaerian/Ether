@@ -4,6 +4,7 @@ import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.sql.SQLDialect;
+import org.minerift.ether.schematic.SchematicType;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +22,15 @@ public class MainConfig extends Config<MainConfig> {
     // I plan on adding permissions to this and allowing for different tiers
     private int tileAccessibleAreaBlocks;
 
-    private long inviteInvalidateAfter; // this will be in milliseconds
+    private long inviteInvalidateAfter; // ms time unit
 
     private Database.Type dbType;
     private SQLDialect sqlDialect;
     private String sqlUrl; // optional, depending on dialect
     private String sqlUsername;
     private String sqlPassword;
+
+    private SchematicType<?> defaultSchemType;
 
     // Default values for config
     public MainConfig() {
@@ -41,6 +44,8 @@ public class MainConfig extends Config<MainConfig> {
         setSqlUrl("");
         setSqlUsername("root");
         setSqlPassword("");
+
+        setDefaultSchemType(SchematicType.SPONGE);
 
         setChanged(false);
     }
@@ -90,6 +95,10 @@ public class MainConfig extends Config<MainConfig> {
         return inviteInvalidateAfter;
     }
 
+    public SchematicType<?> getDefaultSchemType() {
+        return defaultSchemType;
+    }
+
     // Setters
     public void setPersistMethod(Database.Type dbType) {
         this.dbType = dbType;
@@ -125,6 +134,11 @@ public class MainConfig extends Config<MainConfig> {
         setChanged(true);
     }
 
+    public void setDefaultSchemType(SchematicType<?> type) {
+        this.defaultSchemType = type;
+        setChanged(true);
+    }
+
     /*
     @Deprecated(forRemoval = true)
     // Don't use this function. The variables are all wrong so it won't work properly.
@@ -154,17 +168,26 @@ public class MainConfig extends Config<MainConfig> {
     }
 
     @Override
-    protected void copyFrom(MainConfig other) {
-        if(!other.equals(this)) {
-            this.tileLengthChunks = other.tileLengthChunks;
-            this.tileHeight = other.tileHeight;
-            this.tileAccessibleAreaBlocks = other.tileAccessibleAreaBlocks;
-            this.inviteInvalidateAfter = other.inviteInvalidateAfter;
+    protected void copyFrom(MainConfig o) {
+        if(!o.equals(this)) {
+            this.tileLengthChunks = o.tileLengthChunks;
+            this.tileHeight = o.tileHeight;
+            this.tileAccessibleAreaBlocks = o.tileAccessibleAreaBlocks;
+            this.inviteInvalidateAfter = o.inviteInvalidateAfter;
+
+            this.dbType = o.dbType;
+            this.sqlDialect = o.sqlDialect;
+            this.sqlUrl = o.sqlUrl;
+            this.sqlUsername = o.sqlUsername;
+            this.sqlPassword = o.sqlPassword;
+
+            this.defaultSchemType = o.defaultSchemType;
+
             setChanged(true);
         }
     }
 
-    @Override
+    @Override // TODO: update to include new fields
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
