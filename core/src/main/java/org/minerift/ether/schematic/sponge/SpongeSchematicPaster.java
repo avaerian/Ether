@@ -8,14 +8,17 @@ import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.schematic.data.Pasters;
 
-import static java.lang.String.format;
-
 @SuppressWarnings("Duplicates")
 public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
     @Override
     public void paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
         World world = Bukkit.getWorld(worldName);
         ChunkGetter cg = ChunkGetter.SYNC; // TODO: make this an option
+
+        // account for offset in paste location
+        if(!options.offset.equals(Vec3i.ZERO)) {
+            pasteLoc = pasteLoc.copyMutable().add(options.offset);
+        }
 
         Pasters.pasteBlockVolume(schem.getBlocks(), world, pasteLoc, cg);
     }

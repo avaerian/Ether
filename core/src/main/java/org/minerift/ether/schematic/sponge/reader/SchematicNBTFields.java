@@ -1,5 +1,7 @@
 package org.minerift.ether.schematic.sponge.reader;
 
+import org.minerift.ether.util.Note;
+
 public class SchematicNBTFields {
     public static final String NBT_VERSION = "Version";
     public static final String NBT_DATA_VERSION = "DataVersion";
@@ -18,7 +20,7 @@ public class SchematicNBTFields {
     public static final String NBT_BLOCK_ENTITIES = "BlockEntities";
     public static final String NBT_BLOCK_ENTITIES_ID = "Id";
     public static final String NBT_BLOCK_ENTITIES_POS = "Pos";
-    public static final String NBT_TILE_ENTITIES = "TileEntities";
+    @Note("for v1 of sponge format") public static final String NBT_TILE_ENTITIES = "TileEntities";
     public static final String NBT_BIOME_PALETTE = "BiomePalette";
     public static final String NBT_BIOME_PALETTE_MAX = "BiomePaletteMax";
     public static final String NBT_BIOME_DATA = "BiomeData";

@@ -43,13 +43,13 @@ public class SpongeSchematic implements Schematic {
     }
 
     @Override
-    public SchematicType getType() {
+    public SchematicType<SpongeSchematic> type() {
         return SchematicType.SPONGE;
     }
 
     @Override
     public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
-        getType().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
+        type().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class SpongeSchematic implements Schematic {
     }
 
     public List<EntityArchetype> getEntities() {
-        return entities;
+        return entities; // wrap with Collections.unmodifiable ??
     }
 
     public static class Builder implements IBuilder<SpongeSchematic> {
@@ -111,7 +111,7 @@ public class SpongeSchematic implements Schematic {
         private Either<BiomeVolume, BiomeVolume.Builder> biomes;
         private List<EntityArchetype> entities;
 
-        protected Builder() {
+        public Builder() {
             this.version = SpongeVersion.UNKNOWN; // TODO: change this to better default???
             this.dim = Vec3i.ZERO;
             this.offset = Vec3i.ZERO;
