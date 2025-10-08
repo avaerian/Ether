@@ -222,7 +222,9 @@ public class Island extends CanChange {
          */
         public Builder setTile(Vec2i tile, boolean withId) {
             this.tile = tile;
-            if(withId) this.id = tile.getTileId();
+            if(withId) {
+                this.id = tile.getTileId();
+            }
             return this;
         }
 

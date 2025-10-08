@@ -2,11 +2,13 @@ package org.minerift.ether.island;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.util.collect.IndexedList;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -14,11 +16,12 @@ public class DefaultIslandGrid implements IslandGrid {
 
     // TODO: refactor to allow for selecting impl between binary search
     //  island grid and one-to-one id map (Int2ObjectMap from fastutil, if
-    //  not own interface, and replace IndexedList with id map
+    //  not own interface, and replace IndexedList with identity map
     // All islands on the grid, including deleted islands
     private final IndexedList<Island> islands;
 
     public DefaultIslandGrid() {
+        //new Int2ObjectMap<>()
         this.islands = new IndexedList<>(Island::getId, Island::isDeleted);
     }
 
@@ -28,11 +31,11 @@ public class DefaultIslandGrid implements IslandGrid {
 
     @Override
     public void registerIsland(Island island) {
-        Preconditions.checkNotNull(island, "Cannot register null island!");
+        Preconditions.checkNotNull(island, "Cannot register null island");
         try {
             islands.add(island);
         } catch (UnsupportedOperationException ex) {
-            Ether.getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid!", ex);
+            Ether.getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid", ex);
         }
     }
 

@@ -3,6 +3,7 @@ package org.minerift.ether.island;
 import com.google.common.collect.ImmutableList;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.util.Note;
 
 import java.util.Optional;
 
@@ -64,7 +65,7 @@ public interface IslandGrid {
 
     ImmutableList<Vec2i> getAvailableTiles();
 
-    // Returns the next available tile that can be occupied
+    @Note("Returns the next available tile that can be occupied")
     Vec2i getNextTile();
 
 
