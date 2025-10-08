@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -22,7 +21,6 @@ import org.minerift.ether.nms.v1_20_R2.NativeTypeConversionsImpl;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -61,7 +59,7 @@ public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSectio
             chunk.setBlockEntity(blockEntity);
 
             // Load NBT data
-            net.minecraft.nbt.CompoundTag nativeNbt = (net.minecraft.nbt.CompoundTag) getConverter().asNativeTag(nbt);
+            net.minecraft.nbt.CompoundTag nativeNbt = (net.minecraft.nbt.CompoundTag) getConverter().tryAsNativeTag(nbt);
             blockEntity.load(nativeNbt);
             blockEntity.setChanged();
             return true;

@@ -25,12 +25,12 @@ public class ItemStackImpl implements ItemStack<net.minecraft.world.item.ItemSta
         }
         Preconditions.checkArgument(nbt.is(COMPOUND));
 
-        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) NativeTypeConversionsImpl.inst().asNativeTag(nbt);
+        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) NativeTypeConversionsImpl.inst().tryAsNativeTag(nbt);
         this.item = net.minecraft.world.item.ItemStack.of(nativeTag);
     }
 
     public ItemStackImpl(CompoundTag nbt) {
-        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) NativeTypeConversionsImpl.inst().asNativeTag(nbt);
+        net.minecraft.nbt.CompoundTag nativeTag = (net.minecraft.nbt.CompoundTag) NativeTypeConversionsImpl.inst().tryAsNativeTag(nbt);
         this.item = net.minecraft.world.item.ItemStack.of(nativeTag);
     }
 

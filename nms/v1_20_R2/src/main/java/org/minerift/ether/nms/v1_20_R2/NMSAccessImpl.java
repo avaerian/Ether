@@ -63,7 +63,7 @@ public class NMSAccessImpl implements NMSAccess {
 
     @Override
     public <T extends Tag> T fixUpItemName(T nbt, int dataVersion) {
-        net.minecraft.nbt.Tag nativeNbt = getConverter().asNativeTag(nbt);
+        net.minecraft.nbt.Tag nativeNbt = getConverter().tryAsNativeTag(nbt);
         Dynamic<net.minecraft.nbt.Tag> name = new Dynamic<>(NbtOps.INSTANCE, nativeNbt);
         Dynamic<net.minecraft.nbt.Tag> converted = DataFixers.getDataFixer().update(References.ITEM_NAME, name, dataVersion, getDataVersion());
         if(name.equals(converted)) {
@@ -90,18 +90,18 @@ public class NMSAccessImpl implements NMSAccess {
     @Override
     public void addEntity(World world, EntityArchetype entity) throws EntityLoadException {
         ServerLevel level = getConverter().asNativeWorld(world);
-        CompoundTag nativeTag = (CompoundTag) getConverter().asNativeTag(entity.getNbtData());
+        CompoundTag nativeTag = (CompoundTag) getConverter().tryAsNativeTag(entity.getNbtData());
         Entity worldEntity = EntityType.loadEntityRecursive(nativeTag, level, (entity1) -> {
             entity1.moveTo(entity.getPos().getXd(), entity.getPos().getYd(), entity.getPos().getZd());
             return entity1;
         });
         if(worldEntity == null) {
-            throw new EntityLoadException("Entity archetype (" + entity.getType() + ") failed to load: invalid type");
+            throw new EntityLoadException("Entity archetype (" + entity.getId() + ") failed to load: invalid type");
         }
         if(!level.tryAddFreshEntityWithPassengers(worldEntity)) {
             throw new EntityLoadException("Entity failed to add to world: duplicate UUID " + worldEntity.getStringUUID());
         }
-        System.out.println("Added entity " + entity.getType() + " at " + entity.getPos()); // debug
+        System.out.println("Added entity " + entity.getId() + " at " + entity.getPos()); // debug
     }
 
 

@@ -97,6 +97,11 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     }
 
     @Override
+    public String getAsString() {
+        return state.toString();
+    }
+
+    @Override
     public boolean canBeReplaced() {
         return state.canBeReplaced();
     }
