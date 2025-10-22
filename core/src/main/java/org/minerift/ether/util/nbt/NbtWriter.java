@@ -12,18 +12,27 @@ import java.util.function.Predicate;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
+import static org.minerift.ether.debug.NeedsTesting;
+import static org.minerift.ether.debug.Experimental;
+
 public class NbtWriter extends NbtTraverser {
 
     public static NbtWriter.Builder withOptions() {
         return new Builder();
     }
 
+    // mirror of ctor for API uniformity
+    @Experimental
+    @NeedsTesting
+    public static NbtWriter from(ByteBuf buf, NbtOption.... options) {
+        return new NbtWriter(buf, Predicates.always(), options)
+
     /**
      * NOTE: when supplying an existing buf, ensure
      * writer/reader indexes are handled appropriately
      */
     public static NbtWriter from(ByteBuf buf) {
-        return new NbtWriter(buf, Predicates.always());
+        return new NbtWriter(buf, Predicates.always(), NO_OPTIONS);
     }
 
     public static NbtWriter from() {
