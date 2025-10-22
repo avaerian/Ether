@@ -165,7 +165,7 @@ public class NbtWriter extends NbtTraverser {
             if(buf == null) {
                 buf = Unpooled.buffer(1024); // default 1kb buf
             }
-            return new NbtWriter(buf, tagSelector); //FIXME
+            return new NbtWriter(buf, tagSelector, options);
         }
 
     }
