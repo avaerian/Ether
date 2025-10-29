@@ -23,6 +23,7 @@ import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
+import org.minerift.ether.debug.NeedsTesting;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
@@ -35,24 +36,45 @@ import static org.minerift.ether.util.Utils.ensure;
 // Provides static access to plugin components
 // Must call load() before accessing any components
 // TODO: add loadNoPlugin() method to load an instance without a plugin
-public class Ether {
+public final class Ether {
 
-    private static boolean isEnabled;
-    private static EtherPlugin plugin;
-    private static ConfigRegistry configRegistry;
-    private static Logger logger;
-    private static File pluginDir;
+    protected boolean enabled;
+    protected EtherPlugin plugin;
+    protected ConfigRegistry configRegistry;
+    protected Logger log;
+    protected File pluginDir;
 
-    private static Database db;
-    private static NMSAccess nmsAccess;
-    private static WorkQueue workQueue;
+    protected Database db;
+    protected NMSAccess nmsAccess;
+    protected WorkQueue workQueue;
 
-    private static IslandManager islandManager;
-    private static IslandInviteManager inviteManager;
-    private static UserManager userManager;
-    private static boolean isUsingWorldEdit;
+    protected IslandManager islandManager;
+    protected IslandInviteManager inviteManager;
+    protected UserManager userManager;
+    @Deprecated protected boolean isUsingWorldEdit;
 
-    // For JavaPlugin
+    public static Ether INST = null;
+
+    public Ether(EtherPlugin plugin,
+                ConfigRegistry cfgs, Logger log, File pluginDir,
+                Database db, NMSAccess nms, WorkQueue workQueue,
+                IslandManager islands, IslandInviteManager invites,
+                UserManagee users/*, boolean isUsingWorldEdit*/) {
+        this.plugin = plugin;
+        this.cfgs = cfgs;
+        this.log = log;
+        this.pluginDir = pluginDir;
+        this.db = db;
+        this.nms = nms;
+        this.workQueue = workQueue;
+        this.islands = islands;
+        this.invites = invites;
+        this.users = users;
+        this.isUsingWorldEdit = false; //FIXME: deprecated
+        this.enabled = true;
+    }
+
+    @Deprecated
     protected static void onLoad(EtherPlugin inst) {
         isEnabled = false;
         plugin = inst;
@@ -61,8 +83,8 @@ public class Ether {
         // TODO: debug logger?
     }
 
-    // For JavaPlugin
-    protected static void onEnable() {
+    @Deprecated
+    protected void onEnable() {
 
         final Stopwatch stopwatch = Stopwatch.createStarted();
 
