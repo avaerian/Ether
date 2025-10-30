@@ -32,97 +32,142 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.minerift.ether.util.Utils.ensure;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 // Provides static access to plugin components
-// Must call load() before accessing any components
-// TODO: add loadNoPlugin() method to load an instance without a plugin
-public final class Ether {
+// TODO: support unloaded and loaded Ether instance for IDE & server usage
+public class Ether implements AutoCloseable {
+    
+    // unordered init stages
+    public static final int STAGE_CFGS;
+    public static final int STAGE_DB;
+    public static final int STAGE_ISLANDS;
+    public static final int STAGE_INVITES;
+    public static final int STAGE_USERS;
+    public static final int STAGE_WORK_QUEUE;
+    public static final int STAGE_NMS;
+    
+    public static final int STAGES_COUNT;
 
-    protected boolean enabled;
-    protected EtherPlugin plugin;
-    protected ConfigRegistry configRegistry;
-    protected Logger log;
-    protected File pluginDir;
+    static {
+        int i = 0;
 
-    protected Database db;
-    protected NMSAccess nmsAccess;
-    protected WorkQueue workQueue;
+        STAGE_CFGS       = 1 << i++; // 1, 0
+        STAGE_DB         = 1 << i++; // 2, 1
+        STAGE_ISLANDS    = 1 << i++; // 4, 2
+        STAGE_INVITES    = 1 << i++; // 8, 3
+        STAGE_USERS      = 1 << i++; // 16, 4
+        STAGE_WORK_QUEUE = 1 << i++; // 32, 5
+        STAGE_NMS        = 1 << i++; // 64, 6
+        //PLUGIN     = 1 << i++; // 128, 7; TODO: review
 
-    protected IslandManager islandManager;
-    protected IslandInviteManager inviteManager;
-    protected UserManager userManager;
-    @Deprecated protected boolean isUsingWorldEdit;
-
-    public static Ether INST = null;
-
-    public Ether(EtherPlugin plugin,
-                ConfigRegistry cfgs, Logger log, File pluginDir,
-                Database db, NMSAccess nms, WorkQueue workQueue,
-                IslandManager islands, IslandInviteManager invites,
-                UserManagee users/*, boolean isUsingWorldEdit*/) {
-        this.plugin = plugin;
-        this.cfgs = cfgs;
-        this.log = log;
-        this.pluginDir = pluginDir;
-        this.db = db;
-        this.nms = nms;
-        this.workQueue = workQueue;
-        this.islands = islands;
-        this.invites = invites;
-        this.users = users;
-        this.isUsingWorldEdit = false; //FIXME: deprecated
-        this.enabled = true;
+        STAGES_COUNT = i; // 8
     }
 
-    @Deprecated
-    protected static void onLoad(EtherPlugin inst) {
-        isEnabled = false;
-        plugin = inst;
-        pluginDir = plugin.getDataFolder();
-        logger = plugin.getLogger();
-        // TODO: debug logger?
-    }
+    // not worried about synchronization; single-threaded impl
+    public static class InitResult {
+        public final Ether ether;
+        public final long[] epochsNs;
 
-    @Deprecated
-    protected void onEnable() {
-
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-
-        // Load configs
-        configRegistry = new ConfigRegistry();
-        try {
-            configRegistry.register(ConfigType.MAIN);
-            configRegistry.register(ConfigType.ISLAND_SPECS_LIST);
-        } catch (ConfigFileReadException ex) {
-            // If failed, log error and abort plugin loading
-            logger.log(Level.SEVERE, "Failed to register configs when enabling Ether: ", ex);
-            plugin.disable();
-            return;
+        protected InitResult(Ether ether, long[] epochsNs) {
+            this.ether = ether;
+            this.epochsNs = epochsNs;
         }
 
-        // For config files that don't exist, this will create a new file
-        configRegistry.getAll().forEach(Config::save);
+        @NeedsTesting
+        @Deprecated // should already have everything resolved when creating
+        public long register(int stage, long epochNs) {
+            if(stage == 0) {
+                throw new IllegalArgumentException("No stages selected to register epoch");
+            }
+            if( (stage & (stage - 1)) != 0 ) { // ensure only one stage is selected; check if pow of 2
+                throw new IllegalArgumentException("Unable to register epoch for multiple stages");
+            }
+            
+            int i = Integer.numberOfTrailingZeros(stage);
+            epochsNs[i] = epochNs;
+            return epochNs;
+        }
 
-        stopwatch.stop();
-        logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
-        stopwatch.reset();
+        // not a fan of this, but don't want to write this out every goddamn time
+        protected static int index(int stage) {
+            return Integer.numberOfTrailingZeros(stage);
+        }
+
+        public long getLoadTime() {
+            return getLoadTime(STAGES_COUNT - 1, NANOSECONDS);
+        }
+
+        public long getLoadTime(TimeUnit unit) {
+            return getLoadTime(STAGES_COUNT - 1, unit);
+        }
+
+        // default time unit is nanoseconds
+        public long getLoadTime(int stages) {
+            return getLoadTime(stages, NANOSECONDS);
+        }
+
+        public long getLoadTime(int stages, TimeUnit unit) {
+            if(stages == 0) {
+                throw new IllegalArgumentException("No stages selected to query load time");
+            }
+            int n = stages;
+            int i;
+            long sum = 0;
+            while((i = Integer.numberOfTrailingZeros(n)) != 32){
+                sum += epochsNs[i];
+                n &= ~(1 << i);
+            }
+            return unit.convert(sum, NANOSECONDS);
+        }
+
+        
+    }
+    
+    public static Ether from(File pluginDir) throws EtherLoadException {
+
+        final long[] epochsNs = new long[STAGES_COUNT];
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+
+        // load configs
+        ConfigRegistry cfgs = new ConfigRegistry();
+        try {
+            cfgs.register(ConfigType.MAIN);
+            cfgs.register(ConfigType.ISLAND_SPECS_LIST);
+        } catch (ConfigFileReadException e) {
+            // If failed, log error and abort plugin loading
+            // Failing will be delegated to EtherPlugin or other bootstrapper
+            throw new EtherLoadException("Failed to register configs, e);
+        }
+
+        // for config files that don't exist, this will create a new file
+        cfgs.getAll().forEach(Config::save);
+        {
+            stopwatch.stop();
+            epochsNs[InitResult.index(STAGE_CFGS)] = stopwatch.elapsed();
+            logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
+            stopwatch.reset();
+        }
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
         logger.info("tileSize: " + config.getTileLengthChunks());
         logger.info("tileHeight: " + config.getTileHeight());
         logger.info("tileAccessibleArea: " + config.getTileAccessibleAreaBlocks());
 
-        stopwatch.start();
-
-        isUsingWorldEdit = false;
-
         // Load work queue
+        stopwatch.start();
         workQueue = new WorkQueue();
         workQueue.start();
+        stopwatch.stop();
+        epochsNs[InitResult.index(STAGE_WORK_QUEUE)] = stopwatch.elapsed();
+        stopwatch.reset();
 
         // Load NMS access
+        stopwatch.start();
         nmsAccess = NMS.createAccess();
-
+        stopwatch.stop();
+        epochsNs[InitResult.index(STAGE_NMS)] = stopwatch.elapsed();
+        stopwatch.reset();
 
         // Load managers
         islandManager = new IslandManager(); // TODO: This needs to be delayed until islands are loaded
@@ -157,12 +202,101 @@ public final class Ether {
         // ** code for plugin command registration has been moved to EtherPlugin **
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
-        isEnabled = true;
+        enabled = true;
         logger.info("Ether plugin enabled");
     }
 
-    // For JavaPlugin
-    protected static void onDisable() {
+    protected boolean enabled;
+    /*@Deprecated protected EtherPlugin plugin;*/
+    protected ConfigRegistry cfgs;
+    protected Logger log;
+    protected File pluginDir;
+
+    protected Database db;
+    protected NMSAccess nms;
+    protected WorkQueue workQueue;
+
+    protected IslandManager islands;
+    protected IslandInviteManager invites;
+    protected UserManager users;
+
+    public static Ether INST = null;
+
+    public Ether(/*EtherPlugin plugin,*/
+                ConfigRegistry cfgs, Logger log, File pluginDir,
+                Database db, NMSAccess nms, WorkQueue workQueue,
+                IslandManager islands, IslandInviteManager invites,
+                UserManager users/*, boolean isUsingWorldEdit*/) {
+        this.plugin = plugin;
+        this.cfgs = cfgs;
+        this.log = log;
+        this.pluginDir = pluginDir;
+        this.db = db;
+        this.nms = nms;
+        this.workQueue = workQueue;
+        this.islands = islands;
+        this.invites = invites;
+        this.users = users;
+        this.enabled = true;
+    }
+
+    @Deprecated /* TODO: review */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Deprecated /* TODO: review */
+    public EtherPlugin plugin() {
+        return plugin;
+    }
+
+    public File getPluginDir() {
+        return pluginDir;
+    }
+
+    public Database getDatabase() {
+        return db;
+    }
+
+    public ConfigRegistry getConfigRegistry() {
+        return cfgs;
+    }
+
+    public WorkQueue getWorkQueue() {
+        return workQueue;
+    }
+
+    public NMSAccess getNms()
+        return nms;
+    }
+
+    public IslandManager getIslandManager() {
+        return islands;
+    }
+
+    public IslandInvitesManager getIslandInvitesManager() {
+        return invites;
+    }
+
+    public UserManager getUserManager() {
+        return users;
+    }
+    
+    public Logger getLogger() {
+        return log;
+    ]
+
+    @Deprecated
+    protected static void onLoad(EtherPlugin inst) {
+        isEnabled = false;
+        plugin = inst;
+        pluginDir = plugin.getDataFolder();
+        logger = plugin.getLogger();
+        // TODO: debug logger?
+    }
+
+    @Override
+    public void close() {
         if(isEnabled) {
             configRegistry.getAll().forEach(Config::saveIfChanged);
             configRegistry = null;
