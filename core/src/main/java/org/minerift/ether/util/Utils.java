@@ -24,6 +24,11 @@ public class Utils {
         return (BiMap<K, V>) EMPTY_BIMAP;
     }
 
+    // more suited for Ether class; will refactor later
+    public static timekeep(Stopwatch stopwatch, Runnable exec, int stage, long[] epochsNs) {
+        throw new UnreachableException("unimplemented");
+    }
+
     /**
      * Takes the String name and attempts to return the enum Type.
      * If the name is invalid, fail silently and return null.
