@@ -120,17 +120,15 @@ public class Ether implements AutoCloseable {
             }
             return unit.convert(sum, NANOSECONDS);
         }
-
-        
     }
     
-    public static Ether from(File pluginDir) throws EtherLoadException {
+    public static Ether.InitResult from(File pluginDir, Logger logger) throws EtherLoadException {
 
         final long[] epochsNs = new long[STAGES_COUNT];
         final Stopwatch stopwatch = Stopwatch.createStarted();
 
         // load configs
-        ConfigRegistry cfgs = new ConfigRegistry();
+        ConfigRegistry cfgs = new ConfigRegistry(pluginDir);
         try {
             cfgs.register(ConfigType.MAIN);
             cfgs.register(ConfigType.ISLAND_SPECS_LIST);
@@ -142,12 +140,10 @@ public class Ether implements AutoCloseable {
 
         // for config files that don't exist, this will create a new file
         cfgs.getAll().forEach(Config::save);
-        {
-            stopwatch.stop();
-            epochsNs[InitResult.index(STAGE_CFGS)] = stopwatch.elapsed();
-            logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
-            stopwatch.reset();
-        }
+        stopwatch.stop();
+        epochsNs[InitResult.index(STAGE_CFGS)] = stopwatch.elapsed();
+        logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
+        stopwatch.reset();
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
         logger.info("tileSize: " + config.getTileLengthChunks());
@@ -156,7 +152,7 @@ public class Ether implements AutoCloseable {
 
         // Load work queue
         stopwatch.start();
-        workQueue = new WorkQueue();
+        WorkQueue workQueue = new WorkQueue();
         workQueue.start();
         stopwatch.stop();
         epochsNs[InitResult.index(STAGE_WORK_QUEUE)] = stopwatch.elapsed();
@@ -164,17 +160,19 @@ public class Ether implements AutoCloseable {
 
         // Load NMS access
         stopwatch.start();
-        nmsAccess = NMS.createAccess();
+        NMSAccess nms = NMS.createAccess();
         stopwatch.stop();
         epochsNs[InitResult.index(STAGE_NMS)] = stopwatch.elapsed();
         stopwatch.reset();
 
         // Load managers
-        islandManager = new IslandManager(); // TODO: This needs to be delayed until islands are loaded
-        inviteManager = new IslandInviteManager(); // TODO: This needs to be delayed until invites are loaded
-        userManager = new UserManager();
+        IslandManager islands = new IslandManager(); // TODO: This needs to be delayed until islands are loaded
+        InviteManager invites = new IslandInviteManager(); // TODO: This needs to be delayed until invites are loaded
+        UserManager users = new UserManager();
 
         stopwatch.stop();
+        stopwatch.reset();
+        stopwatch.start();
 
         // Connect to database and load data
         var login = DatabaseConnectionSettings.builder()
@@ -188,22 +186,24 @@ public class Ether implements AutoCloseable {
         db = new SQLDatabase(login, IslandModel::new, UserModel::new);
         try {
             DatabaseException result = db.accessSync((access) -> {
-                var islandModel = access.getModel(IslandModel.class);
+                IslandModel islandModel = access.getModel(IslandModel.class);
 
                 Result<EtherUser> usersResult = access.selectAll(UserModel.class);
                 Result<Island> islandsResult = access.selectAll(IslandModel.class);
 
                 //islandsResult.streamBuilders().
             }).get();
-        } catch (InterruptedException | ExecutionException ex) {
-            throw new RuntimeException("Unexpected", ex);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new EtherLoadException("unexpected", e);
         }
 
         // ** code for plugin command registration has been moved to EtherPlugin **
-        //getLogger().info("Time elapsed: " + stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        //getLogger().info("Time elapsed: " + stopwatch.elapsed(
 
-        enabled = true;
-        logger.info("Ether plugin enabled");
+        Ether ether new Ether(cfgs, logger, pluginDir, 
+                db, nms, workQueue, 
+                islands, invites, users);
+        return new InitResult(ether, epochsNs);
     }
 
     protected boolean enabled;
