@@ -84,20 +84,19 @@ public class WESchematicCodec implements SchematicCodec<WorldEditSchematic> {
         }
 
         // Set blocks
-        for(int y = 0; y < data.getHeight(); y++) {
-            for(int z = 0; z < data.getLength(); z++) {
-                for(int x = 0; x < data.getWidth(); x++) {
-                    BlockVector3 pos = BlockVector3.at(x, y, z);
-                    byte id = blkIds[YZX.flatten(data.getWidth(), data.getLength(), x, y, z)];
-                    try {
+        try { // block states should all be valid; if fail, something is very wrong
+            for(int y = 0; y < data.getHeight(); y++) {
+                for(int z = 0; z < data.getLength(); z++) {
+                    for(int x = 0; x < data.getWidth(); x++) {
+                        BlockVector3 pos = BlockVector3.at(x, y, z);
+                        byte id = blkIds[YZX.flatten(data.getWidth(), data.getLength(), x, y, z)];
                         clipboard.setBlock(pos, blkPltWE.get(id));
-                    } catch (WorldEditException e) {
-                        throw new SchematicReadException("Failed to set block in WorldEdit clipboard", e);
                     }
                 }
             }
+        } catch (WorldEditException e) {
+            throw new SchematicReadException("Failed to set block in WorldEdit clipboard", e);
         }
-
         return null;
     }
 
