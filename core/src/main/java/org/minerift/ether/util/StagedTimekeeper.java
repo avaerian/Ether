@@ -2,13 +2,13 @@ package org.minerift.ether.util;
 
 import static org.minerift.ether.util.Utils.isPow2;
 
-public class Timekeeper {
+public class StagedTimekeeper {
     // internals are public; use at own risk
     public final int allowedSet;
     public final int set;
     public final long[] epochsNs;
 
-    public Timekeeper(int allowedSet, int set, long[] epochsNs) {
+    public StagedTimekeeper(int allowedSet, int set, long[] epochsNs) {
         this.allowedSet = allowedSet;
         this.set = set;
         this.epochsNs = epochsNs;
@@ -76,8 +76,8 @@ public class Timekeeper {
             return epochNs;
         }
 
-        public Timekeeper build() {
-            return new Timekeeper(allowedSet, set, epochsNs);
+        public StagedTimekeeper build() {
+            return new StagedTimekeeper(allowedSet, set, epochsNs);
         }
     }
 }
