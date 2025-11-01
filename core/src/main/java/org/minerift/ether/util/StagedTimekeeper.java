@@ -11,6 +11,10 @@ public class StagedTimekeeper {
     
     public static final int AVG_STAGES = 8; // not expecting too many stages
 
+    public static int getMaxStages() {
+        return Integer.SIZE;
+    }
+    
     // available, if so desired
     public static StagedTimekeeper checked(int allowedSet, int set, long[] epochNs) {
         final int allowedSetSize = Integer.numberOfLeadingZeros(allowedSet);
