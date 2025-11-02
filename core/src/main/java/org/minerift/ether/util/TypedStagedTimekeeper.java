@@ -1,7 +1,6 @@
 package org.minerift.ether.util;
 
-public class TypedStagedTimekeeper<E extends Enum<E>>
-        extends StagedBuilder {
+public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedBuilder {
 
         protected final Class<E> clazz;
         public TypedStagedTimekeeper(Stopwatch timer, Class<E> clazz) {
