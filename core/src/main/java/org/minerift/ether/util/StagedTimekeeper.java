@@ -60,7 +60,7 @@ public class StagedTimekeeper {
         int n = stages;
         int i;
         long sum = 0;
-        while((i = Integer.numberOfTrailingZeros(n)) != 32){
+        while((i = Integer.numberOfTrailingZeros(n)) != getMaxStages()){
             sum += epochsNs[i];
             n &= ~(1 << i);
         }
@@ -81,20 +81,21 @@ public class StagedTimekeeper {
     public static class Builder {
 
         protected static final long[] EMPTY = new long[0];
-
-        //@Deprecated protected final Stopwatch timer; // TODO: review stopwatch
+        protected static final long UNSTARTED = -1;
         
         protected volatile int allowedSet;
         protected volatile int trackedSet; // stages being actively tracked
-        protected volatile int set;
+        protected volatile int set; // stages finished tracking
         protected volatile long[] epochsNs;
+        protected volatile long startedNs;
         
         protected Builder(int allowedSet) {
             this.timer = timer;
             this.allowedSet = allowedSet;
+            this.trackedSet = 0;
             this.set = 0;
-            final int allowedSetSize = Math.max(Integer.numberOfLeadingZeros(allowedSet) + 1), AVG_STAGES);
             this.epochsNs = EMPTY;
+            this.startedNs = UNSTARTED;
         }
 
         // expects size to be larger than current epochsNs len
@@ -187,13 +188,23 @@ public class StagedTimekeeper {
 
         // no point in returning Builder for this
         public void start() {
-            timer.start();
+            ensure(startedNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
+            this.startedNs = System.nanoTime();
         }
 
         // start stopwatch for specific stages
         public void start(int stages) {
-            if((this.stages & stages) != stages) {
-            
+            ensure(startedNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
+            ensure((this.stages & stages) == stages, 
+                    () -> new IllegalArgumentException("Attempted to start stopwatch for invalid/unregistered states");
+            ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to start stopwatch for");
+            int n = stages;
+            int i;
+            long ns = System.nanoTime();
+            while((i = Integer.numberOfTrailingZeros(n) != StagedTimekeeper.getMaxStages()) {
+                epochsNs[i] = ns;
+                n &= ~(1 << i);
+            }
         }
 
         public long track(int stage) {
@@ -218,9 +229,9 @@ public class StagedTimekeeper {
             ensure((this.stages & stages) == stages, () -> new IllegalArgumentException("Stage excluded from tracked stage set"));
 
             long ns = timer.stop();
-            int n;
-            int i = 0;
-            while((i = Integer.numberOfTrailingZeros(stages)) != 32) {
+            int n = stages;
+            int i;
+            while((i = Integer.numberOfTrailingZeros(n)) != 32) {
                 epochsNs[i] = ns;
                 n &= ~(1 << i);
             }
