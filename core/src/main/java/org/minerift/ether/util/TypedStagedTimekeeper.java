@@ -34,6 +34,52 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         this.epochsNs = epochsNs;
     }
 
+    // default time unit is nanoseconds
+    public long getLoadTime(E stage) {
+        return getLoadTime(stage.ordinal(), NANOSECONDS);
+    }
+
+    public long getLoadTime(E stage, TimeUnit unit) {
+        return getLoadTime(stage.ordinal(), unit);
+    }
+
+    public long getLoadTime(EnumSet<E> stages) {
+        return getLoadTime(stages, NANOSECONDS);
+    }
+
+    // TODO: change to Set<E> ?? (EnumSet<E> should extend that)
+    public long getLoadTime(EnumSet<E> stages, TimeUnit unit) {
+        ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
+        long sum = 0;
+        for(E stage : stages) {
+            if((this.stages & stage.ordinal()) == 0) {
+                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
+            }
+            sum += epochsNs[stage.ordinal()];
+        }
+        return unit.convert(sum, NANOSECONDS);
+    }
+
+    public long getLoadTime(E[] stages, TimeUnit unit) {
+        long sum = 0;
+        for(E stage : stages) {
+            if((this.stages & stage.ordinal()) == 0) {
+                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
+            }
+            sum += epochsNs[stage.ordinal()];
+        }
+        return unit.convert(sum, NANOSECONDS);
+    }
+
+    @Deprecated // allowed, but swapping parameters ain't preferable
+    public long getLoadTime(TimeUnit unit, E... stages) {
+        return getLoadTime(stages, unit);
+    }
+
+    @Deprecated // delegate method to disallow no varargs
+    public long getLoadTime(TimeUnit unit, E stage) {
+        return getLoadTime(stage, unit);
+    
     public static class Builder extends StagedTimekeeper.Builder {
 
         protected final Class<E> clazz;
