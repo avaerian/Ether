@@ -1,9 +1,9 @@
 package org.minerift.ether.util;
 
-import com.google.common.base.Stopwatch;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
+//import com.google.common.base.Stopwatch;
 
 import static org.minerift.ether.util.StagedTimekeeper.AddStagesResult.*;
+import static org.minerift.ether.util.Utils.ensure;
 import static org.minerift.ether.util.Utils.isPow2;
 
 // allows up to 32 stages (int bit count)
@@ -27,8 +27,8 @@ public class StagedTimekeeper {
         return new StagedTimekeeper(allowedSet, set, epochsNs);
     }
 
-    public static StagedTimekeeper.Builder builder(Stopwatch timer, int allowedSet) {
-        return new Builder(timer, allowedSet);
+    public static StagedTimekeeper.Builder builder(int allowedSet) {
+        return new Builder(allowedSet);
     }
 
     // internals are public; use at own risk
@@ -43,11 +43,11 @@ public class StagedTimekeeper {
     }
 
     public long getLoadTime() {
-        return getLoadTime(STAGES_COUNT - 1, NANOSECONDS);
+        return getLoadTime(set, NANOSECONDS);
     }
 
     public long getLoadTime(TimeUnit unit) {
-        return getLoadTime(STAGES_COUNT - 1, unit);
+        return getLoadTime(set, unit);
     }
 
     // default time unit is nanoseconds
@@ -56,9 +56,7 @@ public class StagedTimekeeper {
     }
 
     public long getLoadTime(int stages, TimeUnit unit) {
-        if(stages == 0) {
-            throw new IllegalArgumentException("No stages selected to query load time");
-        }
+        ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
         int n = stages;
         int i;
         long sum = 0;
@@ -75,16 +73,23 @@ public class StagedTimekeeper {
         SUCCESS,
     }
 
+    // TODO: update with async impl in-mind
+    //  - keep track of tracked stages
+    //  - when tracking a stage, store init timestamp in array
+    //  - on start(), store long lastStart
+    //  - on track(), for each tracked stage subtract current timestamp from timestamp in array
     public static class Builder {
 
-        protected static final long[] EMPTY;
+        protected static final long[] EMPTY = new long[0];
 
-        protected final Stopwatch timer;
-        protected int allowedSet;
-        protected int set;
-        protected long[] epochsNs;
+        //@Deprecated protected final Stopwatch timer; // TODO: review stopwatch
         
-        protected Builder(Stopwatch timer, int allowedSet) {
+        protected volatile int allowedSet;
+        protected volatile int trackedSet; // stages being actively tracked
+        protected volatile int set;
+        protected volatile long[] epochsNs;
+        
+        protected Builder(int allowedSet) {
             this.timer = timer;
             this.allowedSet = allowedSet;
             this.set = 0;
@@ -112,15 +117,18 @@ public class StagedTimekeeper {
             if(!isPow2(stage)) {
                 return EX_MULTIPLE_DISALLOWED;
             }
-            if((allowedSet & stage) != 0) {
+            int v = allowedSet;
+            if((v & stage) != 0) {
                 return EX_ALREADY_EXISTS;
             }
-            final int old = Integer.numberOfLeadingZeros(allowedSet);
-            allowedSet |= stage;
-            final int size = Integer.numberOfLeadingZeros(allowedSet);
+            
+            final int old = Integer.numberOfLeadingZeros(v);
+            v |= stage;
+            final int size = Integer.numberOfLeadingZeros(v);
             if(epochsNs != EMPTY && size > old) {
                 growEpochs(size);
             }
+            allowedSet = v;
             return SUCCESS;
         }
 
@@ -141,12 +149,14 @@ public class StagedTimekeeper {
             if((allowedSet & stages) != stages) {
                 return EX_ALREADY_EXISTS;
             }
-            final int old = Integer.numberOfLeadingZeros(allowedSet);
-            allowedSet |= stages;
-            final int size = Integer.numberOfLeadingZeros(allowedSet);
+            int v = allowedSet;
+            final int old = Integer.numberOfLeadingZeros(v);
+            v |= stages;
+            final int size = Integer.numberOfLeadingZeros(v);
             if(epochsNs != EMPTY && size > old) {
                 growEpochs(size);
             }
+            allowedSet = v;
             return SUCCESS;
         }
 
@@ -180,14 +190,16 @@ public class StagedTimekeeper {
             timer.start();
         }
 
-        public long track(int stage) {
-            if(stages == 0) {
-                throw new IllegalArgmentException("No stages selected");
-            }
+        // start stopwatch for specific stages
+        public void start(int stages) {
+            if((this.stages & stages) != stages) {
+            
+        }
 
-            if(!isPow2(stage)) { // ensure only one stage is selected
-                throw new IllegalArgumentException("Unable to track epoch for multiple stages");
-            }
+        public long track(int stage) {
+            ensure((stages != 0), () -> new IllegalArgmentException("No stages selected"));
+            ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track epoch for multiple stages"));
+            ensure((stages & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
             
             int i = Integer.numberOfTrailingZeros(stage);
             long ns = timer.stop();
@@ -202,9 +214,8 @@ public class StagedTimekeeper {
         }
 
         public long trackAll(int stages) {
-            if(stages == 0) {
-                throw new IllegalArgumentException("No stages selected");
-            }
+            ensure(stages != 0, () -> new IllegalArgumentException("No stages selected"));
+            ensure((this.stages & stages) == stages, () -> new IllegalArgumentException("Stage excluded from tracked stage set"));
 
             long ns = timer.stop();
             int n;
