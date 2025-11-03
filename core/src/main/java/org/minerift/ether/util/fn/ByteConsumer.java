@@ -1,4 +1,4 @@
-package org.minerift.ether.util.iter;
+package org.minerift.ether.util.fn;
 
 import java.util.function.Consumer;
 

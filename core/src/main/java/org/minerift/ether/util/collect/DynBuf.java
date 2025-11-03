@@ -1,4 +1,4 @@
-package org.minerift.ether.util.io.buf;
+package org.minerift.ether.util.collect;
 
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.debug.Experimental;
