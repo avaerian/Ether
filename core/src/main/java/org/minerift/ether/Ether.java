@@ -39,19 +39,67 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 // Provides static access to plugin components
 // TODO: support unloaded and loaded Ether instance for IDE & server usage
-public class Ether implements AutoCloseable {
+public interface Ether extends AutoCloseable {
+    
+    public static ConfigRegistry getConfigRegistry() {
+        return init().getConfigRegistry();
+    }
+
+    public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
+        return init().getConfigRegistry().get(type);
+    }
+
+    public static Logger getLogger() {
+        return init().getLogger();
+    }
+
+    public static File getPluginDir() {
+        return init().getPluginDir();
+    }
+
+    public static File getPluginFile(String path) {
+        return new File(getPluginDir(), path);
+    }
+
+    public static File getPluginFile(Directory dir, String path) {
+        return getPluginFile(dir.getDirName() + File.separator + path);
+    }
+
+    public static Database getDatabase() {
+        return init().getDatabase();
+    }
+
+    public static NMSAccess getNms() {
+        return init().getNms();
+    }
+
+    public static WorkQueue getWorkQueue() {
+        return init().getWorkQueue();
+    }
+
+    public static IslandManager getIslandManager() {
+        return init().getIslandManager();
+    }
+
+    public static IslandInviteManager getInviteManager() {
+        return init().getInviteManager();
+    }
+
+    public static UserManager getUserManager() {
+        return init().getUserManager();
+    }
     
     // unordered init stages
-    public static final int STAGE_CFGS;
-    public static final int STAGE_DB;
-    public static final int STAGE_ISLANDS;
-    public static final int STAGE_INVITES;
-    public static final int STAGE_USERS;
-    public static final int STAGE_WORK_QUEUE;
-    public static final int STAGE_NMS;
+    /*public static final */int STAGE_CFGS;
+    /*public static final */int STAGE_DB;
+    /*public static final */int STAGE_ISLANDS;
+    /*public static final */int STAGE_INVITES;
+    /*public static final */int STAGE_USERS;
+    /*public static final */int STAGE_WORK_QUEUE;
+    /*public static final */int STAGE_NMS;
     
-    public static final int ALL_STAGES;
-    public static final int STAGES_COUNT;
+    int ALL_STAGES;
+    int STAGES_COUNT;
 
     static {
         int i = 0;
@@ -98,7 +146,6 @@ public class Ether implements AutoCloseable {
     
     public static Ether.InitResult from(File pluginDir, Logger logger) throws EtherLoadException {
 
-        final Stopwatch stopwatch = Stopwatch.createStarted();
         final StagedTimekeeper.Builder times = StagedTimekeeper.builder(stopwatch, STAGES_COUNT - 1);
 
         // load configs
@@ -180,164 +227,188 @@ public class Ether implements AutoCloseable {
     }
 
     // for IDE debugging, set -Dether.runInIde=true
+    // when the plugin loads, a new Ether instance
+    // will be generated and set from the plugin
     protected static Ether init() {
         String debug = System.getProperty("ether.runInIde");
         if(debug.equalsIgnoreCase("true")) {
-            //FIXME
+            INST = Ether.builder()
+                    .
+        } else {
+            INST = new Uninit();
         }
+        return INST;
     }
 
-    protected ConfigRegistry cfgs;
-    protected Logger log;
-    protected File pluginDir;
-
-    protected Database db;
-    protected NMSAccess nms;
-    protected WorkQueue workQueue;
-
-    protected IslandManager islands;
-    protected IslandInviteManager invites;
-    protected UserManager users;
-
+    // exposed; access at own risk
     public static Ether INST = null;
 
-    public Ether(/*EtherPlugin plugin,*/
-                ConfigRegistry cfgs, Logger log, File pluginDir,
-                Database db, NMSAccess nms, WorkQueue workQueue,
-                IslandManager islands, IslandInviteManager invites,
-                UserManager users/*, boolean isUsingWorldEdit*/) {
-        this.plugin = plugin;
-        this.cfgs = cfgs;
-        this.log = log;
-        this.pluginDir = pluginDir;
-        this.db = db;
-        this.nms = nms;
-        this.workQueue = workQueue;
-        this.islands = islands;
-        this.invites = invites;
-        this.users = users;
-    }
-
-    public File getPluginDir() {
-        return pluginDir;
-    }
-
-    public Database getDatabase() {
-        return db;
-    }
-
-    public ConfigRegistry getConfigRegistry() {
-        return cfgs;
-    }
-
-    public WorkQueue getWorkQueue() {
-        return workQueue;
-    }
-
-    public NMSAccess getNms()
-        return nms;
-    }
-
-    public IslandManager getIslandManager() {
-        return islands;
-    }
-
-    public IslandInvitesManager getIslandInvitesManager() {
-        return invites;
-    }
-
-    public UserManager getUserManager() {
-        return users;
-    }
+    File getPluginDir();
+    Database getDatabase();
+    ConfigRegistry getConfigRegistry();
+    Logger getLogger();
     
-    public Logger getLogger() {
-        return log;
-    }
+    WorkQueue getWorkQueue();
+    NMSAccess getNms();
+    
+    IslandManager getIslandManager();
+    IslandInvitesManager getIslandInvitesManager();
+    UserManager getUserManager();
+    
 
-    @Override
-    public void close() {
-        if(enabled) {
+    public static class Impl implements Ether {
+        protected Database db;
+        protected ConfigRegistry cfgs;
+        protected Logger log;
+        protected File pluginDir;
+
+        protected NMSAccess nms;
+        protected WorkQueue workQueue;
+    
+        protected IslandManager islands;
+        protected IslandInviteManager invites;
+        protected UserManager users;
+    
+        public Ether(ConfigRegistry cfgs, Logger log, File pluginDir,
+                    Database db, NMSAccess nms, WorkQueue workQueue,
+                    IslandManager islands, IslandInviteManager invites,
+                    UserManager users) {
+            this.cfgs = cfgs;
+            this.log = log;
+            this.pluginDir = pluginDir;
+            this.db = db;
+            this.nms = nms;
+            this.workQueue = workQueue;
+            this.islands = islands;
+            this.invites = invites;
+            this.users = users;
+        }
+    
+        @Override
+        public File getPluginDir() {
+            return pluginDir;
+        }
+    
+        @Override
+        public Database getDatabase() {
+            return db;
+        }
+    
+        @Override
+        public ConfigRegistry getConfigRegistry() {
+            return cfgs;
+        }
+    
+        @Override
+        public WorkQueue getWorkQueue() {
+            return workQueue;
+        }
+    
+        @Override
+        public NMSAccess getNms()
+            return nms;
+        }
+    
+        @Override
+        public IslandManager getIslandManager() {
+            return islands;
+        }
+    
+        @Override
+        public IslandInvitesManager getIslandInvitesManager() {
+            return invites;
+        }
+    
+        @Override
+        public UserManager getUserManager() {
+            return users;
+        }
+        
+        @Override
+        public Logger getLogger() {
+            return log;
+        }
+    
+        @Override
+        public void close() {
             cfgs.getAll().forEach(Config::saveIfChanged);
             cfgs = null;
 
-            // Close work queue
             workQueue.close();
             workQueue = null;
-
-        }
-
-        if(db != null) {
-            try {
-                db.close();
-            } catch (DatabaseException ex) {
-                // handle here, if anything's needed
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
+    
+            if(db != null) {
+                try {
+                    db.close();
+                } catch (DatabaseException ex) {
+                    // handle here, if anything's needed
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+                db = null;
             }
-            db = null;
+    
+            logger = null;
+            pluginDir = null;
+        }
+    }
+
+    public static class Uninit implements Ether {
+        public static final String EX_MSG = "Ether seems to be uninitialized";
+
+        protected Uninit() {
+            
         }
 
-        logger = null;
-        pluginDir = null;
+        @Override
+        public File getPluginDir() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public Database getDatabase() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public ConfigRegistry getConfigRegistry() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public WorkQueue getWorkQueue() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public NMSAccess getNms() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public IslandManager getIslandManager() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public IslandInvitesManager getIslandInvitesManager() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+    
+        @Override
+        public UserManager getUserManager() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
+        
+        @Override
+        public Logger getLogger() {
+            throw new RuntimeException(new EtherLoadException(EX_MSG));
+        }
 
-        enabled = false;
-    }
-
-    public static ConfigRegistry getConfigRegistry() {
-        ensure(configRegistry != null, () -> new UnsupportedOperationException("configRegistry is not loaded!"));
-        return configRegistry;
-    }
-
-    public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
-        return getConfigRegistry().get(type);
-    }
-
-    public static Logger getLogger() {
-        ensure(logger != null, () -> new UnsupportedOperationException("logger is not loaded!"));
-        return logger;
-    }
-
-    public static File getPluginDir() {
-        ensure(pluginDir != null, () -> new UnsupportedOperationException("pluginDir is not loaded!"));
-        return pluginDir;
-    }
-
-    public static File getPluginFile(String path) {
-        return new File(getPluginDir(), path);
-    }
-
-    public static Database getDatabase() {
-        ensure(db != null, () -> new UnsupportedOperationException("db is not loaded!"));
-        return db;
-    }
-
-    public static File getPluginFile(Directory dir, String path) {
-        return getPluginFile(dir.getDirName() + File.separator + path);
-    }
-
-    public static NMSAccess getNms() {
-        ensure(nms != null, () -> new UnsupportedOperationException("nmsAccess is not loaded!"));
-        return nmsAccess;
-    }
-
-    public static WorkQueue getWorkQueue() {
-        ensure(workQueue != null, () -> new UnsupportedOperationException("workQueue is not loaded!"));
-        return workQueue;
-    }
-
-    public static IslandManager getIslandManager() {
-        ensure(islandManager != null, () -> new UnsupportedOperationException("islandManager is not loaded!"));
-        return islandManager;
-    }
-
-    public static IslandInviteManager getInviteManager() {
-        ensure(inviteManager != null, () -> new UnsupportedOperationException("inviteManager is not loaded!"));
-        return inviteManager;
-    }
-
-    public static UserManager getUserManager() {
-        ensure(userManager != null, () -> new UnsupportedOperationException("userManager is not loaded!"));
-        return userManager;
+        @Override
+        public void close() {
+            // FIXME: no-op?
+        }
     }
 
     public enum Directory {
