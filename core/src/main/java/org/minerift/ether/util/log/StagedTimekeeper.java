@@ -79,6 +79,17 @@ public class StagedTimekeeper {
     //  - when tracking a stage, store init timestamp in array
     //  - on start(), store long lastStart
     //  - on track(), for each tracked stage subtract current timestamp from timestamp in array
+    
+    // StagedTimekeeper has some weird interfacing to it, but I find it may provide flexibility to a
+    // degree regarding the use purpose. Starting timers can be done with or without explicitly providing
+    // states; to track the state's elapsed time requires states to be explicitly provided. Providing a state
+    // or states to start and stop is done to allow for a hierarchy of states to be tracked. For example, if
+    // we want to track a list of states grouped under a higher-level loading state, we can explicitly start with
+    // the higher-level group state and first state, track the elapsed time of the first state, start & track the
+    // second state, and so forth, until the last state is started & tracked and track the total time for the
+    // higher-level state. It may also provide some level of verbosity, or clarity, whichever one you want to choose.
+    // This API is still heavily in development and under consideration, but that seems to be what the structure of
+    // this API is evolving to be like thus far.
     public static class Builder {
 
         protected static final long[] EMPTY = new long[0];
