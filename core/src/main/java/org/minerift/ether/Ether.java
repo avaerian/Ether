@@ -109,7 +109,7 @@ public class Ether implements AutoCloseable {
         } catch (ConfigFileReadException e) {
             // If failed, log error and abort plugin loading
             // Failing will be delegated to EtherPlugin or other bootstrapper
-            throw new EtherLoadException("Failed to register configs, e);
+            throw new EtherLoadException("Failed to register configs", e);
         }
 
         // for config files that don't exist, this will create a new file
