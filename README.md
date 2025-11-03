@@ -1,3 +1,4 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8d6feedbe4e5421693e9d20bacbd0e20)](https://app.codacy.com/gh/avaerian/Ether/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 # Ether
 
 > [!IMPORTANT]
