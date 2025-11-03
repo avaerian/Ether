@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.log;
 
 import com.google.common.base.Stopwatch;
 
