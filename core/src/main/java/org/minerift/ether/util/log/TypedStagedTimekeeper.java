@@ -36,11 +36,11 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
 
     // default time unit is nanoseconds
     public long getLoadTime(E stage) {
-        return getLoadTime(stage.ordinal(), NANOSECONDS);
+        return getLoadTime(1 << stage.ordinal(), NANOSECONDS);
     }
 
     public long getLoadTime(E stage, TimeUnit unit) {
-        return getLoadTime(stage.ordinal(), unit);
+        return getLoadTime(1 << stage.ordinal(), unit);
     }
 
     public long getLoadTime(EnumSet<E> stages) {
@@ -52,7 +52,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
         long sum = 0;
         for(E stage : stages) {
-            if((this.stages & stage.ordinal()) == 0) {
+            if( ( this.stages & (1 << stage.ordinal()) ) == 0) {
                 throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
             }
             sum += epochsNs[stage.ordinal()];
@@ -63,7 +63,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
     public long getLoadTime(E[] stages, TimeUnit unit) {
         long sum = 0;
         for(E stage : stages) {
-            if((this.stages & stage.ordinal()) == 0) {
+            if( (this.stages & (1 << stage.ordinal()) ) == 0) {
                 throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
             }
             sum += epochsNs[stage.ordinal()];
@@ -83,14 +83,14 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
     public static class Builder extends StagedTimekeeper.Builder {
 
         protected final Class<E> clazz;
-        protected Builder(Stopwatch timer, E... allowed) {
-            this.timer = timer;
+        protected Builder(Class<E> clazz, E... allowed) {
             this.allowedSet = 0;
+            this.trackedSet = 0;
+            this.pausedSet = 0;
             for(E e : allowedSet) {
                 allowedSet |= 1 << e.ordinal();
             }
             this.set = 0;
-            final int allowedSetSize = Math.max(Integer.numberOfLeadingZeros(allowedSet) + 1), AVG_STAGES);
             this.epochsNs = EMPTY;
         }
 
@@ -98,12 +98,14 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
             if((allowedSet & stage) != 0) {
                 return EX_ALREADY_EXISTS;
             }
-            final int old = Integer.numberOfLeadingZeros(allowedSet);
-            allowedSet |= 1 << stage.ordinal();
-            final int size = Integer.numberOfLeadingZeros(allowedSet);
+            int v = allowedSet;
+            final int old = Integer.numberOfLeadingZeros(v);
+            v |= 1 << stage.ordinal();
+            final int size = Integer.numberOfLeadingZeros(v);
             if(epochsNs != EMPTY && size > old) {
                 growEpochs(size);
             }
+            allowedSet = v;
             return SUCCESS;
         }
 
@@ -114,21 +116,24 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
 
         public Builder addStage(E stage) {
             if(tryAddStage(stage) == EX_ALREADY_EXISTS) {
-                    etc throw new IllegalArgumentException("Stage " + stage + " already registered");
+                throw new IllegalArgumentException("Stage " + stage + " already registered");
             }
             return this;
         }
 
+        // TODO: dedup code; pass to existing fns with int[] indices
         public AddStageResult tryAddStages(E... stages) {
             if((allowedSet & stages) != stages) {
                 return EX_ALREADY_EXISTS;
-            hht}
+            }
+            int v = allowedSet;
             final int old = Integer.numberOfLeadingZeros(allowedSet);
             allowedSet |= stages;
             final int size = Integer.numberOfLeadingZeros(allowedSet);
             if(epochsNs != EMPTY && size > old) {
                 growEpochs(size);
             }
+            allowedSet = v;
             return SUCCESS;
         }
 
