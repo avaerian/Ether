@@ -2,7 +2,7 @@ package org.minerift.ether.util;
 
 //import com.google.common.base.Stopwatch;
 
-import static org.minerift.ether.util.StagedTimekeeper.AddStagesResult.*;
+import static org.minerift.ether.util.StagedTimekeeper.StagesOpResult.*;
 import static org.minerift.ether.util.Utils.ensure;
 import static org.minerift.ether.util.Utils.isPow2;
 
@@ -67,9 +67,10 @@ public class StagedTimekeeper {
         return unit.convert(sum, NANOSECONDS);
     }
 
-    public static enum AddStagesResult {
+    public static enum StagesOpResult {
         EX_MULTIPLE_DISALLOWED,
         EX_ALREADY_EXISTS,
+        EX_NO_EXISTS,
         SUCCESS,
     }
 
@@ -87,15 +88,17 @@ public class StagedTimekeeper {
         protected volatile int trackedSet; // stages being actively tracked
         protected volatile int set; // stages finished tracking
         protected volatile long[] epochsNs;
-        protected volatile long startedNs;
-        
+
+        protected volatile long startNs;
+        protected volatile int pausedSet; // stages that've been paused
+
         protected Builder(int allowedSet) {
             this.timer = timer;
             this.allowedSet = allowedSet;
             this.trackedSet = 0;
             this.set = 0;
             this.epochsNs = EMPTY;
-            this.startedNs = UNSTARTED;
+            this.startNs = UNSTARTED;
         }
 
         // expects size to be larger than current epochsNs len
@@ -114,7 +117,7 @@ public class StagedTimekeeper {
             }
         }
 
-        public AddStageResult tryAddStage(int stage) {
+        public StagesOpResult tryAddStage(int stage) {
             if(!isPow2(stage)) {
                 return EX_MULTIPLE_DISALLOWED;
             }
@@ -146,7 +149,7 @@ public class StagedTimekeeper {
             return this;
         }
 
-        public AddStageResult tryAddStages(int stages) {
+        public StagesOpResult tryAddStages(int stages) {
             if((allowedSet & stages) != stages) {
                 return EX_ALREADY_EXISTS;
             }
@@ -187,14 +190,51 @@ public class StagedTimekeeper {
         }
 
         // no point in returning Builder for this
+        // update global startNs; array element for stage not updated
+        // TODO: refactor to also include startOrThrow()
         public void start() {
-            ensure(startedNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
-            this.startedNs = System.nanoTime();
+            ensure(startNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
+            if(pausedSet != 0) {
+                int i;
+                int n = pausedSet;
+                long currNs = System.nanoTime();
+                for((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
+                    epochsNs[i] = startNs - (currNs - startNs); //FIXME CURRENT
+                    n &= ~(1 << i);
+                }
+            }
+            this.startNs = System.nanoTime();
+        }
+
+        // pause
+        // TODO: stopOrThrow() ???
+        public void stop() {
+            this.pausedSet = allowedSet;
+        }
+
+        public StagesOpResult stop(int stage) {
+            if(!isPow2(stage)) {
+                return EX_MULTIPLE_DISALLOWED;
+            }
+            if((allowedSet & stage) == 0) {
+                return EX_NO_EXISTS;
+            }
+            pausedSet |= stage;
+            return SUCCESS;
+        }
+
+        public void stopAll(int stages) {
+            pausedSet |= stages;
+        }
+
+        public long elapsed() {
+            return startNs != 0 ? System.nanoTime() - startNs : 0;
         }
 
         // start stopwatch for specific stages
+        // for starting tracking multiple stages, update array directly; global startNs not updated
         public void start(int stages) {
-            ensure(startedNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
+            ensure(startNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
             ensure((this.stages & stages) == stages, 
                     () -> new IllegalArgumentException("Attempted to start stopwatch for invalid/unregistered states");
             ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to start stopwatch for");
@@ -202,46 +242,58 @@ public class StagedTimekeeper {
             int i;
             long ns = System.nanoTime();
             while((i = Integer.numberOfTrailingZeros(n) != StagedTimekeeper.getMaxStages()) {
-                epochsNs[i] = ns;
+                epochsNs[i] = ns; // no synchronization for simple write op?
                 n &= ~(1 << i);
             }
         }
 
         public long track(int stage) {
-            ensure((stages != 0), () -> new IllegalArgmentException("No stages selected"));
+            ensure(stages != 0, () -> new IllegalArgmentException("No stages selected"));
             ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track epoch for multiple stages"));
             ensure((stages & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
             
             int i = Integer.numberOfTrailingZeros(stage);
-            long ns = timer.stop();
-            epochsNs[i] = ns;
-            return ns;
+            long endNs = System.nanoTime();
+            synchronized(epochsNs[i]) {
+                if(epochsNs[i] == 0) {
+                    epochsNs[i] = endNs - startNs;
+                } else {
+                    epochsNs[i] = endNs - epochsNs[i];
+                }
+                return epochsNs[i];
+            }
         }
 
         public long trackAndReset(int stage) {
-            long ns = track(stage);
-            timer.reset();
-            return ns;
+            long elapsedNs = track(stage);
+            startNs = UNSTARTED;
+            return elapsedNs;
         }
 
         public long trackAll(int stages) {
             ensure(stages != 0, () -> new IllegalArgumentException("No stages selected"));
             ensure((this.stages & stages) == stages, () -> new IllegalArgumentException("Stage excluded from tracked stage set"));
 
-            long ns = timer.stop();
+            long endNs = System.nanoTime();
             int n = stages;
             int i;
-            while((i = Integer.numberOfTrailingZeros(n)) != 32) {
-                epochsNs[i] = ns;
+            while((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
+                synchronized(epochsNs[i]) {
+                    if(epochsNs[i] != 0) {
+                        epochsNs[i] = endNs - epochsNs[i];
+                    } else {
+                        epochsNs[i] = endNs - startNs;
+                    }
+                }
                 n &= ~(1 << i);
             }
             return ns;
         }
 
         public long trackAllAndReset(int stages) {
-            long ns = trackAll(stages);
-            timer.reset();
-            return ns;
+            long elapsedNs = trackAll(stages);
+            startNs = UNSTARTED;
+            return elapsedNs;
         }
 
         public StagedTimekeeper build() {
