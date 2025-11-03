@@ -216,17 +216,6 @@ public class Ether implements AutoCloseable {
         this.islands = islands;
         this.invites = invites;
         this.users = users;
-        this.enabled = true;
-    }
-
-    @Deprecated /* TODO: review */
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Deprecated /* TODO: review */
-    public EtherPlugin plugin() {
-        return plugin;
     }
 
     public File getPluginDir() {
@@ -294,8 +283,6 @@ public class Ether implements AutoCloseable {
         enabled = false;
     }
 
-    
-
     public static ConfigRegistry getConfigRegistry() {
         ensure(configRegistry != null, () -> new UnsupportedOperationException("configRegistry is not loaded!"));
         return configRegistry;
@@ -324,31 +311,12 @@ public class Ether implements AutoCloseable {
         return db;
     }
 
-    public enum Directory {
-        SCHEMATICS("schems"),
-
-        ;
-
-        private String dirName;
-        Directory(String dirName) {
-            this.dirName = dirName;
-        }
-
-        public String getDirName() {
-            return dirName;
-        }
-    }
-
     public static File getPluginFile(Directory dir, String path) {
         return getPluginFile(dir.getDirName() + File.separator + path);
     }
 
-    public static boolean isUsingWorldEdit() {
-        return isUsingWorldEdit;
-    }
-
     public static NMSAccess getNms() {
-        ensure(nmsAccess != null, () -> new UnsupportedOperationException("nmsAccess is not loaded!"));
+        ensure(nms != null, () -> new UnsupportedOperationException("nmsAccess is not loaded!"));
         return nmsAccess;
     }
 
@@ -370,6 +338,21 @@ public class Ether implements AutoCloseable {
     public static UserManager getUserManager() {
         ensure(userManager != null, () -> new UnsupportedOperationException("userManager is not loaded!"));
         return userManager;
+    }
+
+    public enum Directory {
+        SCHEMATICS("schems"),
+
+        ;
+
+        private String dirName;
+        Directory(String dirName) {
+            this.dirName = dirName;
+        }
+
+        public String getDirName() {
+            return dirName;
+        }
     }
 
     /**
