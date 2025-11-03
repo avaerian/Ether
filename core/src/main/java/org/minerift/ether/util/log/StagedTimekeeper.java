@@ -80,33 +80,27 @@ public class StagedTimekeeper {
     //  - on start(), store long lastStart
     //  - on track(), for each tracked stage subtract current timestamp from timestamp in array
     
-    // StagedTimekeeper has some weird interfacing to it, but I find it may provide flexibility to a
-    // degree regarding the use purpose. Starting timers can be done with or without explicitly providing
-    // states; to track the state's elapsed time requires states to be explicitly provided. Providing a state
-    // or states to start and stop is done to allow for a hierarchy of states to be tracked. For example, if
-    // we want to track a list of states grouped under a higher-level loading state, we can explicitly start with
-    // the higher-level group state and first state, track the elapsed time of the first state, start & track the
-    // second state, and so forth, until the last state is started & tracked and track the total time for the
-    // higher-level state. It may also provide some level of verbosity, or clarity, whichever one you want to choose.
-    // This API is still heavily in development and under consideration, but that seems to be what the structure of
-    // this API is evolving to be like thus far.
+    // StagedTimekeeper usage has been reviewed and been concluded that the usage should be made to
+    // be made simpler. Each stage will be tracked individually, which is done by starting the timer,
+    // "tracking" the elapsed time after the stage completes, optionally resetting the timer and continuing
+    // to track the elapsed time for all stages before submitting to an immutable view. In the immutable
+    // view the user can then query the elapsed times of either specific states or a combination of states.
+    // This construct assumes single-threaded, sequential stage loading, rather than multiple stages being
+    // tracked simultaneously. A separate implementation can exist for that purpose, but that's not my problem.
+    
+    // TODO: update impl to reflect updated description
     public static class Builder {
 
         protected static final long[] EMPTY = new long[0];
         protected static final long UNSTARTED = -1;
         
         protected volatile int allowedSet;
-        protected volatile int trackedSet; // stages being actively tracked
         protected volatile int set; // stages finished tracking
         protected volatile long[] epochsNs;
-
-        protected volatile long startNs;
-        protected volatile int pausedSet; // stages that've been paused
 
         protected Builder(int allowedSet) {
             this.timer = timer;
             this.allowedSet = allowedSet;
-            this.trackedSet = 0;
             this.set = 0;
             this.epochsNs = EMPTY;
             this.startNs = UNSTARTED;
@@ -311,6 +305,10 @@ public class StagedTimekeeper {
                 }
                 return epochsNs[i];
             }
+        }
+
+        public long measure(int stage, Runnable run) {
+            // TODO: figure out startNs resetting or retaining
         }
 
         public long trackAndReset(int stage) {
