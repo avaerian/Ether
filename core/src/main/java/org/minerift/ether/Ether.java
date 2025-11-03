@@ -24,6 +24,8 @@ import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
 import org.minerift.ether.debug.NeedsTesting;
+import org.minerift.ether.util.log.StagedTimekeeper;
+import org.minerift.ether.util.UnreachableException;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
@@ -33,6 +35,7 @@ import java.util.logging.Logger;
 
 import static org.minerift.ether.util.Utils.ensure;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 // Provides static access to plugin components
 // TODO: support unloaded and loaded Ether instance for IDE & server usage
@@ -47,6 +50,7 @@ public class Ether implements AutoCloseable {
     public static final int STAGE_WORK_QUEUE;
     public static final int STAGE_NMS;
     
+    public static final int ALL_STAGES;
     public static final int STAGES_COUNT;
 
     static {
@@ -59,73 +63,43 @@ public class Ether implements AutoCloseable {
         STAGE_USERS      = 1 << i++; // 16, 4
         STAGE_WORK_QUEUE = 1 << i++; // 32, 5
         STAGE_NMS        = 1 << i++; // 64, 6
-        //PLUGIN     = 1 << i++; // 128, 7; TODO: review
 
-        STAGES_COUNT = i; // 8
+        ALL_STAGES = i - 1;
+        STAGES_COUNT = i; // 7
     }
 
     // not worried about synchronization; single-threaded impl
     public static class InitResult {
         public final Ether ether;
-        public final long[] epochsNs;
+        public final StagedTimekeeper tracker;
 
-        protected InitResult(Ether ether, long[] epochsNs) {
+        protected InitResult(Ether ether, StagedTimekeeper tracker) {
             this.ether = ether;
-            this.epochsNs = epochsNs;
-        }
-
-        @NeedsTesting
-        @Deprecated // should already have everything resolved when creating
-        public long register(int stage, long epochNs) {
-            if(stage == 0) {
-                throw new IllegalArgumentException("No stages selected to register epoch");
-            }
-            if( (stage & (stage - 1)) != 0 ) { // ensure only one stage is selected; check if pow of 2
-                throw new IllegalArgumentException("Unable to register epoch for multiple stages");
-            }
-            
-            int i = Integer.numberOfTrailingZeros(stage);
-            epochsNs[i] = epochNs;
-            return epochNs;
-        }
-
-        // not a fan of this, but don't want to write this out every goddamn time
-        protected static int index(int stage) {
-            return Integer.numberOfTrailingZeros(stage);
+            this.tracker = tracker;
         }
 
         public long getLoadTime() {
-            return getLoadTime(STAGES_COUNT - 1, NANOSECONDS);
+            return tracker.getLoadTime(STAGES_COUNT - 1, NANOSECONDS);
         }
 
         public long getLoadTime(TimeUnit unit) {
-            return getLoadTime(STAGES_COUNT - 1, unit);
+            return tracker.getLoadTime(STAGES_COUNT - 1, unit);
         }
 
         // default time unit is nanoseconds
         public long getLoadTime(int stages) {
-            return getLoadTime(stages, NANOSECONDS);
+            return tracker.getLoadTime(stages, NANOSECONDS);
         }
 
         public long getLoadTime(int stages, TimeUnit unit) {
-            if(stages == 0) {
-                throw new IllegalArgumentException("No stages selected to query load time");
-            }
-            int n = stages;
-            int i;
-            long sum = 0;
-            while((i = Integer.numberOfTrailingZeros(n)) != 32){
-                sum += epochsNs[i];
-                n &= ~(1 << i);
-            }
-            return unit.convert(sum, NANOSECONDS);
+            return tracker.getLoadTime(stages, unit);
         }
     }
     
     public static Ether.InitResult from(File pluginDir, Logger logger) throws EtherLoadException {
 
-        final long[] epochsNs = new long[STAGES_COUNT];
         final Stopwatch stopwatch = Stopwatch.createStarted();
+        final StagedTimekeeper.Builder times = StagedTimekeeper.builder(stopwatch, STAGES_COUNT - 1);
 
         // load configs
         ConfigRegistry cfgs = new ConfigRegistry(pluginDir);
@@ -140,10 +114,8 @@ public class Ether implements AutoCloseable {
 
         // for config files that don't exist, this will create a new file
         cfgs.getAll().forEach(Config::save);
-        stopwatch.stop();
-        epochsNs[InitResult.index(STAGE_CFGS)] = stopwatch.elapsed();
-        logger.info(String.format("Configs registered in %d ms", stopwatch.elapsed(TimeUnit.MILLISECONDS)));
-        stopwatch.reset();
+        long cfgMs = times.trackAndReset(STAGE_CFGS, MILLISECONDS);
+        logger.info(String.format("Configs registered in %d ms", cfgMs);
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
         logger.info("tileSize: " + config.getTileLengthChunks());
@@ -151,23 +123,24 @@ public class Ether implements AutoCloseable {
         logger.info("tileAccessibleArea: " + config.getTileAccessibleAreaBlocks());
 
         // Load work queue
-        stopwatch.start();
+        times.start();
         WorkQueue workQueue = new WorkQueue();
         workQueue.start();
-        stopwatch.stop();
-        epochsNs[InitResult.index(STAGE_WORK_QUEUE)] = stopwatch.elapsed();
-        stopwatch.reset();
+        long wqMs = times.trackAndReset(STAGE_WORK_QUEUE, MILLISECONDS);
 
         // Load NMS access
-        stopwatch.start();
+        times.start();
         NMSAccess nms = NMS.createAccess();
-        stopwatch.stop();
-        epochsNs[InitResult.index(STAGE_NMS)] = stopwatch.elapsed();
-        stopwatch.reset();
+        long nmsMs = times.trackAndReset(STAGE_NMS, MILLISECONDS);
 
         // Load managers
+        times.start();
         IslandManager islands = new IslandManager(); // TODO: This needs to be delayed until islands are loaded
+        times.trackAndReset(STAGE_ISLANDS);
+
+        times.start();
         InviteManager invites = new IslandInviteManager(); // TODO: This needs to be delayed until invites are loaded
+        
         UserManager users = new UserManager();
 
         stopwatch.stop();
@@ -206,8 +179,14 @@ public class Ether implements AutoCloseable {
         return new InitResult(ether, epochsNs);
     }
 
-    protected boolean enabled;
-    /*@Deprecated protected EtherPlugin plugin;*/
+    // for IDE debugging, set -Dether.runInIde=true
+    protected static Ether init() {
+        String debug = System.getProperty("ether.runInIde");
+        if(debug.equalsIgnoreCase("true")) {
+            //FIXME
+        }
+    }
+
     protected ConfigRegistry cfgs;
     protected Logger log;
     protected File pluginDir;
@@ -284,22 +263,13 @@ public class Ether implements AutoCloseable {
     
     public Logger getLogger() {
         return log;
-    ]
-
-    @Deprecated
-    protected static void onLoad(EtherPlugin inst) {
-        isEnabled = false;
-        plugin = inst;
-        pluginDir = plugin.getDataFolder();
-        logger = plugin.getLogger();
-        // TODO: debug logger?
     }
 
     @Override
     public void close() {
-        if(isEnabled) {
-            configRegistry.getAll().forEach(Config::saveIfChanged);
-            configRegistry = null;
+        if(enabled) {
+            cfgs.getAll().forEach(Config::saveIfChanged);
+            cfgs = null;
 
             // Close work queue
             workQueue.close();
@@ -320,26 +290,24 @@ public class Ether implements AutoCloseable {
 
         logger = null;
         pluginDir = null;
-        plugin = null;
 
-        isEnabled = false;
+        enabled = false;
     }
 
-    private Ether() {}
+    
 
     public static ConfigRegistry getConfigRegistry() {
         ensure(configRegistry != null, () -> new UnsupportedOperationException("configRegistry is not loaded!"));
         return configRegistry;
     }
 
+    public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
+        return getConfigRegistry().get(type);
+    }
+
     public static Logger getLogger() {
         ensure(logger != null, () -> new UnsupportedOperationException("logger is not loaded!"));
         return logger;
-    }
-
-    public static EtherPlugin plugin() {
-        ensure(plugin != null, () -> new UnsupportedOperationException("plugin is not loaded!"));
-        return plugin;
     }
 
     public static File getPluginDir() {
@@ -402,10 +370,6 @@ public class Ether implements AutoCloseable {
     public static UserManager getUserManager() {
         ensure(userManager != null, () -> new UnsupportedOperationException("userManager is not loaded!"));
         return userManager;
-    }
-
-    public static <T extends Config<T>> T getConfig(ConfigType<T> type) {
-        return getConfigRegistry().get(type);
     }
 
     /**
