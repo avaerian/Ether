@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.data;
 
 import org.minerift.ether.debug.NotWorking;
 import org.minerift.ether.nms.world.Biome;
-import org.minerift.ether.util.iter.ByteIterator;
+import org.minerift.ether.util.fn.ByteIterator;
 
 public class BiomeVolume extends Volume<Biome<?>> {
 

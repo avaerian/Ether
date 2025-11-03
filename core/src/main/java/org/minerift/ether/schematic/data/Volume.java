@@ -2,7 +2,7 @@ package org.minerift.ether.schematic.data;
 
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.util.fn.IBuilder;
-import org.minerift.ether.util.iter.ByteIterator;
+import org.minerift.ether.util.fn.ByteIterator;
 
 import static java.lang.String.format;
 

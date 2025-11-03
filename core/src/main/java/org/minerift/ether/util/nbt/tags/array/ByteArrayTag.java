@@ -2,7 +2,7 @@ package org.minerift.ether.util.nbt.tags.array;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.bytes.ByteList;
-import org.minerift.ether.util.iter.ByteIterator;
+import org.minerift.ether.util.fn.ByteIterator;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
 import org.minerift.ether.util.nbt.TagVisitor;

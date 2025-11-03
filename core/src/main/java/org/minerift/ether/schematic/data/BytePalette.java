@@ -7,7 +7,7 @@ import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.util.fn.Copy;
-import org.minerift.ether.util.iter.ByteIterator;
+import org.minerift.ether.util.fn.ByteIterator;
 
 import java.util.Arrays;
 import java.util.Iterator;
