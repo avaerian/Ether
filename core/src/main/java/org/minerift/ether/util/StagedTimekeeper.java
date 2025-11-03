@@ -1,4 +1,4 @@
-package org.minerift.ether.util;
+package org.minerift.ether.util.log;
 
 //import com.google.common.base.Stopwatch;
 
@@ -192,24 +192,62 @@ public class StagedTimekeeper {
         // no point in returning Builder for this
         // update global startNs; array element for stage not updated
         // TODO: refactor to also include startOrThrow()
-        public void start() {
-            ensure(startNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
+        public boolean startAll() {
             if(pausedSet != 0) {
+                // unpause stages from paused set
                 int i;
                 int n = pausedSet;
                 long currNs = System.nanoTime();
                 for((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
-                    epochsNs[i] = startNs - (currNs - startNs); //FIXME CURRENT
+                    synchronized(epochs[i]) {
+                        epochsNs[i] -= (currNs - startNs);
+                    }
                     n &= ~(1 << i);
                 }
+                pausedSet = 0;
+            } else {
+                return false;
             }
-            this.startNs = System.nanoTime();
+
+            // start stage stopwatch (and for rest of stages, if any paused before)
+            startNs = System.nanoTime();
+            return true;
+        }
+
+        // only start unpaused stages
+        // return stages that didn't start
+        public int start() {
+            
+        }
+
+        // return stages that didn't start
+        public int start(int stages) {
+            if(stages == 0) { // no stages selected
+                return allowedSet;
+            }
+
+            if(startNs == UNSTARTED) {
+                while(
+                startNs = System.nanoTime();
+            }
+        }
+
+        // return stages that are already stopped/paused
+        public int stop(int stages) {
+            
         }
 
         // pause
         // TODO: stopOrThrow() ???
         public void stop() {
+            if(startNs == UNSTARTED) {
+                throw new IllegalStateException("Unable to stop unstarted stopwatch");
+            }
             this.pausedSet = allowedSet;
+        }
+
+        public void reset() {
+            startNs = UNSTARTED;
         }
 
         public StagesOpResult stop(int stage) {
@@ -251,7 +289,7 @@ public class StagedTimekeeper {
             ensure(stages != 0, () -> new IllegalArgmentException("No stages selected"));
             ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track epoch for multiple stages"));
             ensure((stages & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
-            
+              
             int i = Integer.numberOfTrailingZeros(stage);
             long endNs = System.nanoTime();
             synchronized(epochsNs[i]) {
