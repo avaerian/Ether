@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+@Deprecated
 public class ReflectedMethods implements Iterable<ReflectedMethod> {
 
     private final ReflectedMethod[] methods;

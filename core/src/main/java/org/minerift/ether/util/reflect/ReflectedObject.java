@@ -11,6 +11,7 @@ import java.util.Set;
 // Represents a reflected class that has been mapped for an object.
 // This means that we can store/access values for fields easily,
 // as well as access attributes with a less verbose and more organized API.
+@Deprecated
 public class ReflectedObject<T> {
 
     private final T holder;

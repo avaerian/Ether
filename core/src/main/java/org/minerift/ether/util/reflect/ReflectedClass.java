@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class ReflectedClass<T> implements IReflectedElement {
 
     @Debug

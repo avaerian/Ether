@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Deprecated
 public interface IReflectedElement {
 
     boolean hasAnnotation(Class<? extends Annotation> ann);

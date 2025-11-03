@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+@Deprecated
 public class ReflectedFields implements Iterable<ReflectedField> {
 
     private final ReflectedField[] fields;
