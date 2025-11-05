@@ -36,20 +36,20 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
 
     // default time unit is nanoseconds
     public long getLoadTime(E stage) {
-        return getLoadTime(1 << stage.ordinal(), NANOSECONDS);
+        return getLoadTime(NANOSECONDS, 1 << stage.ordinal());
     }
 
-    public long getLoadTime(E stage, TimeUnit unit) {
-        return getLoadTime(1 << stage.ordinal(), unit);
+    public long getLoadTime(TimeUnit unit, E stage) {
+        return getLoadTime(unit, 1 << stage.ordinal());
     }
 
     public long getLoadTime(EnumSet<E> stages) {
-        return getLoadTime(stages, NANOSECONDS);
+        return getLoadTime(NANOSECONDS, stages);
     }
 
     // TODO: change to Set<E> ?? (EnumSet<E> should extend that)
-    public long getLoadTime(EnumSet<E> stages, TimeUnit unit) {
-        ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
+    public long getLoadTime(TimeUnit unit, EnumSet<E> stages) {
+        ensure(stages.size() != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
         long sum = 0;
         for(E stage : stages) {
             if( ( this.stages & (1 << stage.ordinal()) ) == 0) {
@@ -60,7 +60,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         return unit.convert(sum, NANOSECONDS);
     }
 
-    public long getLoadTime(E[] stages, TimeUnit unit) {
+    public long getLoadTime(TimeUnit unit, E... stages) {
         long sum = 0;
         for(E stage : stages) {
             if( (this.stages & (1 << stage.ordinal()) ) == 0) {
@@ -70,23 +70,12 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         }
         return unit.convert(sum, NANOSECONDS);
     }
-
-    @Deprecated // allowed, but swapping parameters ain't preferable
-    public long getLoadTime(TimeUnit unit, E... stages) {
-        return getLoadTime(stages, unit);
-    }
-
-    @Deprecated // delegate method to disallow no varargs
-    public long getLoadTime(TimeUnit unit, E stage) {
-        return getLoadTime(stage, unit);
     
     public static class Builder extends StagedTimekeeper.Builder {
 
         protected final Class<E> clazz;
         protected Builder(Class<E> clazz, E... allowed) {
             this.allowedSet = 0;
-            this.trackedSet = 0;
-            this.pausedSet = 0;
             for(E e : allowedSet) {
                 allowedSet |= 1 << e.ordinal();
             }
@@ -172,23 +161,18 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
             }
             
             int i = Integer.numberOfTrailingZeros(stage);
-            long ns = timer.stop();
+            long ns = timer.elapsed();
             epochsNs[i] = ns;
             return ns;
         }
 
-        public long trackAndReset(E stage) {
-            long ns = track(stage);
-            timer.reset();
-            return ns;
-        }
-
-        public long trackAll(E... stages) {
+        public long track(E... stages) {
             if(stages == 0) {
                 throw new IllegalArgumentException("No stages selected");
             }
 
-            long ns = timer.stop();
+            timer.stop();
+            long ns = timer.elapsed();
             int n;
             int i = 0;
             while((i = Integer.numberOfTrailingZeros(stages)) != 32) {
@@ -198,14 +182,26 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
             return ns;
         }
 
-        public long trackAllAndReset(E... stages) {
-            long ns = trackAll(stages);
+        public long track(EnumSet<E> stages) {
+            
+        }
+
+        public long trackAndReset(E stage) {
+            long ns = track(stage);
             timer.reset();
             return ns;
         }
 
-        public long trackAllAndReset(EnumSet<E> stages) {
-            
+        public long trackAndReset(E... stages) {
+            long ns = track(stages);
+            timer.reset();
+            return ns;
+        }
+
+        public long trackAndReset(EnumSet<E> stages) {
+            long ns = track(stages);
+            timer.reset();
+            return ns;
         }
 
         public TypedStagedTimekeeper build() {
