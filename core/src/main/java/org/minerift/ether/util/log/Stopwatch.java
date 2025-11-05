@@ -7,16 +7,16 @@ public interface Stopwatch {
         return new Impl();
     }
 
-    void start(); // return timestamp of start?
-    void stop(); // return timestamp of stop?
+    long start(); // return elapsed time
+    long stop(); // return elapsed time
     void reset();
     long elapsed();
     boolean hasStarted();
     boolean isRunning();
     boolean isStopped();
 
-    void startOrThrow() throws ChronoException;
-    void stopOrThrow() throws ChronoException;
+    long startOrThrow() throws ChronoException;
+    long stopOrThrow() throws ChronoException;
 
     // this timer solution only works for approximately the next 263 years
     // for nanoseconds as our time unit, so if we want to extend the
@@ -27,13 +27,14 @@ public interface Stopwatch {
     class Impl {
         protected static final long UNSTARTED = -1; // timer flag; for more, create flags mask
 
-        protected long startNs;
+        // TODO: reviee volatile
+        protected volatile long startNs;
         Impl() {
             this.startNs = UNSTARTED;
         }
 
         @Override
-        public void start() {
+        public long start() {
             if(startNs < 0 && startNs != UNSTARTED) {
                 startNs = System.nanoTime() - (~(1 <<< 63) & startNs);
             } else {
@@ -43,7 +44,7 @@ public interface Stopwatch {
     
         // ChronoException is a runtime exception
         @Override
-        public void startOrThrow() throws ChronoException {
+        public long startOrThrow() throws ChronoException {
             //if((startNs & (1 <<< 63)) == 0) {
             if(startNs >= 0) {
                 throw new ChronoException("Stopwatch already started");
@@ -55,12 +56,12 @@ public interface Stopwatch {
         // is started again we can subtract startNs, now the elapsed time,
         // from the new System.nanoTime()
         @Override
-        public void stop() {
+        public long stop() {
             startNs = (System.nanoTime() - startNs) | (1 <<< 63);
         }
         
         @Override
-        public void stopOrThrow() throws ChronoException {
+        public long stopOrThrow() throws ChronoException {
             if(startNs < 0) {
                 throw new ChronoException("Stopwatch already stopped");
             }
