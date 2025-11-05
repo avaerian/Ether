@@ -1,13 +1,19 @@
 package org.minerift.ether.util.log;
 
 //import com.google.common.base.Stopwatch;
+//import it.unimi.dsi.fastutil.longs.LongIterator;
+
+import org.minerift.ether.util.fn.Exceptional;
+
+import java.util.Iterator;
+import java.util.PrimitiveIterator;
 
 import static org.minerift.ether.util.StagedTimekeeper.StagesOpResult.*;
 import static org.minerift.ether.util.Utils.ensure;
 import static org.minerift.ether.util.Utils.isPow2;
 
 // allows up to 32 stages (int bit count)
-public class StagedTimekeeper {
+public class StagedTimekeeper implements Iterable<Long> {
     
     public static final int AVG_STAGES = 8; // not expecting too many stages
 
@@ -32,53 +38,100 @@ public class StagedTimekeeper {
     }
 
     // internals are public; use at own risk
-    public final int allowedSet;
-    public final int set;
+    public final int allowedSet; // allowed values
+    public final int set; // stages with actual elapsed values
     public final long[] epochsNs;
 
+    // no validation by default
     public StagedTimekeeper(int allowedSet, int set, long[] epochsNs) {
         this.allowedSet = allowedSet;
         this.set = set;
         this.epochsNs = epochsNs;
     }
 
+    public class EpochsIter implements PrimitiveIterator.OfLong {
+        public int n, i;
+
+        // n -> stages set to iterate
+        // should name better, but these are internals; this should do
+        Iterator(int n) {
+            this.n = n;
+        }
+
+        @Override
+        public long nextLong() {
+            /*long l = epochsNs[i];
+            n &= ~(1 << i); // can this be moved?
+            return l;*/
+            n &= ~(1 << i);
+            return epochsNs[i];
+        }
+        
+        public int currentStage() {
+            return 1 << stage;
+        }
+
+        public int currentIndex() {
+            return i;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return (i = Integer.numberOfTrailingZeros(n)) != getMaxStages();
+        }
+    }
+    
+    public EpochsIter epochsIter() {
+        return new EpochsIter(set);
+    }
+
+    public EpochsIter epochsIter(int stages) {
+        return new EpochsIter(stages);
+    }
+ 
+    public EpochsIter epochsIterSafe(int stages) {
+        ensure((set & stages) != 0, () -> new IllegalArgumentException("Stages queried not in set of tracked stages"));
+        return new EpochsIter(stages);
+    }
+
+    @Deprecated
+    @Override
+    public Iterator<Long> iterator() {
+        return new IteratorImpl(set);
+    }
+
     public long getLoadTime() {
-        return getLoadTime(set, NANOSECONDS);
+        return getLoadTime(NANOSECONDS, set);
     }
 
     public long getLoadTime(TimeUnit unit) {
-        return getLoadTime(set, unit);
+        return getLoadTime(unit, set);
     }
 
     // default time unit is nanoseconds
     public long getLoadTime(int stages) {
-        return getLoadTime(stages, NANOSECONDS);
+        return getLoadTime(NANOSECONDS, stages);
     }
 
-    public long getLoadTime(int stages, TimeUnit unit) {
+    public long getLoadTime(TimeUnit unit, int stages) {
         ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
         int n = stages;
         int i;
         long sum = 0;
-        while((i = Integer.numberOfTrailingZeros(n)) != getMaxStages()){
+        while((i = Integer.numberOfTrailingZeros(n)) != getMaxStages()) {
             sum += epochsNs[i];
             n &= ~(1 << i);
         }
         return unit.convert(sum, NANOSECONDS);
     }
 
+    // TODO: review; not too keen on this impl
     public static enum StagesOpResult {
         EX_MULTIPLE_DISALLOWED,
         EX_ALREADY_EXISTS,
         EX_NO_EXISTS,
         SUCCESS,
     }
-
-    // TODO: update with async impl in-mind
-    //  - keep track of tracked stages
-    //  - when tracking a stage, store init timestamp in array
-    //  - on start(), store long lastStart
-    //  - on track(), for each tracked stage subtract current timestamp from timestamp in array
     
     // StagedTimekeeper usage has been reviewed and been concluded that the usage should be made to
     // be made simpler. Each stage will be tracked individually, which is done by starting the timer,
@@ -87,23 +140,20 @@ public class StagedTimekeeper {
     // view the user can then query the elapsed times of either specific states or a combination of states.
     // This construct assumes single-threaded, sequential stage loading, rather than multiple stages being
     // tracked simultaneously. A separate implementation can exist for that purpose, but that's not my problem.
-    
-    // TODO: update impl to reflect updated description
     public static class Builder {
-
         protected static final long[] EMPTY = new long[0];
-        protected static final long UNSTARTED = -1;
+        protected static final long UNSTARTED = -1; // timer flag; if more flags, create mask
         
-        protected volatile int allowedSet;
-        protected volatile int set; // stages finished tracking
-        protected volatile long[] epochsNs;
+        protected int startNs; // timer; may not reflect accurate starting timestamp if pa
+        protected int allowedSet;
+        protected int set; // stages finished tracking
+        protected long[] epochsNs;
 
         protected Builder(int allowedSet) {
-            this.timer = timer;
+            this.startNs = UNSTARTED;
             this.allowedSet = allowedSet;
             this.set = 0;
             this.epochsNs = EMPTY;
-            this.startNs = UNSTARTED;
         }
 
         // expects size to be larger than current epochsNs len
@@ -121,7 +171,7 @@ public class StagedTimekeeper {
                 epochsNs = new long[size];
             }
         }
-
+         
         public StagesOpResult tryAddStage(int stage) {
             if(!isPow2(stage)) {
                 return EX_MULTIPLE_DISALLOWED;
@@ -194,121 +244,79 @@ public class StagedTimekeeper {
             return (allowedSet & stages) != stages;
         }
 
-        // no point in returning Builder for this
-        // update global startNs; array element for stage not updated
-        // TODO: refactor to also include startOrThrow()
-        public boolean startAll() {
-            if(pausedSet != 0) {
-                // unpause stages from paused set
-                int i;
-                int n = pausedSet;
-                long currNs = System.nanoTime();
-                for((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
-                    synchronized(epochs[i]) {
-                        epochsNs[i] -= (currNs - startNs);
-                    }
-                    n &= ~(1 << i);
-                }
-                pausedSet = 0;
+        // this timer solution only works for approximately the next 263 years
+        // for nanoseconds as our time unit, so if we want to extend the
+        // allowed amount of time we could probably just add a separate 
+        // flag variable or something, but this is fine for now (or, even 
+        // worse, a whole new data structure; how about a long[] for 
+        // additional bits?)
+
+        public void start() {
+            if(startNs < 0 && startNs != UNSTARTED) {
+                startNs = System.nanoTime() - (~(1 <<< 63) & startNs);
             } else {
-                return false;
-            }
-
-            // start stage stopwatch (and for rest of stages, if any paused before)
-            startNs = System.nanoTime();
-            return true;
-        }
-
-        // only start unpaused stages
-        // return stages that didn't start
-        public int start() {
-            
-        }
-
-        // return stages that didn't start
-        public int start(int stages) {
-            if(stages == 0) { // no stages selected
-                return allowedSet;
-            }
-
-            if(startNs == UNSTARTED) {
-                while(
                 startNs = System.nanoTime();
             }
         }
 
-        // return stages that are already stopped/paused
-        public int stop(int stages) {
-            
+        // TimerException is a runtime exception
+        public void startOrThrow() throws TimerException {
+            //if((startNs & (1 <<< 63)) == 0) {
+            if(startNs >= 0) {
+                throw new TimerException("Timer already started");
+            }
+            start();
         }
 
-        // pause
-        // TODO: stopOrThrow() ???
+        // for impl details: when stopping, track elapsed time so if timer
+        // is started again we can subtract startNs, now the elapsed time,
+        // from the new System.nanoTime()
         public void stop() {
-            if(startNs == UNSTARTED) {
-                throw new IllegalStateException("Unable to stop unstarted stopwatch");
+            startNs = (System.nanoTime() - startNs) | (1 <<< 63);
+        }
+        
+        public void stopOrThrow() {
+            if(startNs < 0) {
+                throw new TimerException("Timer already stopped");
             }
-            this.pausedSet = allowedSet;
+            stop();
         }
 
         public void reset() {
             startNs = UNSTARTED;
         }
 
-        public StagesOpResult stop(int stage) {
-            if(!isPow2(stage)) {
-                return EX_MULTIPLE_DISALLOWED;
-            }
-            if((allowedSet & stage) == 0) {
-                return EX_NO_EXISTS;
-            }
-            pausedSet |= stage;
-            return SUCCESS;
-        }
-
-        public void stopAll(int stages) {
-            pausedSet |= stages;
-        }
-
         public long elapsed() {
-            return startNs != 0 ? System.nanoTime() - startNs : 0;
-        }
-
-        // start stopwatch for specific stages
-        // for starting tracking multiple stages, update array directly; global startNs not updated
-        public void start(int stages) {
-            ensure(startNs == UNSTARTED, () -> new IllegalStateException("Stopwatch already started");
-            ensure((this.stages & stages) == stages, 
-                    () -> new IllegalArgumentException("Attempted to start stopwatch for invalid/unregistered states");
-            ensure(stages != 0, () -> new IllegalArgumentException("No stages selected to start stopwatch for");
-            int n = stages;
-            int i;
-            long ns = System.nanoTime();
-            while((i = Integer.numberOfTrailingZeros(n) != StagedTimekeeper.getMaxStages()) {
-                epochsNs[i] = ns; // no synchronization for simple write op?
-                n &= ~(1 << i);
+            if(started == UNSTARTED) {
+                return 0;
+            } else if (started < 0) { // paused flag is set
+                // there's a constant, but too many fucking FF's so not gonna bother writing out for 64 bits
+                // paused timer now equals elapsed time, so disregard paused flag for elapsed time
+                return ~(1 <<< 63) & startNs;
+            } else { // actively running
+                return System.nanoTime() - startNs;
             }
         }
 
         public long track(int stage) {
-            ensure(stages != 0, () -> new IllegalArgmentException("No stages selected"));
+            ensure(allowedSet != 0, () -> new IllegalArgmentException("No stages selected"));
             ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track epoch for multiple stages"));
-            ensure((stages & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
+            ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
               
             int i = Integer.numberOfTrailingZeros(stage);
             long endNs = System.nanoTime();
-            synchronized(epochsNs[i]) {
-                if(epochsNs[i] == 0) {
-                    epochsNs[i] = endNs - startNs;
-                } else {
-                    epochsNs[i] = endNs - epochsNs[i];
-                }
-                return epochsNs[i];
-            }
+            epochsNs[i] = endNs - startNs;
         }
 
-        public long measure(int stage, Runnable run) {
+        // for measure methods, reset & start timer, run op, and track stage(s)
+        public long measureStage(int stage, Runnable run) {
             // TODO: figure out startNs resetting or retaining
+            
+        }
+
+        // TODO: review
+        public <E extends Exception> long measureStage(int stage, Exceptional<E> run) throws E {
+            
         }
 
         public long trackAndReset(int stage) {
