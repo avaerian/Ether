@@ -1,24 +1,36 @@
 package org.minerift.ether.util.log;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.concurrent.TimeUnit;
+
 import static org.minerift.ether.util.StagedTimekeeper.AddStagesResult.*;
 import static org.minerift.ether.util.StagedTimekeeper.Builder.EMPTY;
 import static org.minerift.ether.util.Utils.isPow2;
+
+import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 // allows up to 32 stages (int bit count)
 public class TypedStagedTimekeeper<E extends Enum<E>> 
         extends StagedTimekeeper {
     
-    // available, if so desired
-    @Deprecated
-    public static TypedStagedTimekeeper checked(int allowedSet, int set, long[] epochNs) {
-        final int allowedSetSize = Integer.numberOfLeadingZeros(allowedSet);
-        final int setSize = Integer.numberOfLeadingZeros(set);
-        ensure(setSize <= allowedSetSize, 
-                () -> new IllegalArgumentException(format("Set has more stages than allowed stages: %d > %d", setSize, allowedSetSize)) );
-        ensure(allowedSetSize == epochsNs.length, 
-                () -> new IllegalArgumentException(format("Epochs array size (%d) and allowed stages size (%d) are misaligned", epochsNs.length, allowedSetSize)) );
+    // TODO: static methods for checked with E[], EnumSet<E> ?
+
+    
+    public static <E extends Enum<E>> TypedStagedTimekeeper checked(Class<E> clazz, E[] allowedSet, E[] set, long[] epochNs) {
+        EnumSet<E> _allowedSet = EnumSet.copyOf(Arrays.asList(allowedSet));
+        EnumSet<E> _set = EnumSet.copyOf(Arrays.asList(set));
+
+        ensure(_set.containsAll(_allowedSet),  () -> new IllegalArgumentException("Items in set aren't being tracked"));
+        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(format("A
         
-        return new TypedStagedTimekeeper(allowedSet, set, epochsNs);
+        return new TypedStagedTimekeeper(_allowedSet, _set, epochsNs);
+    }
+
+    // available, if so desired
+    public static <E extends Enum<E>> TypedStagedTimekeeper checked(EnumSet<E> allowedSet, EnumSet<E> set, long[] epochsNs) {
+        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(format(" 
     }
 
     public static TypedStagedTimekeeper.Builder builder(Stopwatch timer, int allowedSet) {
@@ -158,6 +170,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
                 throw new IllegalArgumentException("Unable to track epoch for multiple stages");
             }
             
+            timer.stop();
             int i = Integer.numberOfTrailingZeros(stage);
             long ns = timer.elapsed();
             epochsNs[i] = ns;
@@ -181,7 +194,22 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         }
 
         public long track(EnumSet<E> stages) {
-            
+            long sum = 0;
+            for(E e : stages) {
+                sum += epochsNs[e.ordinal()];
+            }
+            return sum;
+        }
+
+        public long trackSafe(EnumSet<E> stages) {
+            long sum = 0;
+            for(E e : stages) {
+                if( (allowedSet & (1 << e.ordinal()) ) == 0) {
+                    throw new IllegalArgumentException("Stage " + e + " not an allowed stage");
+                }
+                sum += epochsNs[e.ordinal()];
+            }
+            return sum;
         }
 
         public long trackAndReset(E stage) {
@@ -189,6 +217,9 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
             timer.reset();
             return ns;
         }
+
+        public long trackAndReset(TimeUnit unit, E stage) {
+            return unit.convert(trackandReset(stage), NANOSECONDS);
 
         public long trackAndReset(E... stages) {
             long ns = track(stages);
