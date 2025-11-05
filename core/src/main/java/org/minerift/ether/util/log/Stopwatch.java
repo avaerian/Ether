@@ -11,6 +11,9 @@ public interface Stopwatch {
     void stop(); // return timestamp of stop?
     void reset();
     long elapsed();
+    boolean hasStarted();
+    boolean isRunning();
+    boolean isStopped();
 
     void startOrThrow() throws ChronoException;
     void stopOrThrow() throws ChronoException;
@@ -29,6 +32,7 @@ public interface Stopwatch {
             this.startNs = UNSTARTED;
         }
 
+        @Override
         public void start() {
             if(startNs < 0 && startNs != UNSTARTED) {
                 startNs = System.nanoTime() - (~(1 <<< 63) & startNs);
@@ -38,6 +42,7 @@ public interface Stopwatch {
         }
     
         // ChronoException is a runtime exception
+        @Override
         public void startOrThrow() throws ChronoException {
             //if((startNs & (1 <<< 63)) == 0) {
             if(startNs >= 0) {
@@ -49,10 +54,12 @@ public interface Stopwatch {
         // for impl details: when stopping, track elapsed time so if timer
         // is started again we can subtract startNs, now the elapsed time,
         // from the new System.nanoTime()
+        @Override
         public void stop() {
             startNs = (System.nanoTime() - startNs) | (1 <<< 63);
         }
         
+        @Override
         public void stopOrThrow() throws ChronoException {
             if(startNs < 0) {
                 throw new ChronoException("Stopwatch already stopped");
@@ -60,10 +67,12 @@ public interface Stopwatch {
             stop();
         }
     
+        @Override
         public void reset() {
             startNs = UNSTARTED;
         }
     
+        @Override
         public long elapsed() {
             if(started == UNSTARTED) {
                 return 0;
@@ -74,6 +83,24 @@ public interface Stopwatch {
             } else { // actively running
                 return System.nanoTime() - startNs;
             }
+        }
+
+        // doesn't account if the timer is paused/stopped
+        @Override
+        public boolean hasStarted() {
+            return startNs != UNSTARTED;
+        }
+
+        @Override
+        public boolean isRunning() {
+            return startNs >= 0;
+        }
+
+        // returns true if not running (hasn't started, is stopped, or has been reset & not running)
+        @Override
+        public boolean isStopped() {
+            //return (startNs & (1 <<< 63)) != 0;
+            return startNs < 0;
         }
     }
 
