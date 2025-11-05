@@ -1,6 +1,5 @@
 package org.minerift.ether.util.log;
 
-//import com.google.common.base.Stopwatch;
 //import it.unimi.dsi.fastutil.longs.LongIterator;
 
 import org.minerift.ether.util.fn.Exceptional;
@@ -142,15 +141,14 @@ public class StagedTimekeeper implements Iterable<Long> {
     // tracked simultaneously. A separate implementation can exist for that purpose, but that's not my problem.
     public static class Builder {
         protected static final long[] EMPTY = new long[0];
-        protected static final long UNSTARTED = -1; // timer flag; if more flags, create mask
         
-        protected int startNs; // timer; may not reflect accurate starting timestamp if pa
+        protected final Stopwatch timer;
         protected int allowedSet;
         protected int set; // stages finished tracking
         protected long[] epochsNs;
 
         protected Builder(int allowedSet) {
-            this.startNs = UNSTARTED;
+            this.timer = Stopwatch.create();
             this.allowedSet = allowedSet;
             this.set = 0;
             this.epochsNs = EMPTY;
@@ -244,58 +242,29 @@ public class StagedTimekeeper implements Iterable<Long> {
             return (allowedSet & stages) != stages;
         }
 
-        // this timer solution only works for approximately the next 263 years
-        // for nanoseconds as our time unit, so if we want to extend the
-        // allowed amount of time we could probably just add a separate 
-        // flag variable or something, but this is fine for now (or, even 
-        // worse, a whole new data structure; how about a long[] for 
-        // additional bits?)
-
         public void start() {
-            if(startNs < 0 && startNs != UNSTARTED) {
-                startNs = System.nanoTime() - (~(1 <<< 63) & startNs);
-            } else {
-                startNs = System.nanoTime();
-            }
+            timer.start();
         }
 
-        // TimerException is a runtime exception
-        public void startOrThrow() throws TimerException {
-            //if((startNs & (1 <<< 63)) == 0) {
-            if(startNs >= 0) {
-                throw new TimerException("Timer already started");
-            }
-            start();
+        // ChronoException is a runtime exception
+        public void startOrThrow() throws ChronoException {
+            timer.startOrThrow();
         }
 
-        // for impl details: when stopping, track elapsed time so if timer
-        // is started again we can subtract startNs, now the elapsed time,
-        // from the new System.nanoTime()
         public void stop() {
-            startNs = (System.nanoTime() - startNs) | (1 <<< 63);
+            timer.stop();
         }
         
-        public void stopOrThrow() {
-            if(startNs < 0) {
-                throw new TimerException("Timer already stopped");
-            }
-            stop();
+        public void stopOrThrow() throws ChronoException {
+            timer.stopOrThrow();
         }
 
         public void reset() {
-            startNs = UNSTARTED;
+            return timer.reset();
         }
 
         public long elapsed() {
-            if(started == UNSTARTED) {
-                return 0;
-            } else if (started < 0) { // paused flag is set
-                // there's a constant, but too many fucking FF's so not gonna bother writing out for 64 bits
-                // paused timer now equals elapsed time, so disregard paused flag for elapsed time
-                return ~(1 <<< 63) & startNs;
-            } else { // actively running
-                return System.nanoTime() - startNs;
-            }
+            return timer.elapsed();
         }
 
         public long track(int stage) {
@@ -304,18 +273,28 @@ public class StagedTimekeeper implements Iterable<Long> {
             ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
               
             int i = Integer.numberOfTrailingZeros(stage);
-            long endNs = System.nanoTime();
-            epochsNs[i] = endNs - startNs;
+            timer.stop();
+            epochsNs[i] = timer.elapsed();
         }
 
         // for measure methods, reset & start timer, run op, and track stage(s)
-        public long measureStage(int stage, Runnable run) {
-            // TODO: figure out startNs resetting or retaining
-            
+        public long measureStage(Runnable run, int stage) {
+            ensure(stage != 0, () -> new IllegalArgumentException("Must select a stage to track"));
+            ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track multiple stages"));
+            ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
+            protected final int i = Integer.numberOfTrailingZeros(stage);
+
+            timer.reset();
+            timer.start();
+            run.run();
+            timer.stop();
+            long ns = timer.elapsed();
+            epochsNs[i] = ns;
+            return ns;
         }
 
         // TODO: review
-        public <E extends Exception> long measureStage(int stage, Exceptional<E> run) throws E {
+        public <E extends Exception> long measureStage(Exceptional<E> run, int stage) throws E {
             
         }
 
