@@ -1,7 +1,5 @@
 package org.minerift.ether.util.log;
 
-import com.google.common.base.Stopwatch;
-
 import static org.minerift.ether.util.StagedTimekeeper.AddStagesResult.*;
 import static org.minerift.ether.util.StagedTimekeeper.Builder.EMPTY;
 import static org.minerift.ether.util.Utils.isPow2;
