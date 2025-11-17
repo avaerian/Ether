@@ -24,10 +24,4 @@ public final class Attributes {
         ATTRIBUTES[++i] = AXIS = EnumAttribute.create(i, "AXIS", Axis.class);
     }
 
-    @Debug
-    public static void main(String[] args) {
-        System.out.println("hello, world");
-    }
-
-
 }
