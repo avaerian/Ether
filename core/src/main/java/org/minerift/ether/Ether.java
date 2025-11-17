@@ -1,6 +1,5 @@
 package org.minerift.ether;
 
-import com.google.common.base.Stopwatch;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
@@ -39,7 +38,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 // Provides static access to plugin components
 // TODO: support unloaded and loaded Ether instance for IDE & server usage
-public interface Ether extends AutoCloseable {
+public class Ether implements AutoCloseable {
     
     public static ConfigRegistry getConfigRegistry() {
         return init().getConfigRegistry();
@@ -90,16 +89,16 @@ public interface Ether extends AutoCloseable {
     }
     
     // unordered init stages
-    /*public static final */int STAGE_CFGS;
-    /*public static final */int STAGE_DB;
-    /*public static final */int STAGE_ISLANDS;
-    /*public static final */int STAGE_INVITES;
-    /*public static final */int STAGE_USERS;
-    /*public static final */int STAGE_WORK_QUEUE;
-    /*public static final */int STAGE_NMS;
+    public static final int STAGE_CFGS;
+    public static final int STAGE_DB;
+    public static final int STAGE_ISLANDS;
+    public static final int STAGE_INVITES;
+    public static final int STAGE_USERS;
+    public static final int STAGE_WORK_QUEUE;
+    public static final int STAGE_NMS;
     
-    int ALL_STAGES;
-    int STAGES_COUNT;
+    public static final int ALL_STAGES;
+    public static final int STAGES_COUNT;
 
     static {
         int i = 0;
@@ -149,6 +148,7 @@ public interface Ether extends AutoCloseable {
         final StagedTimekeeper.Builder times = StagedTimekeeper.builder(stopwatch, STAGES_COUNT - 1);
 
         // load configs
+        times.start();
         ConfigRegistry cfgs = new ConfigRegistry(pluginDir);
         try {
             cfgs.register(ConfigType.MAIN);
@@ -190,10 +190,6 @@ public interface Ether extends AutoCloseable {
         
         UserManager users = new UserManager();
 
-        stopwatch.stop();
-        stopwatch.reset();
-        stopwatch.start();
-
         // Connect to database and load data
         var login = DatabaseConnectionSettings.builder()
                 .setDbName("ether")
@@ -220,7 +216,7 @@ public interface Ether extends AutoCloseable {
         // ** code for plugin command registration has been moved to EtherPlugin **
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(
 
-        Ether ether new Ether(cfgs, logger, pluginDir, 
+        Ether ether = new Ether(cfgs, logger, pluginDir, 
                 db, nms, workQueue, 
                 islands, invites, users);
         return new InitResult(ether, epochsNs);
@@ -231,9 +227,8 @@ public interface Ether extends AutoCloseable {
     // will be generated and set from the plugin
     protected static Ether init() {
         String debug = System.getProperty("ether.runInIde");
-        if(debug.equalsIgnoreCase("true")) {
-            INST = Ether.builder()
-                    .
+        if(debug != null && debug.equalsIgnoreCase("true")) {
+            /*TODO: INST = Ether.builder()*/
         } else {
             INST = new Uninit();
         }
@@ -241,119 +236,97 @@ public interface Ether extends AutoCloseable {
     }
 
     // exposed; access at own risk
+    @Deprecated
     public static Ether INST = null;
 
-    File getPluginDir();
-    Database getDatabase();
-    ConfigRegistry getConfigRegistry();
-    Logger getLogger();
-    
-    WorkQueue getWorkQueue();
-    NMSAccess getNms();
-    
-    IslandManager getIslandManager();
-    IslandInvitesManager getIslandInvitesManager();
-    UserManager getUserManager();
-    
+    protected Database db;
+    protected ConfigRegistry cfgs;
+    protected Logger log;
+    protected File pluginDir;
 
-    public static class Impl implements Ether {
-        protected Database db;
-        protected ConfigRegistry cfgs;
-        protected Logger log;
-        protected File pluginDir;
+    protected NMSAccess nms;
+    protected WorkQueue workQueue;
 
-        protected NMSAccess nms;
-        protected WorkQueue workQueue;
-    
-        protected IslandManager islands;
-        protected IslandInviteManager invites;
-        protected UserManager users;
-    
-        public Ether(ConfigRegistry cfgs, Logger log, File pluginDir,
-                    Database db, NMSAccess nms, WorkQueue workQueue,
-                    IslandManager islands, IslandInviteManager invites,
-                    UserManager users) {
-            this.cfgs = cfgs;
-            this.log = log;
-            this.pluginDir = pluginDir;
-            this.db = db;
-            this.nms = nms;
-            this.workQueue = workQueue;
-            this.islands = islands;
-            this.invites = invites;
-            this.users = users;
-        }
-    
-        @Override
-        public File getPluginDir() {
-            return pluginDir;
-        }
-    
-        @Override
-        public Database getDatabase() {
-            return db;
-        }
-    
-        @Override
-        public ConfigRegistry getConfigRegistry() {
-            return cfgs;
-        }
-    
-        @Override
-        public WorkQueue getWorkQueue() {
-            return workQueue;
-        }
-    
-        @Override
-        public NMSAccess getNms()
-            return nms;
-        }
-    
-        @Override
-        public IslandManager getIslandManager() {
-            return islands;
-        }
-    
-        @Override
-        public IslandInvitesManager getIslandInvitesManager() {
-            return invites;
-        }
-    
-        @Override
-        public UserManager getUserManager() {
-            return users;
-        }
-        
-        @Override
-        public Logger getLogger() {
-            return log;
-        }
-    
-        @Override
-        public void close() {
-            cfgs.getAll().forEach(Config::saveIfChanged);
-            cfgs = null;
+    protected IslandManager islands;
+    protected IslandInviteManager invites;
+    protected UserManager users;
 
-            workQueue.close();
-            workQueue = null;
-    
-            if(db != null) {
-                try {
-                    db.close();
-                } catch (DatabaseException ex) {
-                    // handle here, if anything's needed
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-                db = null;
-            }
-    
-            logger = null;
-            pluginDir = null;
-        }
+    public Ether(ConfigRegistry cfgs, Logger log, File pluginDir,
+                Database db, NMSAccess nms, WorkQueue workQueue,
+                IslandManager islands, IslandInviteManager invites,
+                UserManager users) {
+        this.cfgs = cfgs;
+        this.log = log;
+        this.pluginDir = pluginDir;
+        this.db = db;
+        this.nms = nms;
+        this.workQueue = workQueue;
+        this.islands = islands;
+        this.invites = invites;
+        this.users = users;
     }
 
-    public static class Uninit implements Ether {
+    public File getPluginDir() {
+        return pluginDir;
+    }
+
+    public Database getDatabase() {
+        return db;
+    }
+
+    public ConfigRegistry getConfigRegistry() {
+        return cfgs;
+    }
+
+    public WorkQueue getWorkQueue() {
+        return workQueue;
+    }
+
+    public NMSAccess getNms()
+        return nms;
+    }
+
+    public IslandManager getIslandManager() {
+        return islands;
+    }
+
+    public IslandInvitesManager getIslandInvitesManager() {
+        return invites;
+    }
+
+    public UserManager getUserManager() {
+        return users;
+    }
+    
+    public Logger getLogger() {
+        return log;
+    }
+
+    @Override
+    public void close() {
+        cfgs.getAll().forEach(Config::saveIfChanged);
+        cfgs = null;
+
+        workQueue.close();
+        workQueue = null;
+
+        if(db != null) {
+            try {
+                db.close();
+            } catch (DatabaseException ex) {
+                // handle here, if anything's needed
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            db = null;
+        }
+
+        logger = null;
+        pluginDir = null;
+    }
+    
+
+    public static class Uninit extends Ether {
         public static final String EX_MSG = "Ether seems to be uninitialized";
 
         protected Uninit() {
