@@ -53,7 +53,7 @@ public class StagedTimekeeper implements Iterable<Long> {
 
         // n -> stages set to iterate
         // should name better, but these are internals; this should do
-        Iterator(int n) {
+        EpochsIter(int n) {
             this.n = n;
         }
 
@@ -96,7 +96,7 @@ public class StagedTimekeeper implements Iterable<Long> {
     @Deprecated
     @Override
     public Iterator<Long> iterator() {
-        return new IteratorImpl(set);
+        return new EpochsIter(set);
     }
 
     public long getLoadTime() {
@@ -312,12 +312,11 @@ public class StagedTimekeeper implements Iterable<Long> {
             int n = stages;
             int i;
             while((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
-                synchronized(epochsNs[i]) {
-                    if(epochsNs[i] != 0) {
-                        epochsNs[i] = endNs - epochsNs[i];
-                    } else {
-                        epochsNs[i] = endNs - startNs;
-                    }
+                // TODO: review
+                if(epochsNs[i] != 0) {
+                    epochsNs[i] = endNs - epochsNs[i];
+                } else {
+                    epochsNs[i] = endNs - startNs;
                 }
                 n &= ~(1 << i);
             }
