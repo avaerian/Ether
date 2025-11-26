@@ -282,7 +282,7 @@ public class StagedTimekeeper implements Iterable<Long> {
             ensure(stage != 0, () -> new IllegalArgumentException("Must select a stage to track"));
             ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track multiple stages"));
             ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
-            protected final int i = Integer.numberOfTrailingZeros(stage);
+            final int i = Integer.numberOfTrailingZeros(stage);
 
             timer.reset();
             timer.start();
@@ -295,7 +295,18 @@ public class StagedTimekeeper implements Iterable<Long> {
 
         // TODO: review
         public <E extends Exception> long measureStage(Exceptional<E> run, int stage) throws E {
-            
+            ensure(stage != 0, () -> new IllegalArgumentException("Must select a stage to track"));
+            ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track multiple stages"));
+            ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
+            final int i = Integer.numberOfTrailingZeros(stage);
+
+            timer.reset();
+            timer.start();
+            run.run();
+            timer.stop();
+            long ns = timer.elapsed();
+            epochsNs[i] = ns;
+            return ns;
         }
 
         public long trackAndReset(int stage) {
@@ -312,7 +323,6 @@ public class StagedTimekeeper implements Iterable<Long> {
             int n = stages;
             int i;
             while((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
-                // TODO: review
                 if(epochsNs[i] != 0) {
                     epochsNs[i] = endNs - epochsNs[i];
                 } else {
