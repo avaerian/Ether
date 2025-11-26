@@ -210,6 +210,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
 
         public long trackAndReset(TimeUnit unit, E stage) {
             return unit.convert(trackandReset(stage), NANOSECONDS);
+        }
 
         public long trackAndReset(E... stages) {
             long ns = track(stages);
