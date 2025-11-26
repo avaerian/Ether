@@ -4,16 +4,16 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
-import static org.minerift.ether.util.StagedTimekeeper.AddStagesResult.*;
+import static org.minerift.ether.util.StagedTimekeeper.StagesOpResult.*;
 import static org.minerift.ether.util.StagedTimekeeper.Builder.EMPTY;
-import static org.minerift.ether.util.Utils.isPow2;
+//import static org.minerift.ether.util.Utils.isPow2;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 // allows up to 32 stages (int bit count)
-public class TypedStagedTimekeeper<E extends Enum<E>> 
-        extends StagedTimekeeper {
+// TODO: behavior and methods need to be revie
+public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
     
     // TODO: static methods for checked with E[], EnumSet<E> ?
 
@@ -23,14 +23,14 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         EnumSet<E> _set = EnumSet.copyOf(Arrays.asList(set));
 
         ensure(_set.containsAll(_allowedSet),  () -> new IllegalArgumentException("Items in set aren't being tracked"));
-        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(format("A
+        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(/*format("A*/));
         
         return new TypedStagedTimekeeper(_allowedSet, _set, epochsNs);
     }
 
     // available, if so desired
     public static <E extends Enum<E>> TypedStagedTimekeeper checked(EnumSet<E> allowedSet, EnumSet<E> set, long[] epochsNs) {
-        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(format(" 
+        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(/*format("*/));
     }
 
     public static TypedStagedTimekeeper.Builder builder(Stopwatch timer, int allowedSet) {
@@ -93,7 +93,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
             this.epochsNs = EMPTY;
         }
 
-        public AddStageResult tryAddStage(E stage) {
+        public StagesOpResult tryAddStage(E stage) {
             if((allowedSet & stage) != 0) {
                 return EX_ALREADY_EXISTS;
             }
@@ -121,14 +121,17 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         }
 
         // TODO: dedup code; pass to existing fns with int[] indices
-        public AddStageResult tryAddStages(E... stages) {
-            if((allowedSet & stages) != stages) {
-                return EX_ALREADY_EXISTS;
-            }
+        public StagesOpResult tryAddStages(E... stages) {
             int v = allowedSet;
-            final int old = Integer.numberOfLeadingZeros(allowedSet);
-            allowedSet |= stages;
-            final int size = Integer.numberOfLeadingZeros(allowedSet);
+            final int old = Integer.numberOfLeadingZeros(v);
+            for(E stage : stages) {
+                int i = 1 << stage.ordinal();
+                if((allowedSet & i) != 0) {
+                    return EX_ALREADY_EXISTS;
+                }
+                v |= i;
+            }
+            final int size = Integer.numberOfLeadingZeros(v);
             if(epochsNs != EMPTY && size > old) {
                 growEpochs(size);
             }
@@ -147,69 +150,56 @@ public class TypedStagedTimekeeper<E extends Enum<E>>
         }
 
         public boolean hasStage(E stage) {
-            if(!isPow2(stage)) {
-                throw new IllegalArgumentException("Checking presence of multiple stages disallowed");
-            }
-            return (allowedSet & stage) != 0;
+            return hasStage(1 << stage.ordinal());
         }
 
         public boolean hasSomeStages(E... stages) {
-            return (allowedSet & stages) != 0;
+            int set = 0;
+            for(E stage : stages) {
+                set |= 1 << stage.ordinal();
+            }
+            return hasSomeStages(set);
         }
 
         public boolean hasAllStages(E... stages) {
-            return (allowedSet & stages) != stages;
+            int set = 0;
+            for(E stage : stages) {
+                set |= 1 << stage.ordinal();
+            }
+            return hasAllStages(set);
         }
 
         public long track(E stage) {
-            if(stages == 0) {
+            /*if(stages == 0) {
                 throw new IllegalArgmentException("No stages selected");
-            }
-
-            if(!isPow2(stage)) { // ensure only one stage is selected
-                throw new IllegalArgumentException("Unable to track epoch for multiple stages");
-            }
+            }*/
             
             timer.stop();
-            int i = Integer.numberOfTrailingZeros(stage);
             long ns = timer.elapsed();
-            epochsNs[i] = ns;
+            epochsNs[stage.ordinal()] += ns;
             return ns;
         }
 
         public long track(E... stages) {
-            if(stages == 0) {
+            /*if(stages == 0) {
                 throw new IllegalArgumentException("No stages selected");
-            }
+            }*/
 
             timer.stop();
             long ns = timer.elapsed();
-            int n;
-            int i = 0;
-            while((i = Integer.numberOfTrailingZeros(stages)) != 32) {
-                epochsNs[i] = ns;
-                n &= ~(1 << i);
+            for(E stage : stages) {
+                epochsNs[stage.ordinal()] += ns;
             }
             return ns;
         }
 
         public long track(EnumSet<E> stages) {
-            long sum = 0;
-            for(E e : stages) {
-                sum += epochsNs[e.ordinal()];
+            timer.stop();
+            long ns = timer.elapsed();
+            for(E stage : stages) {
+                epochsNs[stage.ordinal()] += ns;
             }
-            return sum;
-        }
-
-        public long trackSafe(EnumSet<E> stages) {
-            long sum = 0;
-            for(E e : stages) {
-                if( (allowedSet & (1 << e.ordinal()) ) == 0) {
-                    throw new IllegalArgumentException("Stage " + e + " not an allowed stage");
-                }
-                sum += epochsNs[e.ordinal()];
-            }
-            return sum;
+            return ns;
         }
 
         public long trackAndReset(E stage) {
