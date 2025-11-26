@@ -111,7 +111,7 @@ public class Ether implements AutoCloseable {
         STAGE_WORK_QUEUE = 1 << i++; // 32, 5
         STAGE_NMS        = 1 << i++; // 64, 6
 
-        ALL_STAGES = i - 1;
+        STAGES_MASK = (1 << i) - 1;
         STAGES_COUNT = i; // 7
     }
 
@@ -126,11 +126,11 @@ public class Ether implements AutoCloseable {
         }
 
         public long getLoadTime() {
-            return tracker.getLoadTime(STAGES_COUNT - 1, NANOSECONDS);
+            return tracker.getLoadTime(STAGES_MASK, NANOSECONDS);
         }
 
         public long getLoadTime(TimeUnit unit) {
-            return tracker.getLoadTime(STAGES_COUNT - 1, unit);
+            return tracker.getLoadTime(STAGES_MASK, unit);
         }
 
         // default time unit is nanoseconds
