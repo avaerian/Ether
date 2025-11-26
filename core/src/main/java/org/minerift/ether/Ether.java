@@ -199,7 +199,7 @@ public class Ether implements AutoCloseable {
                 .setPassword(config.getSqlPassword())
                 .build();
 
-        db = new SQLDatabase(login, IslandModel::new, UserModel::new);
+        Database db = new SQLDatabase(login, IslandModel::new, UserModel::new);
         try {
             DatabaseException result = db.accessSync((access) -> {
                 IslandModel islandModel = access.getModel(IslandModel.class);
