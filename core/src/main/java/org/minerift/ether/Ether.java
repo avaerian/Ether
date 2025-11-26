@@ -97,7 +97,7 @@ public class Ether implements AutoCloseable {
     public static final int STAGE_WORK_QUEUE;
     public static final int STAGE_NMS;
     
-    public static final int ALL_STAGES;
+    public static final int STAGES_MASK;
     public static final int STAGES_COUNT;
 
     static {
@@ -126,30 +126,30 @@ public class Ether implements AutoCloseable {
         }
 
         public long getLoadTime() {
-            return tracker.getLoadTime(STAGES_MASK, NANOSECONDS);
+            return tracker.getLoadTime(NANOSECONDS, STAGES_MASK);
         }
 
         public long getLoadTime(TimeUnit unit) {
-            return tracker.getLoadTime(STAGES_MASK, unit);
+            return tracker.getLoadTime(unit, STAGES_MASK);
         }
 
         // default time unit is nanoseconds
         public long getLoadTime(int stages) {
-            return tracker.getLoadTime(stages, NANOSECONDS);
+            return tracker.getLoadTime(NANOSECONDS, stages);
         }
 
-        public long getLoadTime(int stages, TimeUnit unit) {
-            return tracker.getLoadTime(stages, unit);
+        public long getLoadTime(TimeUnit unit, int stages) {
+            return tracker.getLoadTime(unit, stages);
         }
     }
     
     public static Ether.InitResult from(File pluginDir, Logger logger) throws EtherLoadException {
 
-        final StagedTimekeeper.Builder times = StagedTimekeeper.builder(stopwatch, STAGES_COUNT - 1);
+        final StagedTimekeeper.Builder times = StagedTimekeeper.builder(STAGES_MASK);
 
         // load configs
         times.start();
-        ConfigRegistry cfgs = new ConfigRegistry(pluginDir);
+        ConfigRegistry cfgs = new ConfigRegistry(/*pluginDir*/);
         try {
             cfgs.register(ConfigType.MAIN);
             cfgs.register(ConfigType.ISLAND_SPECS_LIST);
