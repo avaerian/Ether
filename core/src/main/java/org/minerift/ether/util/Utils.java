@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import org.minerift.ether.util.fn.IntBiConsumer;
+//import org.minerift.ether.util.log.Stopwatch;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -24,9 +25,10 @@ public class Utils {
         return (BiMap<K, V>) EMPTY_BIMAP;
     }
 
-    // more suited for Ether class; will refactor later
-    public static timekeep(Stopwatch stopwatch, Runnable exec, int stage, long[] epochsNs) {
-        throw new UnreachableException("unimplemented");
+    // TODO: review
+    @NeedsTesting
+    public static boolean isPow2(int i) {
+        return (i == Integer.highestOneBit(i));
     }
 
     /**
