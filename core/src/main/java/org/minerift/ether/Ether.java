@@ -283,7 +283,7 @@ public class Ether implements AutoCloseable {
         return workQueue;
     }
 
-    public NMSAccess getNms()
+    public NMSAccess getNms() {
         return nms;
     }
 
