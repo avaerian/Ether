@@ -24,8 +24,9 @@ public class NbtWriter extends NbtTraverser {
     // mirror of ctor for API uniformity
     @Experimental
     @NeedsTesting
-    public static NbtWriter from(ByteBuf buf, NbtOption.... options) {
-        return new NbtWriter(buf, Predicates.always(), options)
+    public static NbtWriter from(ByteBuf buf, NbtOption... options) {
+        return new NbtWriter(buf, Predicates.always(), options);
+    }
 
     /**
      * NOTE: when supplying an existing buf, ensure
@@ -40,7 +41,7 @@ public class NbtWriter extends NbtTraverser {
     }
 
     // tag selector has no function for writing
-    public NbtWriter(ByteBuf buf/*,boolean bigEndian*/, Predicate<TagHeader> tagSelector, NbtOption ... options) {
+    public NbtWriter(ByteBuf buf/*,boolean bigEndian*/, Predicate<TagHeader> tagSelector, NbtOption... options) {
         super(buf, tagSelector, options);
     }
 
