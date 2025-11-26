@@ -162,7 +162,7 @@ public class Ether implements AutoCloseable {
         // for config files that don't exist, this will create a new file
         cfgs.getAll().forEach(Config::save);
         long cfgMs = times.trackAndReset(STAGE_CFGS, MILLISECONDS);
-        logger.info(String.format("Configs registered in %d ms", cfgMs);
+        logger.info(String.format("Configs registered in %d ms", cfgMs));
 
         MainConfig config = Ether.getConfig(ConfigType.MAIN);
         logger.info("tileSize: " + config.getTileLengthChunks());
@@ -219,12 +219,13 @@ public class Ether implements AutoCloseable {
         Ether ether = new Ether(cfgs, logger, pluginDir, 
                 db, nms, workQueue, 
                 islands, invites, users);
-        return new InitResult(ether, epochsNs);
+        return new InitResult(ether, times.build());
     }
 
     // for IDE debugging, set -Dether.runInIde=true
     // when the plugin loads, a new Ether instance
     // will be generated and set from the plugin
+    // TODO
     protected static Ether init() {
         String debug = System.getProperty("ether.runInIde");
         if(debug != null && debug.equalsIgnoreCase("true")) {
@@ -325,6 +326,30 @@ public class Ether implements AutoCloseable {
         pluginDir = null;
     }
     
+    @org.minerift.ether.debug.Debug
+    public static class Debug extends Ether {
+    
+        public void setIslandManager(IslandManager islands) {
+            this.islands = islands;
+        }
+        
+        /*@Deprecated
+        public void setIslandGrid(DefaultIslandGrid grid) {
+            setIslandManager(new IslandManager(grid));
+        }*/
+
+        public void setIslandInviteManager(IslandInviteManager invites) {
+            this.invites = invites;
+        }
+
+        public void setUserManager(UserManager users) {
+            this.users = users;
+        }
+
+        public void setLogger(Logger log) {
+            this.log = log;
+        }
+    }
 
     public static class Uninit extends Ether {
         public static final String EX_MSG = "Ether seems to be uninitialized";
@@ -384,6 +409,7 @@ public class Ether implements AutoCloseable {
         }
     }
 
+    // TODO: needs review
     public enum Directory {
         SCHEMATICS("schems"),
 
@@ -397,34 +423,5 @@ public class Ether implements AutoCloseable {
         public String getDirName() {
             return dirName;
         }
-    }
-
-    /**
-     * Only to be used when debugging
-     */
-    @org.minerift.ether.debug.Debug
-    public static class Debug {
-
-        public static void setIslandManager(IslandManager manager) {
-            islandManager = manager;
-        }
-
-        public static void setIslandGrid(DefaultIslandGrid grid) {
-            setIslandManager(new IslandManager(grid));
-        }
-
-        public static void setIslandInviteManager(IslandInviteManager manager) {
-            inviteManager = manager;
-        }
-
-        public static void setUserManager(UserManager manager) {
-            userManager = manager;
-        }
-
-        public static void setLogger(Logger logger) {
-            Ether.logger = logger;
-        }
-
-        private Debug() {}
     }
 }
