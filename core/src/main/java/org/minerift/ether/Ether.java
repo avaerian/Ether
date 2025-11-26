@@ -329,6 +329,21 @@ public class Ether implements AutoCloseable {
     @org.minerift.ether.debug.Debug
     public static class Debug extends Ether {
     
+        public Debug(ConfigRegistry cfgs, Logger log, File pluginDir,
+                Database db, NMSAccess nms, WorkQueue workQueue,
+                IslandManager islands, IslandInviteManager invites,
+                UserManager users) {
+            super(cfgs, log, pluginDir,
+                    db, nms, workQueue,
+                    islands, invites, users);
+        }
+
+        public Debug() {
+            super(null, null, null,
+                    null, null, null,
+                    null, null, null);
+        }
+
         public void setIslandManager(IslandManager islands) {
             this.islands = islands;
         }
@@ -355,7 +370,9 @@ public class Ether implements AutoCloseable {
         public static final String EX_MSG = "Ether seems to be uninitialized";
 
         protected Uninit() {
-            
+            super(null, null, null,
+                    null, null, null,
+                    null, null, null);
         }
 
         @Override
