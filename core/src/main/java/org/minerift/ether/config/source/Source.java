@@ -1,4 +1,4 @@
-package org.minerift.ether.config;
+package org.minerift.ether.config.source;
 
 // TODO
 public interface Source {
