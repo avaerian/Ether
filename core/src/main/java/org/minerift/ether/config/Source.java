@@ -1,12 +1,19 @@
 package org.minerift.ether.config;
 
-//TODO
-@Deprecated
+// TODO
 public interface Source {
 
-    /*boolean createIfNotExists();
+    // returns false if already exists, or if creation fails
+    default boolean createIfNotExists() {
+        /*if(!exists()) {
+            return create();
+        }
+        return false;*/
+        return !exists() && create();
+    }
+
     boolean create();
     boolean exists();
-    boolean*/
+    //boolean 
 
 }
