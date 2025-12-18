@@ -1,25 +1,29 @@
 package org.minerift.ether.config;
 
-import org.minerift.ether.Ether;
-import org.minerift.ether.util.CanChange;
+import org.minerift.ether.config.source.Source;
 
-import java.io.FileNotFoundException;
-import java.util.logging.Level;
+// NOTE: writing a good equality check is extremely useful for checking
+//  for modifications between saving configs
+public abstract class Config<T extends Config<T>> {
 
-public abstract class Config<T extends Config<T>> extends CanChange {
+    // TODO: for mutability (because that seems to be the most appropriate approach), explore
+    //  locks and creating nice ways of updating an abundance of properties
 
-    public Config() {
-        setChanged(false);
+    //protected final ConfigRegistry registry;
+    /*protected final Source src;
+
+    public Config(Source src) {
+        this.src = src;
+    }*/
+
+
+
+    // TODO: move to config registry
+    public void save() throws ConfigWriteException {
+        ((ConfigCodec)getType().codec()).write(this, src);
     }
 
-    public void save() {
-        try {
-            getType().codec().write((T) this, getType().getFile());
-        } catch (ConfigFileWriteException ex) {
-            Ether.getLogger().log(Level.SEVERE, getType().getName() + " was unable to save: ", ex);
-        }
-    }
-
+    @Deprecated //FIXME
     public void saveIfChanged() {
         if(hasChanged()) {
             save();
@@ -28,18 +32,15 @@ public abstract class Config<T extends Config<T>> extends CanChange {
 
     // Loads from file again
     // Returns whether the file reloaded successfully
-    public boolean reload() {
+    // TODO: locking; move to config registry
+    public boolean reload() throws ConfigReadException {
+        final ConfigCodec<T, Source> codec = (ConfigCodec<T, Source>) getType().codec();
         T reload;
         try {
-            reload = getType().codec().read(getType());
-        } catch (FileNotFoundException ex) {
+            reload = codec.read(src);
+        } catch (ConfigNotFoundException ex) {
             reload = getType().getDefaultConfig();
-        } catch (ConfigFileReadException ex) {
-            // Config won't reload and log error to console for user to fix
-            Ether.getLogger().log(Level.SEVERE, String.format("Failed to read %s when reloading!", getType().getName()), ex);
-            return false;
         }
-        reload.save(); // once config has verified/loaded data, save verified data
         copyFrom(reload);
         return true;
     }
@@ -50,7 +51,7 @@ public abstract class Config<T extends Config<T>> extends CanChange {
     // to the primary config object
     protected abstract void copyFrom(T other);
 
-    public abstract ConfigType<T> getType();
+    public abstract ConfigType<T, ?> getType();
 
     public String getName() {
         return getType().getName();

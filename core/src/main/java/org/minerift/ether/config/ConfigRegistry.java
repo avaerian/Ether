@@ -1,53 +1,65 @@
 package org.minerift.ether.config;
 
-import org.minerift.ether.Ether;
+import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.config.source.Source;
+import org.minerift.ether.util.collect.Int2ObjectIdentityMap;
 
-import java.io.FileNotFoundException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // ConfigRegistry should only handle registry operations (registering + loading/reading, unloading/writing, unregistering)
-public class ConfigRegistry {
+public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
 
-    private final Map<ConfigType<?>, Config> configs;
+    protected final File dir;
+    protected final Logger logger;
 
-    public ConfigRegistry() {
-        this.configs = new HashMap<>();
+    protected final Int2ObjectIdentityMap<ConfigType<?,?>> types; // purely to store types
+    protected final Int2ObjectIdentityMap<Config> configs;
+    protected final Int2ObjectIdentityMap<Source> srcs;
+    protected final BitSet updatedCfgs;
+    //private
+
+    public ConfigRegistry(File dir, Logger logger) {
+        this.dir = dir;
+        this.logger = logger;
+        this.types = new Int2ObjectIdentityMap<>();
+        this.configs = new Int2ObjectIdentityMap<>();
+        this.srcs = new Int2ObjectIdentityMap<>();
+        this.updatedCfgs = new BitSet();
     }
 
     // Attempts to register a config by loading it
     // Returns the config read from the file
     // If a config file doesn't exist, return the default config
     // If a config fails when reading, delegate exception to user
-    public <T extends Config<T>> T register(ConfigType<T> type) throws ConfigFileReadException {
+    public <T extends Config<T>, S extends Source> T register(ConfigType<T, S> type, S src) throws ConfigReadException {
         T config;
         try {
-            config = type.codec().read(type);
-        } catch (FileNotFoundException ex) {
+            config = type.codec().read(src);
+        } catch (ConfigNotFoundException ex) {
             config = type.getDefaultConfig();
         }
-        configs.put(type, config);
+        types.put(type.id, type);
+        configs.put(type.id, config);
+        srcs.put(type.id, src);
         return config;
     }
-
-
 
     // Attempts to register a config by loading it
     // If the config fails to load, log the exception as a warning; the config will need to be registered again
     // If the config fails to load, return null
-    public <T extends Config<T>> T registerOrWarn(ConfigType<T> type) {
+    public <T extends Config<T>, S extends Source> T registerOrWarn(ConfigType<T, S> type, S src) {
         try {
-            return register(type);
-        } catch (ConfigFileReadException ex) {
-            Ether.getLogger().log(Level.WARNING, type.getName() + " was unable to load", ex);
+            return register(type, src);
+        } catch (ConfigReadException ex) {
+            logger.log(Level.WARNING, type.getName() + " was unable to load", ex);
             return null;
         }
     }
 
-    public <T extends Config<T>> T get(ConfigType<T> type) {
+    public <T extends Config<T>> T get(ConfigType<T, ?> type) {
         final T config = (T) configs.get(type);
         if(config == null) {
             throw new IllegalArgumentException(String.format("Config type %s was not found", type.getName()));
@@ -55,12 +67,48 @@ public class ConfigRegistry {
         return config;
     }
 
+    public <T extends Config<T>> void save(T cfg) throws ConfigWriteException {
+        int id = cfg.getType().id;
+        Source src = srcs.get(id);
+        ((ConfigType<T, Source>)cfg.getType()).codec().writeIt(cfg, src);
+    }
+
     public Collection<Config> getAll() {
         return configs.values();
     }
 
-    public Set<ConfigType<?>> getAllTypes() {
-        return configs.keySet();
+    public Set<ConfigType<?, ?>> getAllTypes() {
+        return new HashSet<>(types.values());
     }
 
+    @Override
+    public @NotNull Iterator<Entry> iterator() {
+        return new Iterator<>() {
+            int id = 0;
+
+            @Override
+            public boolean hasNext() {
+                return id < types.size();
+            }
+
+            @Override
+            public Entry next() {
+                Entry entry = new Entry(id, types.get(id), configs.get(id));
+                id++;
+                return entry;
+            }
+        };
+    }
+
+    public class Entry {
+        public final int id;
+        public final ConfigType<?, ?> type;
+        public final Config config;
+
+        public Entry(int id, ConfigType<?, ?> type, Config config) {
+            this.id = id;
+            this.type = type;
+            this.config = config;
+        }
+    }
 }
