@@ -2,6 +2,7 @@ package org.minerift.ether.config.main;
 
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.sql.SQLDialect;
 import org.minerift.ether.schematic.SchematicType;
@@ -11,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 public class MainConfig extends Config<MainConfig> {
 
-    public static final MainConfigCodec CODEC = MainConfigCodec.CODEC;
     public static final int CHUNK_SIZE = 16;
     public static final int MIN_TILE_CHUNKS = 3;
     public static final int MIN_TILE_SIZE = MIN_TILE_CHUNKS * CHUNK_SIZE; // 3 chunks * 16 blocks/chunk = 48 blocks
@@ -34,20 +34,18 @@ public class MainConfig extends Config<MainConfig> {
 
     // Default values for config
     public MainConfig() {
-        setTileLengthChunks(9); // default value for now
-        setTileHeight(90);
-        setTileAccessibleAreaBlocks(180); // default value for now; this is subject to change
-        setInviteInvalidateAfter(TimeUnit.MINUTES.toMillis(2));
+        this.tileLengthChunks = 9; // default value for now
+        this.tileHeight = 90;
+        this.tileAccessibleAreaBlocks = 180; // default value for now; this is subject to change
+        this.inviteInvalidateAfter = TimeUnit.MINUTES.toMillis(2);
 
-        setPersistMethod(Database.Type.SQL);
-        setSqlDialect(SQLDialect.H2);
-        setSqlUrl("");
-        setSqlUsername("root");
-        setSqlPassword("");
+        this.dbType = Database.Type.SQL;
+        this.sqlDialect = SQLDialect.H2;
+        this.sqlUrl = "";
+        this.sqlUsername = "root";
+        this.sqlPassword = "";
 
-        setDefaultSchemType(SchematicType.SPONGE);
-
-        setChanged(false);
+        this.defaultSchemType = SchematicType.SPONGE;
     }
 
     // Getters
@@ -99,6 +97,7 @@ public class MainConfig extends Config<MainConfig> {
         return defaultSchemType;
     }
 
+    // TODO: review use of setters; move to use Builder pattern once more for immutability
     // Setters
     public void setPersistMethod(Database.Type dbType) {
         this.dbType = dbType;
@@ -106,37 +105,30 @@ public class MainConfig extends Config<MainConfig> {
 
     public void setSqlDialect(SQLDialect sqlDialect) {
         this.sqlDialect = sqlDialect;
-        setChanged(true);
     }
 
     public void setSqlUrl(String sqlUrl) {
         this.sqlUrl = sqlUrl;
-        setChanged(true);
     }
 
     public void setSqlUsername(String sqlUsername) {
         this.sqlUsername = sqlUsername;
-        setChanged(true);
     }
 
     public void setSqlPassword(String sqlPassword) {
         this.sqlPassword = sqlPassword;
-        setChanged(true);
     }
 
     public void setInviteInvalidateAfter(long ms) {
         this.inviteInvalidateAfter = ms;
-        setChanged(true);
     }
 
     public void setTileLengthChunks(int tileLengthChunks) {
         this.tileLengthChunks = tileLengthChunks;
-        setChanged(true);
     }
 
     public void setDefaultSchemType(SchematicType<?> type) {
         this.defaultSchemType = type;
-        setChanged(true);
     }
 
     /*
@@ -159,12 +151,10 @@ public class MainConfig extends Config<MainConfig> {
 
     public void setTileHeight(int tileHeight) {
         this.tileHeight = tileHeight;
-        setChanged(true);
     }
 
     public void setTileAccessibleAreaBlocks(int tileAccessibleAreaBlocks) {
         this.tileAccessibleAreaBlocks = tileAccessibleAreaBlocks;
-        setChanged(true);
     }
 
     @Override
@@ -183,7 +173,6 @@ public class MainConfig extends Config<MainConfig> {
 
             this.defaultSchemType = o.defaultSchemType;
 
-            setChanged(true);
         }
     }
 
@@ -204,7 +193,7 @@ public class MainConfig extends Config<MainConfig> {
     }
 
     @Override
-    public ConfigType<MainConfig> getType() {
+    public ConfigType<MainConfig, FileSource> getType() {
         return ConfigType.MAIN;
     }
 }

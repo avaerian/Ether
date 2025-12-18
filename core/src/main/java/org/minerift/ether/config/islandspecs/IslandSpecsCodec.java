@@ -2,8 +2,9 @@ package org.minerift.ether.config.islandspecs;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.config.ConfigCodec;
-import org.minerift.ether.config.ConfigFileReadException;
-import org.minerift.ether.config.ConfigFileWriteException;
+import org.minerift.ether.config.ConfigReadException;
+import org.minerift.ether.config.ConfigWriteException;
+import org.minerift.ether.config.source.DirectorySource;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.nbt.*;
 import org.minerift.ether.util.nbt.tags.*;
@@ -19,21 +20,21 @@ import java.nio.file.Path;
 
 import static org.minerift.ether.util.nbt.tags.NbtOptions.USE_NUNBT_IO;
 
-public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
+public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySource> {
 
-    public static final IslandSpecsCodec CODEC = new IslandSpecsCodec();
-
-    private IslandSpecsCodec() {
-        super(TYPE_DIR);
-    }
+    public static final IslandSpecsCodec INST = new IslandSpecsCodec();
 
     @Override
-    protected IslandSpecsConfig readIt(File dir) throws ConfigFileReadException {
+    protected IslandSpecsConfig readIt(DirectorySource src) throws ConfigReadException {
+        /* START MOVE THIS OUT OF HERE */
+        final File dir = src.getDirectory();
         Preconditions.checkArgument(dir.exists(), dir.getName() + " does not exist");
         Preconditions.checkArgument(dir.isDirectory(), dir.getName() + " must be a directory");
+        /* END MOVE THIS OUT OF HERE */
+
         IslandSpecsConfig config = new IslandSpecsConfig();
 
-        //  parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler )<- shits and giggles
+        // parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler )<- shits and giggles
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(dir.toPath(), "*.spec")) {
             for(Path p : stream) {
                 try {
@@ -51,14 +52,14 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
                 }
             }
         } catch (IOException ex) {
-            throw new ConfigFileReadException(ex);
+            throw new ConfigReadException(ex);
         }
 
         return config;
     }
 
     @Debug
-    public static void main(String[] args) throws ConfigFileWriteException {
+    public static void main(String[] args) throws ConfigWriteException {
 
         /*IslandSpec spec = new IslandSpec();
         spec.setIslandName("Default");
@@ -75,14 +76,14 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
     }
 
     @Override
-    protected void writeIt(IslandSpecsConfig config, File dir) throws ConfigFileWriteException {
-
+    protected void writeIt(IslandSpecsConfig config, DirectorySource src) throws ConfigWriteException {
+        final File dir = src.getDirectory();
         final Path dirPath = dir.toPath();
         if(!dir.exists()) {
             try {
                 Files.createDirectories(dirPath);
             } catch (IOException ex) {
-                throw new ConfigFileWriteException("Failed to create directories", ex);
+                throw new ConfigWriteException("Failed to create directories", ex);
             }
         }
 
@@ -112,7 +113,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
             try(FileChannel out = FileChannel.open(spec.getFilePath())) {
                 nbt.dump(out);
             } catch (IOException e) {
-                throw new ConfigFileWriteException("Failed to write NbtWriter buffer to file", e);
+                throw new ConfigWriteException("Failed to write NbtWriter buffer to file", e);
             }
         }
 
