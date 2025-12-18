@@ -38,7 +38,7 @@ public class YamlConfigView {
         this(yamlConfig, yamlConfig);
     }
 
-    public <T> Optional<T> get(Class<T> expectedClazz, String path) throws ConfigFileReadException {
+    public <T> Optional<T> get(Class<T> expectedClazz, String path) throws ConfigReadException {
         final Object val = head.get(path, null);
         if(val == null) {
             return Optional.empty();
@@ -47,7 +47,7 @@ public class YamlConfigView {
         if(val.getClass().isAssignableFrom(expectedClazz)) { // TODO: change to expectedClazz.isInstance(val) ?
             return Optional.of(expectedClazz.cast(val));
         }
-        throw new ConfigFileReadException(String.format("Expected type %s for path %s, got type %s", expectedClazz.getName(), path, val.getClass().getName()));
+        throw new ConfigReadException(String.format("Expected type %s for path %s, got type %s", expectedClazz.getName(), path, val.getClass().getName()));
     }
 
     public void set(String path, Object obj) {
@@ -59,11 +59,11 @@ public class YamlConfigView {
     }
 
     // Save the yaml config to the specified file
-    public void save(File file) throws ConfigFileWriteException {
+    public void save(File file) throws ConfigWriteException {
         try {
             yamlConfig.save(file);
         } catch (IOException ex) {
-            throw new ConfigFileWriteException("Failed to save config", ex);
+            throw new ConfigWriteException("Failed to save config", ex);
         }
     }
 
