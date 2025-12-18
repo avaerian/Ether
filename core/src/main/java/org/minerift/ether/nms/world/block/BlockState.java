@@ -12,12 +12,12 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
 
     static BlockState<?> of(String id) throws BlockStateNotFoundException {
-        return Ether.getNms().getConverter().asBlockState(id);
+        return Ether.inst().getNms().getConverter().asBlockState(id);
     }
 
     // Nullable to allow throwing exception at runtime without explicit exception handling
     static BlockState<?> of(String id, @Nullable String fallback) {
-        return Ether.getNms().getConverter().asBlockState(id, fallback);
+        return Ether.inst().getNms().getConverter().asBlockState(id, fallback);
     }
 
     static BlockState<?> of(NamespacedKey key) throws BlockStateNotFoundException {

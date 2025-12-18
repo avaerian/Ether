@@ -37,7 +37,7 @@ public class Maths {
     }
 
     public static Vec2i getTileAt(int blockX, int blockZ) {
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         int tileX = blockX / config.getTileLengthBlocks();
         int tileZ = blockZ / config.getTileLengthBlocks();
         if(blockX < 0) tileX--;
@@ -50,7 +50,7 @@ public class Maths {
     }
 
     public static Vec3i getVec3iAt(Vec2i tile) {
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         return new Vec3i(tile.getX() * config.getTileLengthBlocks(), config.getTileHeight(), tile.getZ() * config.getTileLengthBlocks());
     }
 

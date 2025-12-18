@@ -1,22 +1,35 @@
 package org.minerift.ether;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.minerift.ether.debug.*;
 import org.minerift.ether.listeners.BlockBreakListener;
 import org.minerift.ether.listeners.PlayerJoinQuitListener;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // Represents the Minecraft plugin (handles plugin API stuff here)
 public class EtherPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        Ether.onLoad(this);
+        // no-op
     }
 
     @Override
     public void onEnable() {
-        Ether.onEnable();
+        final Logger logger = getLogger();
+        final Ether.InitResult init;
+        try {
+            init = Ether.from(getDataFolder(), logger);
+        } catch (EtherLoadException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+            disable();
+            return;
+        }
+        Ether.INST = init.ether;
 
         // Register debug commands
         getCommand("island").setExecutor(new IslandDebugCommand());
@@ -32,13 +45,14 @@ public class EtherPlugin extends JavaPlugin {
         getCommand("dbgbvt").setExecutor(new TransformDebugCommand());
         getCommand("dbgbb").setExecutor(new BoundingBoxDebugCommand());
 
-        Bukkit.getPluginManager().registerEvents(new BlockBreakListener(), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
+        final PluginManager pm = Bukkit.getPluginManager();
+        pm.registerEvents(new BlockBreakListener(), this);
+        pm.registerEvents(new PlayerJoinQuitListener(), this);
     }
 
     @Override
     public void onDisable() {
-        Ether.onDisable();
+        Ether.inst().close();
     }
 
     public void disable() {

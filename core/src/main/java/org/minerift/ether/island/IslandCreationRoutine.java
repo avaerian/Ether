@@ -24,7 +24,7 @@ public class IslandCreationRoutine {
         final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
         final World islandWorld = plr.getWorld(); // TODO: change this to island world (add config thing and load in Ether class)
 
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         //final SchematicsConfig schemConfig = Ether.getConfig(ConfigType.SCHEM_LIST);
 
         // Grid tile starts bottom left
@@ -50,7 +50,7 @@ public class IslandCreationRoutine {
         // Paste island at tile
         // Refer to the Island Placement Graph (https://www.desmos.com/calculator/fuwvk1rgkf) for easy maths and representation
         //final File schemFile = new File(Ether.getPluginDir(), "test_schem1.schem"); // TODO: move this into function parameter
-        File schemFile = Ether.getPluginFile("test_schem1.schem");
+        File schemFile = Ether.inst().getPluginFile("test_schem1.schem");
 
         // Get schematic paste position
         // OLD CODE:

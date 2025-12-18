@@ -62,7 +62,7 @@ public class IslandManager {
     // creates island data, places island in world, and updates user island refs
     public Island createIsland(World world, IslandSpec spec, EtherUser owner) {
 
-        MainConfig cfg = Ether.getConfig(ConfigType.MAIN);
+        MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
 
         final Vec2i tile = grid.getNextTile();
         System.out.println("Tile = " + tile);
@@ -101,7 +101,7 @@ public class IslandManager {
                 .setTopRightBound(trChunk)
                 .setDeleted(false);
 
-        new PermissionSet().set();
+        //new PermissionSet().set();
 
         return builder.build();
     }

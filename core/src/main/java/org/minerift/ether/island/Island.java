@@ -78,7 +78,7 @@ public class Island extends CanChange {
     }
 
     public boolean isInAccessibleRegion(Vec3i loc) {
-        final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         final int offset = (config.getTileLengthBlocks() / 2) - (config.getTileAccessibleAreaBlocks() / 2);
 
         Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
@@ -89,7 +89,7 @@ public class Island extends CanChange {
 
     public List<EtherUser> getTeamMembers() {
         List<EtherUser> users = new ArrayList<>(members.size());
-        members.forEach(uuid -> users.add(Ether.getUserManager().getUser(uuid).orElse(null)));
+        members.forEach(uuid -> users.add(Ether.inst().getUserManager().getUser(uuid).orElse(null)));
         return users;
     }
 

@@ -10,11 +10,11 @@ import org.minerift.ether.nms.NativeTypeConversions;
 public interface Biome<NB> {
 
     static Biome<?> of(String id) throws BiomeNotFoundException {
-        return Ether.getNms().getConverter().asBiome(id);
+        return Ether.inst().getNms().getConverter().asBiome(id);
     }
 
     static Biome<?> of(String id, @Nullable String fallback) {
-        return Ether.getNms().getConverter().asBiome(id, fallback);
+        return Ether.inst().getNms().getConverter().asBiome(id, fallback);
     }
 
 
