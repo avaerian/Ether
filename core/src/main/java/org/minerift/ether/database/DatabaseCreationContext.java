@@ -7,14 +7,16 @@ import java.util.function.Function;
 public class DatabaseCreationContext {
 
     protected Map<Class<? extends Model>, Model<?, ?>> models;
+    // TODO: for foreign fields from different tables referencing each other, could queue up
+    //   here and experiment; needs work and planning for later
 
     public DatabaseCreationContext(Map<Class<? extends Model>, Model<?, ?>> models) {
         this.models = models;
     }
 
-    public void registerModels(Function<DatabaseCreationContext, Model<?, ?>> ... models) {
-        for(var model : models) {
-            registerModel(model.apply(this));
+    public void registerModels(Function<DatabaseCreationContext, Model<?, ?>>... models) {
+        for(var modelCreator : models) {
+            registerModel(modelCreator.apply(this));
         }
     }
 

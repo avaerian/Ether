@@ -5,14 +5,17 @@ import org.minerift.ether.database.sql.fallback.Fallback;
 import org.minerift.ether.database.sql.adapters.Adapter;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static org.minerift.ether.database.sql.SQLUtils.getPossibleFallback;
 
-public class ModelCreationContext<MO> {
+public class ModelCreationContext<MO> implements AutoCloseable {
 
-    private final DatabaseCreationContext dbCtx;
-    private final Model<MO, ?> model;
-    private final ImmutableMap.Builder<String, Field<MO, ?, ?>> fields;
+    private DatabaseCreationContext dbCtx;
+    private Model<MO, ?> model;
+    private ImmutableMap.Builder<String, Field<MO, ?, ?>> fields; // TODO: review usage of this; must be a better way
+
+    private String tableName;
 
     protected ModelCreationContext(DatabaseCreationContext dbCtx, Model<MO, ?> model) {
         this.dbCtx = dbCtx;
@@ -20,8 +23,20 @@ public class ModelCreationContext<MO> {
         this.fields = ImmutableMap.builder();
     }
 
+    @Override
+    public void close() {
+        this.dbCtx = null;
+        this.model = null;
+        this.fields = null;
+        this.tableName = null;
+    }
+
     public void setTableName(String tableName) {
-        model.tableName = tableName;
+        this.tableName = tableName;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public ImmutableMap<String, Field<MO,?,?>> getFields() {
@@ -35,7 +50,7 @@ public class ModelCreationContext<MO> {
     }
 
     private <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader, Fallback<T, F> fallback) {
-        Field<MO, T, F> field = new Field<>(name, type, objFieldReader, fallback);
+        Field<MO, T, F> field = new Field<>(name, type, model, objFieldReader, fallback);
         fields.put(field.getName(), field);
         return field;
     }
@@ -45,14 +60,13 @@ public class ModelCreationContext<MO> {
     }
 
     private <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
-        Field.FieldWithAdapter<MO, C, T, F> field = new Field.FieldWithAdapter<>(name, type, objFieldReader, adapter, fallback);
+        Field.FieldWithAdapter<MO, C, T, F> field = new Field.FieldWithAdapter<>(name, type, model, objFieldReader, adapter, fallback);
         fields.put(field.getName(), field);
         return field;
     }
 
     // The adapter, if any, is copied over as well, so no adapter needs to be inputted. The object field reader must return T or the complex type to get T
-    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<DataType<T>, DataType<T>> addedFlags, Function<MO, ?> objFieldReader) {
-
+    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, UnaryOperator<DataType<T>> addedFlags, Function<MO, ?> objFieldReader) {
         Field<MO, T, F> result;
         DataType<T> type = addedFlags == null ? parentField.requestedDataType : addedFlags.apply(parentField.requestedDataType);
         try {
@@ -63,18 +77,17 @@ public class ModelCreationContext<MO> {
         }
 
         // NOTE: this is for resolving queries that may need to update multiple tables for an operation (i.e. delete op)
-        Model parentModel = getModel(parentField.getOwner());
+        Model parentModel = parentField.getOwner();
         parentModel.foreignFields.addDependent(parentField, model, result);
 
         return result;
     }
 
-    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
+    public <T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
         return createForeignField(parentField, null, objFieldReader);
     }
 
     public <MODEL extends Model> MODEL getModel(Class<MODEL> modelClazz) {
         return dbCtx.getModel(modelClazz);
     }
-
 }
