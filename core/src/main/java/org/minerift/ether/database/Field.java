@@ -2,23 +2,23 @@ package org.minerift.ether.database;
 
 import org.minerift.ether.database.sql.fallback.Fallback;
 import org.minerift.ether.database.sql.adapters.Adapter;
-import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.Utils;
 
+import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
-// MO is Model Object (class that is being modeled, not model class itself)
+// MO is Model Object (class that is being modeled, not Model extended class itself)
 // T is SQL data type
 // F is fallback SQL data type
 public class Field<MO, T, F> {
-
-    protected final Class<? extends Model> creatorClazz;
+    protected final WeakReference<Model<MO, ?>> model; // NOTE: maybe switch WeakReference? don't want to hold models hostage
     protected final String name;
     protected final DataType<T> requestedDataType; // original type that may need a fallback
     protected final Function<MO, ?> objFieldReader;
     protected final Fallback<T, F> fallback; // safe data type supported across all dialects
 
 
+    @Deprecated
     private Class<? extends Model> getFieldCreator() {
         StackWalker.StackFrame stackFrame = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                 .walk(s -> s.filter(sf -> Model.class.isAssignableFrom(sf.getDeclaringClass()))
@@ -28,26 +28,10 @@ public class Field<MO, T, F> {
         return (Class<? extends Model>) stackFrame.getDeclaringClass();
     }
 
-    protected Field(String name, DataType<T> type, Function<MO, ?> objFieldReader, Fallback<T, F> fallback) {
-        // Get class that called this ctor
-        // If class is a model-type, set creatorClazz
-        // TODO: Else, set to null and log to user about this field being a debug or unit testing field
+    protected Field(String name, DataType<T> type, Model<MO, ?> model, Function<MO, ?> objFieldReader, Fallback<T, F> fallback) {
         this.name = name;
         this.requestedDataType = type;
-        this.creatorClazz = getFieldCreator();
-
-        //System.out.println(name + ": " + getSQLDataType().getName() + ", " + creatorClazz); // debug
-
-        this.objFieldReader = objFieldReader;
-        this.fallback = fallback;
-    }
-
-    @Debug
-    private Field(String name, DataType<T> type, Function<MO, ?> objFieldReader, Fallback<T, F> fallback, Class<? extends Model> creatorClazz) {
-        this.name = name.toUpperCase();
-        this.creatorClazz = creatorClazz;
-        this.requestedDataType = type;
-
+        this.model = new WeakReference<>(model);
         this.objFieldReader = objFieldReader;
         this.fallback = fallback;
     }
@@ -69,8 +53,12 @@ public class Field<MO, T, F> {
         return requestedDataType;
     }
 
-    public Class<? extends Model> getOwner() {
-        return creatorClazz;
+    public Model<MO, ?> getOwner() {
+        return model.get();
+    }
+
+    public WeakReference<Model<MO, ?>> getModelReal() {
+        return model;
     }
 
     public T readField(MO obj) {
@@ -105,17 +93,17 @@ public class Field<MO, T, F> {
 
     @Override
     public String toString() {
-        return "Field{" + getName() + ", model=" + creatorClazz.getSimpleName() + "}";
+        return "Field{" + getName() + ", model=" + model.get().getClass().getSimpleName() + "}";
     }
 
-    // TODO: review both methods below
     public <C> Field.FieldWithAdapter<MO, C, T, F> asComplexField() throws ClassCastException {
-        if(!(this instanceof Field.FieldWithAdapter<?,?,?,?> fieldWithAdapter)) {
-            throw new ClassCastException("Attempted to cast a db field as a complex (adapted) db field!");
+        if(!(this instanceof Field.FieldWithAdapter<?,?,?,?> fieldWithAdapter)) { // TODO: test with new generics
+            throw new ClassCastException("Attempted to cast a db field as a complex (adapted) db field");
         }
-        return (Field.FieldWithAdapter<MO, C, T, F>) fieldWithAdapter;
+        return (FieldWithAdapter<MO, C, T, F>) fieldWithAdapter;
     }
 
+    @Deprecated
     public <C> Field.FieldWithAdapter<MO, C, T, F> asComplexField(Class<C> complexTypeClazz) throws ClassCastException {
         return asComplexField();
     }
@@ -125,8 +113,8 @@ public class Field<MO, T, F> {
     public static class FieldWithAdapter<M, C, T, F> extends Field<M, T, F> {
         public final Adapter<C, T> adapter;
 
-        protected FieldWithAdapter(String name, DataType<T> type, Function<M, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
-            super(name, type, objFieldReader, fallback);
+        protected FieldWithAdapter(String name, DataType<T> type, Model<M, ?> model, Function<M, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
+            super(name, type, model, objFieldReader, fallback);
             this.adapter = adapter;
         }
 
