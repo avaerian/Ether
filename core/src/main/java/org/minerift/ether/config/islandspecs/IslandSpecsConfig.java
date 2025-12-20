@@ -7,30 +7,30 @@ import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.source.DirectorySource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 public class IslandSpecsConfig extends Config<IslandSpecsConfig> implements Iterable<IslandSpec> {
 
-    public static final IslandSpecsCodec CODEC = IslandSpecsCodec.INST;
+    protected List<IslandSpec> islandSpecs;
 
-    protected List<IslandSpec> islandSpecs; // FIXME: make private and add methods that modify setChanged()
-
-    public IslandSpecsConfig() {
-        this.islandSpecs = new ArrayList<>();
+    public IslandSpecsConfig(ConfigRegistry reg, DirectorySource src) {
+        super(reg, src);
+        this.islandSpecs = Collections.emptyList();
     }
 
-    // TODO: review
     public boolean add(IslandSpec spec) {
+        if(islandSpecs == Collections.EMPTY_LIST) {
+            islandSpecs = new ArrayList<>();
+        }
         islandSpecs.add(spec);
         return true;
     }
 
     @Override
     protected void copyFrom(IslandSpecsConfig other) {
-        if(!other.equals(this)) {
-            this.islandSpecs = other.islandSpecs;
-        }
+        this.islandSpecs = other.islandSpecs;
     }
 
     @Override

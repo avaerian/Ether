@@ -17,6 +17,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.minerift.ether.util.nbt.tags.NbtOptions.USE_NUNBT_IO;
 
@@ -25,16 +27,15 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
     public static final IslandSpecsCodec INST = new IslandSpecsCodec();
 
     @Override
-    protected IslandSpecsConfig readIt(DirectorySource src) throws ConfigReadException {
+    protected void readIt(IslandSpecsConfig cfg, DirectorySource src) throws ConfigReadException {
         /* START MOVE THIS OUT OF HERE */
         final File dir = src.getDirectory();
         Preconditions.checkArgument(dir.exists(), dir.getName() + " does not exist");
         Preconditions.checkArgument(dir.isDirectory(), dir.getName() + " must be a directory");
         /* END MOVE THIS OUT OF HERE */
 
-        IslandSpecsConfig config = new IslandSpecsConfig();
-
-        // parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler )<- shits and giggles
+        List<IslandSpec> specs = new ArrayList<>(16);
+        // parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler)<- shits and giggles
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(dir.toPath(), "*.spec")) {
             for(Path p : stream) {
                 try {
@@ -44,7 +45,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
                     CompoundTag root = nbt.readNextTag(TagTypes.COMPOUND); //FIXME: review positioning reader/writer indices
 
                     IslandSpec spec = IslandSpec.of(root);
-                    config.add(spec);
+                    specs.add(spec);
                 } catch (IslandSpecLoadException | NbtReadException | NoTagTypeFoundException e) {
                     // TODO: logger
                     // skip this file and log
@@ -54,29 +55,11 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
         } catch (IOException ex) {
             throw new ConfigReadException(ex);
         }
-
-        return config;
-    }
-
-    @Debug
-    public static void main(String[] args) throws ConfigWriteException {
-
-        /*IslandSpec spec = new IslandSpec();
-        spec.setIslandName("Default");
-        spec.setDescription(List.of("Hello, world!", "Goodbye, world!"));
-        spec.setIconData("SNBT data here or something idk");
-
-        IslandSpecsConfig config = new IslandSpecsConfig();
-        config.islandSpecs.add(spec);
-
-        IslandSpecsCodec writer = new IslandSpecsCodec();
-        // TODO: update reference
-        /*writer.writeIt(config, Secrets.LOCAL_ISLAND_SPECS_DIR.transform(File::new));*/
-
+        cfg.islandSpecs = specs;
     }
 
     @Override
-    protected void writeIt(IslandSpecsConfig config, DirectorySource src) throws ConfigWriteException {
+    protected void writeIt(IslandSpecsConfig cfg, DirectorySource src) throws ConfigWriteException {
         final File dir = src.getDirectory();
         final Path dirPath = dir.toPath();
         if(!dir.exists()) {
@@ -87,7 +70,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
             }
         }
 
-        for(IslandSpec spec : config) {
+        for(IslandSpec spec : cfg) {
             CompoundTag tag = spec.serializeNbt();
 
             // first, write to buffer

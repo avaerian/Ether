@@ -1,6 +1,7 @@
 package org.minerift.ether.config.main;
 
 import org.minerift.ether.config.Config;
+import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.database.Database;
@@ -33,7 +34,8 @@ public class MainConfig extends Config<MainConfig> {
     private SchematicType<?> defaultSchemType;
 
     // Default values for config
-    public MainConfig() {
+    public MainConfig(ConfigRegistry reg, FileSource src) {
+        super(reg, src);
         this.tileLengthChunks = 9; // default value for now
         this.tileHeight = 90;
         this.tileAccessibleAreaBlocks = 180; // default value for now; this is subject to change

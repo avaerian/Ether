@@ -19,41 +19,37 @@ public class MainConfigCodec extends ConfigCodec<MainConfig, FileSource> {
     public static final MainConfigCodec INST = new MainConfigCodec();
 
     @Override
-    public MainConfig readIt(FileSource src) throws ConfigReadException {
+    public void readIt(MainConfig cfg, FileSource src) throws ConfigReadException {
 
         try {
-            YamlConfigView view = YamlConfigView.from(file);
-            MainConfig config = new MainConfig();
+            YamlConfigView view = YamlConfigView.from(src.getFile());
 
-            config.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile height")));
-            config.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile size")));
-            config.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile accessible area")));
+            cfg.setTileHeight(         view.get(Integer.class, TILE_HEIGHT_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile height")));
+            cfg.setTileLengthChunks(     view.get(Integer.class, TILE_SIZE_CHUNKS_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile size")));
+            cfg.setTileAccessibleAreaBlocks( view.get(Integer.class, TILE_ACCESSIBLE_AREA_PATH).orElseThrow(() -> new ConfigReadException("Failed to read tile accessible area")));
 
             // TODO: this could use some review for better exception explanations, but this is fine for now
             Database.Type dbType = view.get(String.class, PERSIST_METHOD)
                     .map(Database.Type::valueOfSilent)
                     .orElseThrow(() -> new ConfigReadException("Failed to read database type (persistence method)"));
 
-            config.setPersistMethod(dbType);
+            cfg.setPersistMethod(dbType);
             switch(dbType) {
                 case SQL -> {
                     SQLDialect dialect = view.get(String.class, SQL_DIALECT)
                             .map(SQLDialect::valueOfSilent)
                             .orElseThrow(() -> new ConfigReadException("Failed to read SQL dialect"));
-                    config.setSqlDialect(dialect);
+                    cfg.setSqlDialect(dialect);
 
-                    config.setSqlUrl(view.get(String.class, SQL_URL).orElse("")); // NOTE: PostgreSQL and MySQL should use this, otherwise this can be excluded
-                    config.setSqlUsername(view.get(String.class, SQL_USERNAME).orElseThrow(() -> new ConfigReadException("Failed to read SQL username")));
-                    config.setSqlPassword(view.get(String.class, SQL_PASSWORD).orElseThrow(() -> new ConfigReadException("Failed to read SQL password")));
+                    cfg.setSqlUrl(view.get(String.class, SQL_URL).orElse("")); // NOTE: PostgreSQL and MySQL should use this, otherwise this can be excluded
+                    cfg.setSqlUsername(view.get(String.class, SQL_USERNAME).orElseThrow(() -> new ConfigReadException("Failed to read SQL username")));
+                    cfg.setSqlPassword(view.get(String.class, SQL_PASSWORD).orElseThrow(() -> new ConfigReadException("Failed to read SQL password")));
                 }
                 case BIN -> throw new UnsupportedOperationException("unimplemented");
                 default -> throw new UnsupportedOperationException(dbType + " has no impl right now");
             }
 
 
-            config.setChanged(false);
-
-            return config;
         } catch (IllegalArgumentException ex) { // Thrown when failing to set values
             throw new ConfigReadException(ex);
         } catch (IOException ex) {
@@ -62,30 +58,30 @@ public class MainConfigCodec extends ConfigCodec<MainConfig, FileSource> {
     }
 
     @Override
-    public void writeIt(MainConfig config, FileSource src) throws ConfigWriteException {
+    public void writeIt(MainConfig cfg, FileSource src) throws ConfigWriteException {
         try {
-            FileChannel file = src.openFileChannel(WRITE);
-            final YamlConfigView view = YamlConfigView.from(file); // TODO: viewOrDefault method for getting a resource as a default format or just setting the values
+            //FileChannel file = src.openFileChannel(WRITE);
+            final YamlConfigView view = YamlConfigView.from(src.getFile()); // TODO: viewOrDefault method for getting a resource as a default format or just setting the values
 
             // General island settings
-            view.set(TILE_HEIGHT_PATH,          config.getTileHeight());
-            view.set(TILE_SIZE_CHUNKS_PATH,     config.getTileLengthChunks());
-            view.set(TILE_ACCESSIBLE_AREA_PATH, config.getTileAccessibleAreaBlocks());
+            view.set(TILE_HEIGHT_PATH,          cfg.getTileHeight());
+            view.set(TILE_SIZE_CHUNKS_PATH,     cfg.getTileLengthChunks());
+            view.set(TILE_ACCESSIBLE_AREA_PATH, cfg.getTileAccessibleAreaBlocks());
 
             // Database settings
-            view.set(PERSIST_METHOD, config.getPersistMethod().name());
-            switch(config.getPersistMethod()) {
+            view.set(PERSIST_METHOD, cfg.getPersistMethod().name());
+            switch(cfg.getPersistMethod()) {
                 case SQL -> {
-                    view.set(SQL_DIALECT, config.getSqlDialect().name());
-                    view.set(SQL_URL, config.hasSqlUrl() ? config.getSqlUrl() : "");
-                    view.set(SQL_USERNAME, config.getSqlUsername());
-                    view.set(SQL_PASSWORD, config.getSqlPassword());
+                    view.set(SQL_DIALECT, cfg.getSqlDialect().name());
+                    view.set(SQL_URL, cfg.hasSqlUrl() ? cfg.getSqlUrl() : "");
+                    view.set(SQL_USERNAME, cfg.getSqlUsername());
+                    view.set(SQL_PASSWORD, cfg.getSqlPassword());
                 }
                 case BIN -> throw new UnsupportedOperationException("Unimplemented");
-                default -> throw new UnsupportedOperationException(config.getPersistMethod() + " has no impl right now");
+                default -> throw new UnsupportedOperationException(cfg.getPersistMethod() + " has no impl right now");
             }
 
-            view.save(file);
+            view.save(src.getFile());
         } catch (IOException ex) {
             throw new ConfigWriteException(ex);
         }
