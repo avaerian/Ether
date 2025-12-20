@@ -1,9 +1,12 @@
 package org.minerift.ether.database.sql;
 
 //import org.jooq.util.sqlite.SQLiteDataType; // saved as a reference
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.Utils;
 
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 import static org.minerift.ether.database.sql.SQLDataType.Param.*;
 
@@ -53,36 +56,60 @@ public enum SQLDataType {
         LEN, PRECISION, SCALE
     }
 
+    private static final Param[] NO_PARAMS = new Param[0];
+
     private final String name;
+    private final String rawName;
     private final Param[] params;
     SQLDataType(String name) {
         //SQLiteDataType
-        this.name = name;
+        // numeric(p, s)
+        this.rawName = name;
         int i = name.indexOf('(');
-        LinkedList<Param> params = new LinkedList<>();
-        if(i++ != -1) {
-            char c = name.charAt(i++);
-            do {
-                Param param = switch (c) {
+        if(i == -1) { // not found
+            this.name = name;
+            this.params = null;
+        } else { // found
+            List<Param> params = new LinkedList<>();
+
+            this.name = name.substring(0, i++); // move forward from the '('
+            while(name.charAt(i) != ')') {
+                Param param = switch (name.charAt(i)) {
                     case 'l' -> LEN;
                     case 'p' -> PRECISION;
                     case 's' -> SCALE;
-                    default -> throw new IllegalStateException("Unexpected parameter \"" + c + "\"");
+                    default -> throw new IllegalStateException("Unexpected parameter \"" + name.charAt(i) + "\"");
                 };
+                params.add(param);
+                i++; // move forward from the param
+
                 if(name.charAt(i) == ',') {
-                    i += 2; // COMMA + SPACE
+                    i++; // move away from possible comma
+                    if(name.charAt(i) == ' ') {
+                        i++; // move away from possible space
+                    }
                 }
-            } while (name.charAt(i++) != name.indexOf(')', i));
+            }
+
+            this.params = params.toArray(Param[]::new);
         }
-        this.params = params.toArray(Param[]::new);
+        System.out.printf("%s (%s) -> %s\n", this.name, rawName, Arrays.toString(params));
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getRawName() {
+        return rawName;
     }
 
     public Param[] getParams() {
-        return params;
+        return params == null ? NO_PARAMS : params;
     }
 
     public boolean hasParam(Param param) {
-        return Utils.contains(params, param);
+        return params != null && Utils.contains(params, param);
     }
 
     public boolean hasLen() {
