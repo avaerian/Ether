@@ -17,14 +17,14 @@ public class DDLDropColumn {
         // - Check field for any fields that depend on this as a foreign key
         // IGNORE: Check if field is enum and needs enum constraint removed
 
-        Model<?, ?> model = access.db().getModel(field.getOwner());
+        Model<?, ?> model = field.getOwner();
         List<Field<?,?,?>> children = ((Model)model).getForeignFields().getChildrenFields(field);
 
         if(!children.isEmpty()) {
             if(dropChildren) {
 
                 for(var childField : children) {
-                    Model childModel = access.db().getModel(childField.getOwner());
+                    Model childModel = childField.getOwner();
                     access.dsl().alterTable(asJooqTable(childModel))
                             .dropColumn(asJooqField(childField))
                             .execute();

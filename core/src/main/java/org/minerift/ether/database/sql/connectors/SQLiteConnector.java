@@ -14,9 +14,9 @@ public class SQLiteConnector implements SQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:sqlite:" + settings.getUrl() + File.separatorChar + settings.getDbName() + ".db");
-        config.setUsername(settings.getUsername());
-        config.setPassword(settings.getPassword());
+        config.setJdbcUrl("jdbc:sqlite:" + settings.url() + File.separatorChar + settings.dbName() + ".db");
+        config.setUsername(settings.username());
+        config.setPassword(settings.password());
         config.addDataSourceProperty("cachePrepStmts", "true");
 
         return config;

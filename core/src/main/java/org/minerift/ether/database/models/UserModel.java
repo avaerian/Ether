@@ -35,7 +35,7 @@ public class UserModel extends Model<EtherUser, UUID> {
 
     @Override
     public EtherUser.Builder readAsBuilder(Record<EtherUser> record) {
-        var builder = EtherUser.builder()
+        EtherUser.Builder builder = EtherUser.builder()
                 .setUUID(record.get(ID))
                 .setIsland(record.get(ISLAND_ID))
                 .setIslandRole(record.get(ISLAND_ROLE));

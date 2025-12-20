@@ -17,6 +17,7 @@ public abstract class Database implements AutoCloseable {
         this.dbName = dbName;
         this.models = Collections.emptyMap();
         this.tableNamesToModels = Collections.emptyMap();
+
     }
 
     public enum Type {

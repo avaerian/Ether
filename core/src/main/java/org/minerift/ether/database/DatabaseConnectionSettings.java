@@ -2,50 +2,17 @@ package org.minerift.ether.database;
 
 import com.google.common.net.HostAndPort;
 import org.minerift.ether.database.sql.SQLDialect;
+import org.minerift.ether.debug.Experimental;
 
-public class DatabaseConnectionSettings {
+@Experimental // experiment with this class being a record
+public record DatabaseConnectionSettings(SQLDialect dialect, String url, String username, String password,
+                                         String dbName) {
 
     public static Builder builder() {
         return new Builder();
     }
 
-    private final SQLDialect dialect;
-    private final String url;
-    private final String username;
-    private final String password;
-    private final String dbName;
-
-
-    private DatabaseConnectionSettings(Builder builder) {
-        this.dialect    = builder.dialect;
-        this.url        = builder.url;
-        this.username   = builder.username;
-        this.password   = builder.password;
-        this.dbName     = builder.dbName;
-    }
-
-    public SQLDialect getDialect() {
-        return dialect;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getDbName() {
-        return dbName;
-    }
-
     public static class Builder {
-
         private SQLDialect dialect;
         private String url;
         private String username;
@@ -92,7 +59,7 @@ public class DatabaseConnectionSettings {
         }
 
         public DatabaseConnectionSettings build() {
-            return new DatabaseConnectionSettings(this);
+            return new DatabaseConnectionSettings(dialect, url, username, password, dbName);
         }
     }
 

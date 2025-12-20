@@ -86,9 +86,6 @@ public class SQLPlayground {
             grid.registerIsland(island);
         }
 
-        Ether.Debug.setIslandGrid(grid);
-        Ether.Debug.setUserManager(users);
-
         try(SQLDatabase db = new SQLDatabase(postgresSettings, IslandModel::new, UserModel::new)) {
             db.getModels().forEach(model -> System.out.println(model.getTableName() + " : " + model.getForeignFields()));
 
@@ -117,14 +114,14 @@ public class SQLPlayground {
                 System.out.println("Updated: " + users_updated);
                 System.out.println("Deleted: " + users_deleted);
 
-                access.insert(IslandModel.class, Ether.getIslandManager().getIslands(islands_inserted));
-                access.update(IslandModel.class, Ether.getIslandManager().getIslands(islands_updated));
+                //access.insert(IslandModel.class, Ether.getIslandManager().getIslands(islands_inserted));
+                //access.update(IslandModel.class, Ether.getIslandManager().getIslands(islands_updated));
                 access.deleteByIds(IslandModel.class, islands_deleted);
                 access.commit();
                 System.out.println("Committed!");
 
-                access.insert(UserModel.class, Ether.getUserManager().getUsers(users_inserted));
-                access.update(UserModel.class, Ether.getUserManager().getUsers(users_updated));
+                //access.insert(UserModel.class, Ether.getUserManager().getUsers(users_inserted));
+                //access.update(UserModel.class, Ether.getUserManager().getUsers(users_updated));
                 access.deleteByIds(UserModel.class, users_deleted);
                 access.commit();
                 System.out.println("Committed!");

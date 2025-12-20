@@ -16,9 +16,9 @@ public class MySQLConnector implements SQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:mysql://" + settings.getUrl());
-        config.setUsername(settings.getUsername());
-        config.setPassword(settings.getPassword());
+        config.setJdbcUrl("jdbc:mysql://" + settings.url());
+        config.setUsername(settings.username());
+        config.setPassword(settings.password());
         config.addDataSourceProperty("cachePrepStmts", "true");
 
         return config;
@@ -30,7 +30,7 @@ public class MySQLConnector implements SQLConnector {
         final int TIMEOUT = 10;
         HikariConfig noDbConfig = createConfig(settings);
         HikariConfig dbConfig = createConfig(settings);
-        dbConfig.setJdbcUrl(dbConfig.getJdbcUrl() + "/" + settings.getDbName());
+        dbConfig.setJdbcUrl(dbConfig.getJdbcUrl() + "/" + settings.dbName());
 
         // Attempt to connect to db with name
         HikariDataSource ds = null;
@@ -58,7 +58,7 @@ public class MySQLConnector implements SQLConnector {
                 // Create and select db
                 SQLAccess access = new SQLAccess(db, ds.getConnection());
                 //System.out.println(access.dsl().resultQuery("SELECT database();").fetch()); // DEBUG
-                access.dsl().createDatabase(settings.getDbName()).execute();
+                access.dsl().createDatabase(settings.dbName()).execute();
                 System.out.println("Created database");
 
                 access.close();
