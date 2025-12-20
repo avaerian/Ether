@@ -1,37 +1,32 @@
 package org.minerift.ether.config;
 
 import org.minerift.ether.config.source.Source;
-import org.minerift.ether.util.UnreachableException;
 
-import static java.lang.String.format;
+import java.io.IOException;
 
-public abstract class ConfigCodec<T, S extends Source> {
+public abstract class ConfigCodec<T extends Config<T>, S extends Source> {
 
-    public final T read(S src) throws ConfigNotFoundException, ConfigReadException {
+    public final void read(T cfg, S src) throws ConfigNotFoundException, ConfigReadException {
         if(!src.exists()) {
             throw new ConfigNotFoundException(/*src.getName() + */"*Config src* was not found");
         }
-        return readIt(src);
-    }
 
-    /*@Debug
-    public static void main(String[] args) throws URISyntaxException, IOException {
-        BasicFileAttributes attrs = java.nio.file.Files
-            .readAttributes(new File("C:\\tests").toPath(), BasicFileAttributes.class);
-        System.out.println(attrs.isDirectory());
-    }*/
+        try {
+            cfg.readLock().lock();
+            readIt(cfg, src);
+        } finally {
+            cfg.readLock().unlock();
+        }
+    }
 
     // Reads a config as an object
     // File is guaranteed to exist at this point
     // Throws a ConfigFileReadException if the config fails to read/parse
-    protected abstract T readIt(S src) throws ConfigReadException;
+    protected abstract void readIt(T cfg, S src) throws ConfigReadException;
 
-    @Deprecated
-    public final void write(T config, S src) throws ConfigWriteException {
+    public final void write(T cfg, S src) throws ConfigWriteException {
         // If a file doesn't exist, load default resource <- // should not be handled here as an edge-case
-
-
-        if(file != null && !file.exists()) {
+        /*if(file != null && !file.exists()) {
             /*if(isFileType()) {
                 try {
                     InputStream res = EtherPlugin.class.getResource(file.getName()).openStream(); // REVIEW
@@ -47,18 +42,28 @@ public abstract class ConfigCodec<T, S extends Source> {
                 } catch (IOException ex) {
                     throw new ConfigFileWriteException("Failed to write data to file", ex);
                 }
-            } else*/ if (isDirectoryType() /*file.isDirectory()*/) {
+            } else if (isDirectoryType() file.isDirectory()) {
                 file.mkdirs(); // warn if mkdirs fails
             } else {
                 throw new UnreachableException("Input is neither a file nor directory");
             }
+        }*/
+
+        try {
+            src.createIfNotExists();
+        } catch (IOException e) {
+            throw new ConfigWriteException("Failed to create config source", e);
         }
 
-        // Once default resource is loaded, write changes to it
-        writeIt(config, src);
+        try {
+            cfg.writeLock().lock();
+            writeIt(cfg, src);
+        } finally {
+            cfg.writeLock().unlock();
+        }
     }
 
-    // The file is guaranteed to exist for this method
-    protected abstract void writeIt(T config, S src) throws ConfigWriteException;
+    // The src is guaranteed to exist for this method
+    protected abstract void writeIt(T cfg, S src) throws ConfigWriteException;
 
 }

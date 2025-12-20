@@ -9,7 +9,6 @@ import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.config.source.Source;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public final class ConfigType<T extends Config<T>, S extends Source> {
 
@@ -29,10 +28,10 @@ public final class ConfigType<T extends Config<T>, S extends Source> {
     private final String name;
     private final Class<T> typeClazz;
     private final ConfigCodec<T, S> codec;
-    private final Supplier<T> defaultConfig;
+    private final Config.CreateConfigFn<T, S> defaultConfig;
 
     // For every config type, a default resource file must exist (file cannot be null)
-    public ConfigType(String name, Class<T> typeClazz, ConfigCodec<T, S> codec, Supplier<T> defaultConfig) {
+    public ConfigType(String name, Class<T> typeClazz, ConfigCodec<T, S> codec, Config.CreateConfigFn<T, S> defaultConfig) {
         this.id = TYPE_ID_GEN.getAndIncrement();
         this.name = name;
         this.typeClazz = typeClazz;
@@ -48,8 +47,8 @@ public final class ConfigType<T extends Config<T>, S extends Source> {
         return typeClazz;
     }
 
-    public T getDefaultConfig() {
-        return defaultConfig.get();
+    public T getDefaultConfig(ConfigRegistry reg, S src) {
+        return defaultConfig.create(reg, src);
     }
 
     public ConfigCodec<T, S> codec() {

@@ -6,6 +6,7 @@ import org.minerift.ether.util.collect.Int2ObjectIdentityMap;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +17,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
     protected final Logger logger;
 
     protected final Int2ObjectIdentityMap<ConfigType<?,?>> types; // purely to store types
-    protected final Int2ObjectIdentityMap<Config> configs;
+    protected final Int2ObjectIdentityMap<Config> cfgs;
     protected final Int2ObjectIdentityMap<Source> srcs;
     protected final BitSet updatedCfgs;
     //private
@@ -25,7 +26,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
         this.dir = dir;
         this.logger = logger;
         this.types = new Int2ObjectIdentityMap<>();
-        this.configs = new Int2ObjectIdentityMap<>();
+        this.cfgs = new Int2ObjectIdentityMap<>();
         this.srcs = new Int2ObjectIdentityMap<>();
         this.updatedCfgs = new BitSet();
     }
@@ -35,17 +36,27 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
     // If a config file doesn't exist, return the default config
     // If a config fails when reading, delegate exception to user
     public <T extends Config<T>, S extends Source> T register(ConfigType<T, S> type, S src) throws ConfigReadException {
-        T config;
+        T cfg = type.getDefaultConfig(this, src);
         try {
-            config = type.codec().read(src);
+            type.codec().read(cfg, src);
         } catch (ConfigNotFoundException ex) {
-            config = type.getDefaultConfig();
+            cfg = type.getDefaultConfig(this, src);
         }
         types.put(type.id, type);
-        configs.put(type.id, config);
+        cfgs.put(type.id, cfg);
         srcs.put(type.id, src);
-        return config;
+        return cfg;
     }
+
+    /*public <T extends Config<T>, S extends Source> T register(ConfigType<T, S> type, Config.SourceSupplier<S> srcSupplier) throws ConfigReadException {
+        S src;
+        try {
+            src = srcSupplier.create();
+        } catch (Exception e) {
+            throw new ConfigReadException("Failed to open source", e);
+        }
+        return register(type, src);
+    }*/
 
     // Attempts to register a config by loading it
     // If the config fails to load, log the exception as a warning; the config will need to be registered again
@@ -60,21 +71,15 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
     }
 
     public <T extends Config<T>> T get(ConfigType<T, ?> type) {
-        final T config = (T) configs.get(type);
+        final T config = (T) cfgs.get(type);
         if(config == null) {
             throw new IllegalArgumentException(String.format("Config type %s was not found", type.getName()));
         }
         return config;
     }
 
-    public <T extends Config<T>> void save(T cfg) throws ConfigWriteException {
-        int id = cfg.getType().id;
-        Source src = srcs.get(id);
-        ((ConfigType<T, Source>)cfg.getType()).codec().writeIt(cfg, src);
-    }
-
     public Collection<Config> getAll() {
-        return configs.values();
+        return cfgs.values();
     }
 
     public Set<ConfigType<?, ?>> getAllTypes() {
@@ -93,7 +98,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
 
             @Override
             public Entry next() {
-                Entry entry = new Entry(id, types.get(id), configs.get(id));
+                Entry entry = new Entry(id, types.get(id), cfgs.get(id));
                 id++;
                 return entry;
             }

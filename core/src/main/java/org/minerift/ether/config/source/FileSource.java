@@ -1,17 +1,22 @@
 package org.minerift.ether.config.source;
 
+import org.minerift.ether.config.ConfigReadException;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 public class FileSource implements Source {
 
     // validated
-    public static FileSource of(File file) {
-        if(file.isDirectory()) {
-            throw new IllegalArgumentException("File cannot be a directory");
+    public static FileSource of(File file) throws IOException {
+        // TODO: manage this shit via FileChannel and FileLock locks
+        //FileLock lock = FileChannel.open()
+        if(!file.createNewFile()) {
+            throw new IOException("File already exists (" + file + ")");
         }
         return new FileSource(file);
     }

@@ -2,44 +2,56 @@ package org.minerift.ether.config;
 
 import org.minerift.ether.config.source.Source;
 
+import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 // NOTE: writing a good equality check is extremely useful for checking
 //  for modifications between saving configs
 public abstract class Config<T extends Config<T>> {
 
-    // TODO: for mutability (because that seems to be the most appropriate approach), explore
-    //  locks and creating nice ways of updating an abundance of properties
+    public interface CreateConfigFn<T extends Config<T>, S extends Source> {
+        T create(ConfigRegistry reg, S src);
+    }
 
-    //protected final ConfigRegistry registry;
-    /*protected final Source src;
+    public interface SourceSupplier<S extends Source> {
+        S create() throws Exception; // user can change to throw whatever exception they want
+    }
 
-    public Config(Source src) {
+    protected final ReadWriteLock rwLock;
+    protected final ConfigRegistry reg;
+    protected final Source src;
+
+    public Config(ConfigRegistry reg, Source src) {
+        this.rwLock = new ReentrantReadWriteLock();
+        this.reg = reg;
         this.src = src;
-    }*/
+    }
 
+    protected Lock readLock() {
+        return rwLock.readLock();
+    }
 
+    protected Lock writeLock() {
+        return rwLock.writeLock();
+    }
 
-    // TODO: move to config registry
     public void save() throws ConfigWriteException {
-        ((ConfigCodec)getType().codec()).write(this, src);
+        ((ConfigType)getType()).codec().write(this, src);
     }
 
-    @Deprecated //FIXME
-    public void saveIfChanged() {
-        if(hasChanged()) {
-            save();
-        }
-    }
-
-    // Loads from file again
-    // Returns whether the file reloaded successfully
-    // TODO: locking; move to config registry
+    // returns whether cfg reloaded
     public boolean reload() throws ConfigReadException {
-        final ConfigCodec<T, Source> codec = (ConfigCodec<T, Source>) getType().codec();
-        T reload;
+        final ConfigCodec<T, Source> codec = (ConfigCodec<T, Source>)getType().codec();
+
+        T reload = ((ConfigType<T, Source>)getType()).getDefaultConfig(reg, src);
         try {
-            reload = codec.read(src);
+            codec.read(reload, src);
         } catch (ConfigNotFoundException ex) {
-            reload = getType().getDefaultConfig();
+            //reload = (T) ((ConfigType)getType()).getDefaultConfig(reg, src);
+            // failed to reload; don't change current settings
+            return false;
         }
         copyFrom(reload);
         return true;
@@ -53,7 +65,7 @@ public abstract class Config<T extends Config<T>> {
 
     public abstract ConfigType<T, ?> getType();
 
-    public String getName() {
+    public String getTypeName() {
         return getType().getName();
     }
 }

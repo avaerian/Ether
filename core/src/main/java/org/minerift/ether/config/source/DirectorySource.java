@@ -1,12 +1,15 @@
 package org.minerift.ether.config.source;
 
+import org.minerift.ether.config.ConfigReadException;
+
 import java.io.File;
+import java.io.IOException;
 
 public class DirectorySource implements Source {
 
-    public static DirectorySource of(File dir) {
-        if(!dir.isDirectory()) {
-            throw new IllegalArgumentException("File must be a directory");
+    public static DirectorySource of(File dir) throws IOException {
+        if(!dir.exists() && !dir.mkdirs()) {
+            throw new IOException("Failed to create directory (" + dir + ")");
         }
         return new DirectorySource(dir);
     }
@@ -21,13 +24,14 @@ public class DirectorySource implements Source {
         return dir;
     }
 
+    // creates parent dirs
     @Override
     public boolean create() {
-        return false;
+        return dir.mkdirs();
     }
 
     @Override
     public boolean exists() {
-        return false;
+        return dir.exists();
     }
 }
