@@ -29,7 +29,7 @@ public class SQLUtils {
         if(dbCtx instanceof SQLDatabaseCreationContext sqlCtx) {
             return getPossibleFallback(type, sqlCtx.dialect());
         }
-        return null; // only two types of databases at the moment, so safe to assume if database creation ctx is binary then no fallbacks
+        return null; // only "two types" of databases at the moment, so safe to assume if database creation ctx is binary/no fallbacks
     }
 
     @Beta
