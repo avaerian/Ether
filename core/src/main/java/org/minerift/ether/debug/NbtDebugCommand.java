@@ -53,7 +53,7 @@ public class NbtDebugCommand implements CommandExecutor {
                     id = item.getResourceLocation();
                 }
 
-                plr.sendMessage(Ether.getNms().fixUpItemName(StringTag.valueOf(id), -1).getStrVal()); // TODO: shorten this line by making code better; this is utter garbage
+                plr.sendMessage(Ether.inst().getNms().fixUpItemName(StringTag.valueOf(id), -1).getStrVal()); // TODO: shorten this line by making code better; this is utter garbage
             }
         }
 

@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigReadException;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
 
@@ -13,7 +14,12 @@ public class ConfigReloadDebugCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
         final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
-        boolean reload = config.reload();
+        boolean reload;
+        try {
+            reload = config.reload();
+        } catch (ConfigReadException e) {
+            reload = false;
+        }
         if(reload) {
             sender.sendMessage("Config reloaded successfully!");
 

@@ -28,7 +28,7 @@ public class NMSBlockScanDebugCommand implements CommandExecutor {
         }
 
         //final NMSAccess nms = EtherPlugin.getInstance().getNMS();
-        final Experiments exp = Ether.getNms().experiments();
+        final Experiments exp = Ether.inst().getNms().experiments();
 
         switch (mode) {
             case "SEC" -> exp.testIslandScanIdea(plr.getLocation());
