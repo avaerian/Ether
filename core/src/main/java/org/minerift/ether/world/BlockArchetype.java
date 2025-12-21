@@ -1,5 +1,6 @@
 package org.minerift.ether.world;
 
+import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.BlockStateNotFoundException;
 import org.minerift.ether.nms.world.block.BlockState;
@@ -48,8 +49,8 @@ public class BlockArchetype {
         return getZ() >> 4;
     }
 
-    public ChunkCoords getChunk() {
-        return new ChunkCoords(getChunkX(), getChunkZ());
+    public Vec2i getChunk() {
+        return ChunkCoords.from(pos);
     }
 
     @Override
