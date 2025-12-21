@@ -1,84 +1,129 @@
 package org.minerift.ether.island;
 
+import org.minerift.ether.Ether;
 import org.minerift.ether.debug.NeedsTesting;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.logging.Level;
 
-// TODO: review this shit
 @NeedsTesting
 public class PermissionSet {
 
-    // TODO: switch from Set to BitSet to test if IslandPermission ordinal is present?
-    private EnumMap<IslandRole, EnumSet<IslandPermission>> permsMap;
+    static {
+        // should review this impl so this never occurs (could switch from longs
+        // to BitSets if ever needed); at this moment this doesn't occur with the
+        // small number of island permissions
+        if(IslandPermission.VALUES.length > 64) {
+            Ether.inst().getLogger().log(Level.WARNING, "Island permissions count exceeds 64");
+        }
+    }
+
+    private long[] perms; // longs as the permission sets, indexed by the island roles
 
     public PermissionSet() {
-        this.permsMap = new EnumMap<>(IslandRole.class);
+        this.perms = new long[IslandRole.values().length];
     }
 
     public PermissionSet set(IslandRole role, IslandPermission perm) {
-        permsMap.put(role, EnumSet.of(perm));
+        perms[role.ordinal()] = 1 << perm.ordinal();
         return this;
     }
 
-    public void set(IslandRole role, IslandPermission ... perms) {
-        EnumSet<IslandPermission> _perms = EnumSet.noneOf(IslandPermission.class);
-        Collections.addAll(_perms, perms);
-        set(role, _perms);
+    public void set(IslandRole role, IslandPermission... set) {
+        long roleSet = 0;
+        for(IslandPermission perm : set) {
+            roleSet |= 1 << perm.ordinal();
+        }
+        perms[role.ordinal()] = roleSet;
     }
 
-    public PermissionSet set(IslandRole role, EnumSet<IslandPermission> perms) {
-        permsMap.put(role, perms);
+    public PermissionSet set(IslandRole role, EnumSet<IslandPermission> set) {
+        long roleSet = perms[role.ordinal()];
+        for(IslandPermission perm : set) {
+            roleSet |= 1 << perm.ordinal();
+        }
+        perms[role.ordinal()] = roleSet;
         return this;
     }
 
     public EnumSet<IslandPermission> get(IslandRole role) {
-        return permsMap.get(role);
+        EnumSet<IslandPermission> set = EnumSet.noneOf(IslandPermission.class);
+        long bits = perms[role.ordinal()];
+        int i;
+        while((i = Long.numberOfLeadingZeros(bits)) != 64) {
+            set.add(IslandPermission.VALUES[i]);
+            bits &= ~(1L << i);
+        }
+        return set;
     }
 
-    public boolean has(IslandRole role, IslandPermission permission) {
-        return permsMap.get(role).contains(permission);
+    public boolean has(IslandRole role, IslandPermission perm) {
+        return ( perms[role.ordinal()] & (1 << perm.ordinal()) ) != 0;
     }
 
-    public boolean has(IslandRole role, IslandPermission ... perms) {
-        EnumSet<IslandPermission> permissions = EnumSet.noneOf(IslandPermission.class);
-        Collections.addAll(permissions, perms);
-        return has(role, permissions);
+    public boolean has(IslandRole role, IslandPermission... has) {
+        for(IslandPermission perm : has) {
+            if(!has(role, perm)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public boolean has(IslandRole role, EnumSet<IslandPermission> perms) {
-        return permsMap.get(role).containsAll(perms);
+    public boolean has(IslandRole role, EnumSet<IslandPermission> has) {
+        for(IslandPermission perm : has) {
+            if(!has(role, perm)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public PermissionSet add(IslandRole role, IslandPermission perm) {
-        permsMap.get(role).add(perm);
+        perms[role.ordinal()] |= 1 << perm.ordinal();
         return this;
     }
 
-    public PermissionSet add(IslandRole role, EnumSet<IslandPermission> perms) {
-        this.permsMap.get(role).addAll(perms);
+    public PermissionSet add(IslandRole role, EnumSet<IslandPermission> add) {
+        long roleSet = 0;
+        for(IslandPermission perm : add) {
+            roleSet |= 1 << perm.ordinal();
+        }
+        perms[role.ordinal()] = roleSet;
         return this;
     }
 
-    public PermissionSet add(IslandRole role, IslandPermission ... perms) {
-        EnumSet<IslandPermission> set = Arrays.stream(perms).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
-        add(role, set);
+    public PermissionSet add(IslandRole role, IslandPermission... add) {
+        long roleSet = perms[role.ordinal()];
+        for(IslandPermission perm : add) {
+            roleSet |= 1 << perm.ordinal();
+        }
+        perms[role.ordinal()] = roleSet;
         return this;
     }
 
     public PermissionSet remove(IslandRole role, IslandPermission perm) {
-        permsMap.get(role).remove(perm);
+        //long roleSet = perms[role.ordinal()];
+        //roleSet &= ~(1 << perm.ordinal());
+        perms[role.ordinal()] &= ~(1 << perm.ordinal());
         return this;
     }
 
-    public PermissionSet remove(IslandRole role, EnumSet<IslandPermission> perms) {
-        permsMap.get(role).removeAll(perms);
+    public PermissionSet remove(IslandRole role, IslandPermission... remove) {
+        long roleSet = perms[role.ordinal()];
+        for(IslandPermission perm : remove) {
+            roleSet &= ~(1 << perm.ordinal());
+        }
+        perms[role.ordinal()] = roleSet;
         return this;
     }
 
-    public PermissionSet remove(IslandRole role, IslandPermission ... perms) {
-        EnumSet<IslandPermission> set = Arrays.stream(perms).collect(Collectors.toCollection(() -> EnumSet.noneOf(IslandPermission.class)));
-        remove(role, set);
+    public PermissionSet remove(IslandRole role, EnumSet<IslandPermission> remove) {
+        long roleSet = perms[role.ordinal()];
+        for(IslandPermission perm : remove) {
+            roleSet &= ~(1 << perm.ordinal());
+        }
+        perms[role.ordinal()] = roleSet;
         return this;
     }
 
