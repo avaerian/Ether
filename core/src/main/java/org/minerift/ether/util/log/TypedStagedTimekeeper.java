@@ -1,47 +1,60 @@
 package org.minerift.ether.util.log;
 
-import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.minerift.ether.util.StagedTimekeeper.StagesOpResult.*;
-import static org.minerift.ether.util.StagedTimekeeper.Builder.EMPTY;
-//import static org.minerift.ether.util.Utils.isPow2;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.minerift.ether.util.Utils.ensure;
+import static org.minerift.ether.util.log.StagedTimekeeper.StagesOpResult.EX_ALREADY_EXISTS;
+import static org.minerift.ether.util.log.StagedTimekeeper.StagesOpResult.SUCCESS;
 
 // allows up to 32 stages (int bit count)
-// TODO: behavior and methods need to be revie
+// TODO: behavior and methods need to be reviewed
 public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
     
-    // TODO: static methods for checked with E[], EnumSet<E> ?
+    public static <E extends Enum<E>> TypedStagedTimekeeper<E> checked(/*Class<E> clazz, */E[] allowedSet, E[] set, long[] epochsNs) {
+        int _allowedSet = 0;
+        int _set = 0;
 
-    
-    public static <E extends Enum<E>> TypedStagedTimekeeper checked(Class<E> clazz, E[] allowedSet, E[] set, long[] epochNs) {
-        EnumSet<E> _allowedSet = EnumSet.copyOf(Arrays.asList(allowedSet));
-        EnumSet<E> _set = EnumSet.copyOf(Arrays.asList(set));
+        for(E e : allowedSet) {
+            _allowedSet |= 1 << e.ordinal();
+        }
 
-        ensure(_set.containsAll(_allowedSet),  () -> new IllegalArgumentException("Items in set aren't being tracked"));
-        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(/*format("A*/));
-        
-        return new TypedStagedTimekeeper(_allowedSet, _set, epochsNs);
+        int setSize = 0;
+        for(E e : set) {
+            int i = 1 << e.ordinal();
+            if((_set & i) == 0) {
+                setSize++;
+            }
+            if((_allowedSet & i) == 0) {
+                throw new IllegalArgumentException("Items in set aren't in allowed set/tracked stages");
+            }
+            _set |= i;
+        }
+
+        if(setSize != epochsNs.length) {
+            throw new IllegalArgumentException(format("Mismatched set (%d) and epochs (%d) sizes", setSize, epochsNs.length));
+        }
+
+        return new TypedStagedTimekeeper<>(_allowedSet, _set, epochsNs);
     }
 
     // available, if so desired
-    public static <E extends Enum<E>> TypedStagedTimekeeper checked(EnumSet<E> allowedSet, EnumSet<E> set, long[] epochsNs) {
-        ensure(_set.size() == epochsNs.length, () -> new IllegalArgumentException(/*format("*/));
+    public static <E extends Enum<E>> TypedStagedTimekeeper<E> checked(Set<E> allowedSet, Set<E> set, long[] epochsNs) {
+        E[] _allowedSet = (E[])allowedSet.toArray();
+        E[] _set = (E[])set.toArray();
+        return checked(_allowedSet, _set, epochsNs);
     }
 
-    public static TypedStagedTimekeeper.Builder builder(Stopwatch timer, int allowedSet) {
-        return new Builder(timer, allowedSet);
+    @SafeVarargs // SaveVarargs because enum can't be extended
+    public static <E extends Enum<E>> TypedStagedTimekeeper.Builder<E> builder(Class<E> clazz, E... allowed) {
+        return new Builder<>(clazz, allowed);
     }
 
-    @Deprecated // TODO: review
     protected TypedStagedTimekeeper(int allowedSet, int set, long[] epochsNs) {
-        this.allowedSet = allowedSet;
-        this.set = set;
-        this.epochsNs = epochsNs;
+        super(allowedSet, set, epochsNs);
     }
 
     // default time unit is nanoseconds
@@ -53,17 +66,16 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
         return getLoadTime(unit, 1 << stage.ordinal());
     }
 
-    public long getLoadTime(EnumSet<E> stages) {
+    public long getLoadTime(Set<E> stages) {
         return getLoadTime(NANOSECONDS, stages);
     }
 
-    // TODO: change to Set<E> ?? (EnumSet<E> should extend that)
-    public long getLoadTime(TimeUnit unit, EnumSet<E> stages) {
-        ensure(stages.size() != 0, () -> new IllegalArgumentException("No stages selected to query load time"));
+    public long getLoadTime(TimeUnit unit, Set<E> stages) {
+        ensure(!stages.isEmpty(), () -> new IllegalArgumentException("No stages selected to query load time"));
         long sum = 0;
         for(E stage : stages) {
-            if( ( this.stages & (1 << stage.ordinal()) ) == 0) {
-                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
+            if( ( allowedSet & (1 << stage.ordinal()) ) == 0) {
+                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + Integer.toBinaryString(allowedSet));
             }
             sum += epochsNs[stage.ordinal()];
         }
@@ -73,20 +85,21 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
     public long getLoadTime(TimeUnit unit, E... stages) {
         long sum = 0;
         for(E stage : stages) {
-            if( (this.stages & (1 << stage.ordinal()) ) == 0) {
-                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + allowedSet);
+            if( (allowedSet & (1 << stage.ordinal()) ) == 0) {
+                throw new IllegalArgumentException(stage + " is not included in allowed stage set " + Integer.toBinaryString(allowedSet));
             }
             sum += epochsNs[stage.ordinal()];
         }
         return unit.convert(sum, NANOSECONDS);
     }
     
-    public static class Builder extends StagedTimekeeper.Builder {
+    public static class Builder<E extends Enum<E>> extends StagedTimekeeper.Builder {
 
         protected final Class<E> clazz;
         protected Builder(Class<E> clazz, E... allowed) {
-            this.allowedSet = 0;
-            for(E e : allowedSet) {
+            super(0); // initialize, then update appropriately
+            this.clazz = clazz;
+            for(E e : allowed) {
                 allowedSet |= 1 << e.ordinal();
             }
             this.set = 0;
@@ -94,18 +107,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
         }
 
         public StagesOpResult tryAddStage(E stage) {
-            if((allowedSet & stage) != 0) {
-                return EX_ALREADY_EXISTS;
-            }
-            int v = allowedSet;
-            final int old = Integer.numberOfLeadingZeros(v);
-            v |= 1 << stage.ordinal();
-            final int size = Integer.numberOfLeadingZeros(v);
-            if(epochsNs != EMPTY && size > old) {
-                growEpochs(size);
-            }
-            allowedSet = v;
-            return SUCCESS;
+            return tryAddStage(1 << stage.ordinal());
         }
 
         @Deprecated
@@ -143,7 +145,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
         // the if statement probably isn't best, but whatever. The likelihood of using
         // this method anyways is so small it doesn't fucking matter.
         public Builder addStages(E... stages) {
-            if(tryAddStages(stages)) {
+            if(tryAddStages(stages) == EX_ALREADY_EXISTS) {
                 throw new IllegalArgumentException("Some stages already exist in allowed stages");
             }
             return this;
@@ -209,7 +211,7 @@ public class TypedStagedTimekeeper<E extends Enum<E>> extends StagedTimekeeper {
         }
 
         public long trackAndReset(TimeUnit unit, E stage) {
-            return unit.convert(trackandReset(stage), NANOSECONDS);
+            return unit.convert(trackAndReset(stage), NANOSECONDS);
         }
 
         public long trackAndReset(E... stages) {

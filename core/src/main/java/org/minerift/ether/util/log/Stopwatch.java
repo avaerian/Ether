@@ -8,7 +8,7 @@ public class Stopwatch {
         return new Stopwatch();
     }
 
-    // this timer solution only works for approximately the next 108 years
+    // This timer solution only works for approximately the next 237 years
     // for nanoseconds as our time unit, so if we want to extend the
     // allowed amount of time we could probably just add a separate 
     // flag variable or something, but this is fine for now (or, even 
@@ -22,77 +22,115 @@ public class Stopwatch {
         this.startNs = UNSTARTED;
     }
 
-    // return start timestamp
-    public void start() {
-        long currNs = System.nanoTime();
+    /**
+     * Start the stopwatch.
+     * @return timestamp of when this stopwatch was started, in nanoseconds.
+     */
+    public long start() {
+        long currNs;
         if(startNs < 0 && startNs != UNSTARTED) {
-            startNs = currNs - (~(1 << 63) & startNs);
+            startNs = (currNs = System.nanoTime()) - (~(1L << 63) & startNs);
         } else {
-            startNs = currNs;
+            startNs = (currNs = System.nanoTime());
         }
-        //return currNs; TODO: review
+        return currNs;
     }
 
-    // ChronoException is a runtime exception
-    // return start timestamp
-    public void startOrThrow() throws ChronoException {
-        //if((startNs & (1 <<< 63)) == 0) {
+    /**
+     * Start the stopwatch, or throw if stopwatch is already running.
+     * @return timestamp of when this stopwatch was started, in nanoseconds.
+     * @throws ChronoException if stopwatch is already running.
+     */
+    public long startOrThrow() throws ChronoException {
         if(startNs >= 0) {
             throw new ChronoException("Stopwatch already started");
         }
-        start();
+        return start();
     }
 
     // for impl details: when stopping, track elapsed time so if timer
     // is started again we can subtract startNs, now the elapsed time,
     // from the new System.nanoTime()
-    // 
-    // return elapsed time?
-    public void stop() {
-        startNs = (System.nanoTime() - startNs) | (1 << 63);
+
+    /**
+     * Stop the stopwatch.<br>
+     * Implementation details: stored value is the elapsed time so if started again
+     * we can subtract the elapsed time from the new {@code System.nanoTime()} start timestamp.
+     * @return timestamp of when this stopwatch was stopped, in nanoseconds.
+     */
+    public long stop() {
+        long currNs = System.nanoTime();
+        startNs = (currNs - startNs) | (1L << 63);
+        return currNs;
     }
-    
-    // return elapsed time?
-    public void stopOrThrow() throws ChronoException {
+
+    /**
+     * Stop the stopwatch, or throw if stopwatch isn't running.
+     * Implementation details: stored value is the elapsed time so if started again
+     * we can subtract the elapsed time from the new {@code System.nanoTime()} start timestamp.
+     * @return timestamp of when this stopwatch was stopped, in nanoseconds.
+     * @throws ChronoException if stopwatch isn't running, or is already stopped.
+     */
+    public long stopOrThrow() throws ChronoException {
         if(startNs < 0) {
             throw new ChronoException("Stopwatch already stopped");
         }
-        stop();
+        return stop();
     }
 
-    @Override
+    /**
+     * Reset the stopwatch.
+     */
     public void reset() {
         startNs = UNSTARTED;
     }
 
-    @Override
+    /**
+     * Returns the current elapsed time of the stopwatch.
+     * @return the elapsed time, in nanoseconds.
+     */
     public long elapsed() {
-        if(started == UNSTARTED) {
+        if(startNs == UNSTARTED) {
             return 0;
-        } else if (started < 0) { // paused flag is set
+        } else if (startNs < 0) { // paused flag is set
             // there's a constant, but too many fucking FF's so not gonna bother writing out for 64 bits
             // paused timer now equals elapsed time, so disregard paused flag for elapsed time
-            return ~(1 << 63) & startNs;
+            return ~(1L << 63) & startNs;
         } else { // actively running
             return System.nanoTime() - startNs;
         }
     }
 
     // doesn't account if the timer is paused/stopped
-    @Override
+
+    /**
+     * Returns whether the stopwatch has been started.
+     * @return if the stopwatch has been started. Can return
+     * true even if the stopwatch is stopped, as long as
+     * there's some elapsed time. In other words, doesn't
+     * account if the timer is stopped; as long as the
+     * stopwatch was started.
+     */
     public boolean hasStarted() {
         return startNs != UNSTARTED;
     }
 
-    @Override
+    /**
+     * Returns whether the stopwatch is actively running.
+     * @return if the stopwatch is running.
+     */
     public boolean isRunning() {
         return startNs >= 0;
     }
 
     // returns true if not running (hasn't started, is stopped, or has been reset & not running)
-    @Override
+
+    /**
+     * Returns whether the stopwatch is stopped.
+     * @return if the stopwatch is stopped; not running.
+     * Equivalent to using {@code !isRunning()}.
+     */
     public boolean isStopped() {
-        //return (startNs & (1 <<< 63)) != 0;
         return startNs < 0;
     }
 

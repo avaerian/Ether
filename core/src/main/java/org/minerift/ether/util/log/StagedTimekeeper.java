@@ -6,10 +6,13 @@ import org.minerift.ether.util.fn.Exceptional;
 
 import java.util.Iterator;
 import java.util.PrimitiveIterator;
+import java.util.concurrent.TimeUnit;
 
-import static org.minerift.ether.util.StagedTimekeeper.StagesOpResult.*;
+import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.minerift.ether.util.Utils.ensure;
 import static org.minerift.ether.util.Utils.isPow2;
+import static org.minerift.ether.util.log.StagedTimekeeper.StagesOpResult.*;
 
 // allows up to 32 stages (int bit count)
 public class StagedTimekeeper implements Iterable<Long> {
@@ -21,7 +24,7 @@ public class StagedTimekeeper implements Iterable<Long> {
     }
     
     // available, if so desired
-    public static StagedTimekeeper checked(int allowedSet, int set, long[] epochNs) {
+    public static StagedTimekeeper checked(int allowedSet, int set, long[] epochsNs) {
         final int allowedSetSize = Integer.numberOfLeadingZeros(allowedSet);
         final int setSize = Integer.numberOfLeadingZeros(set);
         ensure(setSize <= allowedSetSize, 
@@ -55,6 +58,7 @@ public class StagedTimekeeper implements Iterable<Long> {
         // should name better, but these are internals; this should do
         EpochsIter(int n) {
             this.n = n;
+            this.i = 0;
         }
 
         @Override
@@ -67,7 +71,7 @@ public class StagedTimekeeper implements Iterable<Long> {
         }
         
         public int currentStage() {
-            return 1 << stage;
+            return Integer.lowestOneBit(n);
         }
 
         public int currentIndex() {
@@ -125,7 +129,7 @@ public class StagedTimekeeper implements Iterable<Long> {
     }
 
     // TODO: review; not too keen on this impl
-    public static enum StagesOpResult {
+    public enum StagesOpResult {
         EX_MULTIPLE_DISALLOWED,
         EX_ALREADY_EXISTS,
         EX_NO_EXISTS,
@@ -133,7 +137,7 @@ public class StagedTimekeeper implements Iterable<Long> {
     }
     
     // StagedTimekeeper usage has been reviewed and been concluded that the usage should be made to
-    // be made simpler. Each stage will be tracked individually, which is done by starting the timer,
+    // be made simpler. Each stage will be tracked individually, done by starting the timer,
     // "tracking" the elapsed time after the stage completes, optionally resetting the timer and continuing
     // to track the elapsed time for all stages before submitting to an immutable view. In the immutable
     // view the user can then query the elapsed times of either specific states or a combination of states.
@@ -163,7 +167,7 @@ public class StagedTimekeeper implements Iterable<Long> {
             }
             if(ls != 0) { // if array is not zeroed out, copy
                 long[] copy = new long[size];
-                System.arraycopy(epochsNs, copy, 0, epochsNs.length, 0, epochsNs.length);
+                System.arraycopy(epochsNs, 0, copy, 0, epochsNs.length);
                 epochsNs = copy;
             } else {
                 epochsNs = new long[size];
@@ -219,9 +223,9 @@ public class StagedTimekeeper implements Iterable<Long> {
 
         // There's a higher probability this method will be used more, thus including
         // the if statement probably isn't best, but whatever. The likelihood of using
-        // this method anyways is so small it doesn't fucking matter.
+        // this method anyway is so small it doesn't fucking matter.
         public Builder addStages(int stages) {
-            if(tryAddStages(stages)) {
+            if(tryAddStages(stages) == EX_ALREADY_EXISTS) {
                 throw new IllegalArgumentException("Some stages already exist in allowed stages");
             }
             return this;
@@ -260,7 +264,7 @@ public class StagedTimekeeper implements Iterable<Long> {
         }
 
         public void reset() {
-            return timer.reset();
+            timer.reset();
         }
 
         public long elapsed() {
@@ -268,13 +272,17 @@ public class StagedTimekeeper implements Iterable<Long> {
         }
 
         public long track(int stage) {
-            ensure(allowedSet != 0, () -> new IllegalArgmentException("No stages selected"));
+            ensure(allowedSet != 0, () -> new IllegalArgumentException("No stages selected"));
             ensure(isPow2(stage), () -> new IllegalArgumentException("Unable to track epoch for multiple stages"));
             ensure((allowedSet & stage) == stage, () -> new IllegalArgumentException("Unable to track stage excluded from stage set"));
               
             int i = Integer.numberOfTrailingZeros(stage);
             timer.stop();
-            epochsNs[i] = timer.elapsed();
+            return epochsNs[i] += timer.elapsed();
+        }
+
+        public long track(int stage, TimeUnit unit) {
+            return unit.convert(track(stage), NANOSECONDS);
         }
 
         // for measure methods, reset & start timer, run op, and track stage(s)
@@ -289,8 +297,12 @@ public class StagedTimekeeper implements Iterable<Long> {
             run.run();
             timer.stop();
             long ns = timer.elapsed();
-            epochsNs[i] = ns;
+            epochsNs[i] += ns;
             return ns;
+        }
+
+        public long measureStage(Runnable run, int stage, TimeUnit unit) {
+            return unit.convert(measureStage(run, stage), NANOSECONDS);
         }
 
         // TODO: review
@@ -305,38 +317,51 @@ public class StagedTimekeeper implements Iterable<Long> {
             run.run();
             timer.stop();
             long ns = timer.elapsed();
-            epochsNs[i] = ns;
+            epochsNs[i] += ns;
             return ns;
+        }
+
+        public <E extends Exception> long measureStage(Exceptional<E> run, int stage, TimeUnit unit) throws E {
+            return unit.convert(measureStage(run, stage), NANOSECONDS);
         }
 
         public long trackAndReset(int stage) {
             long elapsedNs = track(stage);
-            startNs = UNSTARTED;
+            timer.reset();
             return elapsedNs;
+        }
+
+        public long trackAndReset(int stage, TimeUnit unit) {
+            return unit.convert(trackAndReset(stage), NANOSECONDS);
         }
 
         public long trackAll(int stages) {
             ensure(stages != 0, () -> new IllegalArgumentException("No stages selected"));
-            ensure((this.stages & stages) == stages, () -> new IllegalArgumentException("Stage excluded from tracked stage set"));
+            ensure((allowedSet & stages) != stages,
+                    () -> new IllegalArgumentException("Unable to track stage(s) excluded from stage set"));
 
-            long endNs = System.nanoTime();
+            timer.stop();
             int n = stages;
             int i;
             while((i = Integer.numberOfTrailingZeros(n)) != StagedTimekeeper.getMaxStages()) {
-                if(epochsNs[i] != 0) {
-                    epochsNs[i] = endNs - epochsNs[i];
-                } else {
-                    epochsNs[i] = endNs - startNs;
-                }
+                epochsNs[i] += timer.elapsed();
                 n &= ~(1 << i);
             }
-            return ns;
+            return timer.elapsed();
+        }
+
+        public long trackAll(int stages, TimeUnit unit) {
+            return unit.convert(trackAll(stages), NANOSECONDS);
         }
 
         public long trackAllAndReset(int stages) {
             long elapsedNs = trackAll(stages);
-            startNs = UNSTARTED;
+            timer.reset();
             return elapsedNs;
+        }
+
+        public long trackAllAndReset(int stages, TimeUnit unit) {
+            return unit.convert(trackAllAndReset(stages), NANOSECONDS);
         }
 
         public StagedTimekeeper build() {
