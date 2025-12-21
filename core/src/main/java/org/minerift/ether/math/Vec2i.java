@@ -20,11 +20,6 @@ public class Vec2i implements Vec2, Serializable {
     }
 
     @Override
-    public Vec2i copy() {
-        return new Vec2i(x, z);
-    }
-
-    @Override
     public int getX() {
         return x;
     }
@@ -36,12 +31,12 @@ public class Vec2i implements Vec2, Serializable {
 
     @Override
     public double getXd() {
-        return 0;
+        return x;
     }
 
     @Override
     public double getZd() {
-        return 0;
+        return z;
     }
 
     @Override
@@ -65,8 +60,21 @@ public class Vec2i implements Vec2, Serializable {
         return (int) Math.sqrt(distX + distZ);
     }
 
+    @Override
+    public Vec2i copy() {
+        return new Vec2i(x, z);
+    }
+
     public Vec2i.Mutable asMutable() {
-        return (this instanceof Vec2i.Mutable) ? (Vec2i.Mutable) this : new Vec2i.Mutable(x, z);
+        return isMutable() ? (Vec2i.Mutable) this : new Vec2i.Mutable(x, z);
+    }
+
+    public Vec2i copyImmutable() {
+        return new Vec2i(x, z);
+    }
+
+    public Vec2i.Mutable copyMutable() {
+        return new Vec2i.Mutable(x, z);
     }
 
     @Override
@@ -98,27 +106,26 @@ public class Vec2i implements Vec2, Serializable {
             return true;
         }
 
-        @Override
-        public Vec2i.Mutable copy() {
-            return new Vec2i.Mutable(x, z);
-        }
-
         public void setX(int x) {
-            super.x = x;
+            this.x = x;
         }
 
         public void setZ(int z) {
-            super.z = z;
+            this.z = z;
+        }
+
+        public void set(Vec2i vec) {
+            set(vec.x, vec.z);
         }
 
         public void set(int x, int z) {
-            super.x = x;
-            super.z = z;
+            this.x = x;
+            this.z = z;
         }
 
         public void add(int x, int z) {
-            super.x += x;
-            super.z += z;
+            this.x += x;
+            this.z += z;
         }
 
         public void add(Vec2 addend) {
@@ -126,16 +133,21 @@ public class Vec2i implements Vec2, Serializable {
         }
 
         public void subtract(int x, int z) {
-            super.x -= x;
-            super.z -= z;
+            this.x -= x;
+            this.z -= z;
         }
 
         public void subtract(Vec2 subtrahend) {
             subtract(subtrahend.getX(), subtrahend.getZ());
         }
 
+        @Override
+        public Vec2i.Mutable copy() {
+            return new Vec2i.Mutable(x, z);
+        }
+
         public Vec2i immutable() {
-            return new Vec2i(getX(), getZ());
+            return new Vec2i(x, z);
         }
     }
 }

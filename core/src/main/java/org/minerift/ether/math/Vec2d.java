@@ -66,17 +66,59 @@ public class Vec2d implements Vec2 {
         return isMutable() ? (Mutable) this : new Mutable(x, z);
     }
 
-    public static class Mutable extends Vec2d {
+    public static class Mutable extends Vec2d /*implements Vec2.Mutable*/ {
 
         public Mutable(double x, double z) {
             super(x, z);
         }
 
+        public Vec2d.Mutable add(double x, double z) {
+            this.x += x;
+            this.z += z;
+            return this;
+        }
 
+        public Vec2d.Mutable add(Vec2 vec) {
+            this.x += vec.getXd();
+            this.z += vec.getZd();
+            return this;
+        }
+
+        public Vec2d.Mutable subtract(double x, double z) {
+            this.x -= x;
+            this.z -= z;
+            return this;
+        }
+
+        public Vec2d.Mutable subtract(Vec2 vec) {
+            this.x -= vec.getXd();
+            this.z -= vec.getZd();
+            return this;
+        }
+
+        public Vec2d.Mutable setX(double x) {
+            this.x = x;
+            return this;
+        }
+
+        public Vec2d.Mutable setZ(double z) {
+            this.z = z;
+            return this;
+        }
+
+        public Vec2d.Mutable set(Vec2d vec) {
+            return set(vec.x, vec.z);
+        }
+
+        public Vec2d.Mutable set(double x, double z) {
+            this.x = x;
+            this.z = z;
+            return this;
+        }
 
         @Override
         public Vec2d.Mutable copy() {
-            return new Mutable(x, z);
+            return new Vec2d.Mutable(x, z);
         }
 
         @Override

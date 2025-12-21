@@ -197,19 +197,19 @@ public class Vec3d implements Vec3, Serializable {
             this.z = z.applyAsDouble(this.z);
         }
 
-        public void add(Vec3d addend) {
+        public void add(Vec3d addend) { // TODO: change to Vec3
             add(addend.x, addend.y, addend.z);
         }
 
-        public void add(Vec3i addend) {
+        public void add(Vec3i addend) { // TODO: change to double x, y, z
             add(addend.x, addend.y, addend.z);
         }
 
-        public void subtract(Vec3d subtrahend) {
+        public void subtract(Vec3d subtrahend) { // TODO: change to double x, y, z
             subtract(subtrahend.x, subtrahend.y, subtrahend.z);
         }
 
-        public void subtract(Vec3i subtrahend) {
+        public void subtract(Vec3i subtrahend) { // TODO: change to Vec3
             subtract(subtrahend.x, subtrahend.y, subtrahend.z);
         }
 

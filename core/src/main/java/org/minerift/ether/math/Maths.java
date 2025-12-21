@@ -167,16 +167,8 @@ public class Maths {
         return pack(vec.getX(), vec.getZ(), order);
     }
 
-    public static long pack(ChunkCoords coords, PackingOrder order) {
-        return pack(coords.x, coords.z, order);
-    }
-
     public static long packAsChunkKey(Vec2i vec) {
         return pack(vec.getX(), vec.getZ(), PackingOrder.ZX);
-    }
-
-    public static long packAsChunkKey(ChunkCoords chunk) {
-        return pack(chunk.x, chunk.z, PackingOrder.ZX);
     }
 
     /**
