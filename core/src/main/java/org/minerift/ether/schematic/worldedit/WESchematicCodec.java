@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.worldedit;
 
+import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extension.input.InputParseException;
@@ -7,12 +8,15 @@ import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.extent.clipboard.io.SpongeSchematicWriter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.world.DataFixer;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.SchematicCodec;
@@ -20,13 +24,17 @@ import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.SpongeSchematicCodec;
 import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.util.nbt.Compression;
+import org.minerift.ether.util.nbt.NbtReadException;
+import org.minerift.ether.util.nbt.NbtReader;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.util.nbt.tags.container.NoTagTypeFoundException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.zip.GZIPOutputStream;
 
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
+import static org.minerift.ether.util.nbt.tags.TagTypes.COMPOUND;
 
 public class WESchematicCodec implements SchematicCodec<WorldEditSchematic> {
 
@@ -40,11 +48,15 @@ public class WESchematicCodec implements SchematicCodec<WorldEditSchematic> {
         }
     }
 
-    // hacky idea: create temp file to wrap buffer; thanks WorldEdit for the shitty API :)
-    // originally planned to have IO from WorldEdit, however the API looks abysmal, so let's do our own
     @Override
-    public WorldEditSchematic read(ByteBuf buf) throws SchematicReadException {
-        throw new UnreachableException("unimplemented");
+    public WorldEditSchematic read(ByteBuf buf, Compression compress) throws SchematicReadException {
+        try {
+            NbtReader reader = NbtReader.from(buf, compress);
+            CompoundTag root = reader.readNextTag(COMPOUND);
+            return read(root);
+        } catch (IOException | NbtReadException | NoTagTypeFoundException e) {
+            throw new SchematicReadException(e);
+        }
     }
 
     @Override
@@ -58,10 +70,10 @@ public class WESchematicCodec implements SchematicCodec<WorldEditSchematic> {
         Clipboard clipboard = new BlockArrayClipboard(region);
 
         // Translate blk states to WorldEdit blk states
-        BytePalette<BlockState<?>> blkPlt = data.getBlocks().getPalette();
+        BytePalette<BlockState<?>> blkPlt = data.getBlocks().getRight().getPalette();
         BytePalette<com.sk89q.worldedit.world.block.BlockState> blkPltWE = BytePalette.of(blkPlt.size());
 
-        byte[] blkIds = data.getBlocks().getData();
+        byte[] blkIds = data.getBlocks().getRight().getData();
 
         ParserContext parserContext = new ParserContext();
         parserContext.setRestricted(false);
@@ -102,12 +114,27 @@ public class WESchematicCodec implements SchematicCodec<WorldEditSchematic> {
 
     @Override
     public int write(WorldEditSchematic schem, ByteBuf buf, int flags) {
-        return 0;
+        try (ByteBufOutputStream _out = new ByteBufOutputStream(buf);
+            NBTOutputStream out = new NBTOutputStream(_out);
+            SpongeSchematicWriter writer = new SpongeSchematicWriter(out)) {
+            writer.write(schem.getClipboard());
+            return buf.readableBytes();
+        } catch (IOException e) {
+            throw new UnreachableException("unexpected", e);
+        }
     }
 
     @Override
-    public int write(WorldEditSchematic schem, File file, int flags) {
-        return 0;
+    public int write(WorldEditSchematic schem, File file, int flags) throws IOException {
+        ByteBuf buf = Unpooled.buffer(1024);
+        try (GZIPOutputStream _out = new GZIPOutputStream(new ByteBufOutputStream(buf));
+            NBTOutputStream out = new NBTOutputStream(_out);
+            SpongeSchematicWriter writer = new SpongeSchematicWriter(out);
+            RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            writer.write(schem.getClipboard());
+            int bytes = buf.readableBytes();
+            return buf.readBytes(raf.getChannel(), raf.getFilePointer(), bytes);
+        }
     }
 
     @Override

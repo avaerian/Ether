@@ -29,11 +29,11 @@ public class ReadBlockEntitiesStep implements IReaderStep {
             bEntities = ctx.root.getList(blockEntitiesKey, TagTypes.COMPOUND);
         } catch (NoTagFoundException e) {
             // pass; no block entities
-            System.out.println("Read block entities: " + ctx.builder.getBlocks().blockEntities);
+            System.out.println("Read block entities: " + ctx.builder.getBlocks().getRight().blockEntities);
             return;
         } catch (MismatchedTypeException | MismatchedChildTypeException e) {
             // TODO: logger
-            System.out.println("Read block entities: " + ctx.builder.getBlocks().blockEntities);
+            System.out.println("Read block entities: " + ctx.builder.getBlocks().getRight().blockEntities);
             e.printStackTrace();
             return;
         }
@@ -67,18 +67,18 @@ public class ReadBlockEntitiesStep implements IReaderStep {
             BlockEntityArchetype bEntity;
             try {
                 bEntity = new BlockEntityArchetype(id, pos, nbt);
-                ctx.builder.getBlocks().addBlockEntity(bEntity);
+                ctx.builder.getBlocks().getRight().addBlockEntity(bEntity);
             } catch (BlockStateNotFoundException ex1) {
                 // TODO: logger
                 // Fix up any outdated nbt data to try again
                 try {
                     StringTag idTag = nbt.getTag("id", TagTypes.STRING);
-                    idTag = Ether.getNms().fixUpItemName(idTag, -1);
+                    idTag = Ether.inst().getNms().fixUpItemName(idTag, -1);
                     idTag.setName("id");
                     nbt.addTag(idTag, true);
 
                     bEntity = new BlockEntityArchetype(nbt.getTag("id", TagTypes.STRING).getStrVal(), pos, nbt);
-                    ctx.builder.getBlocks().addBlockEntity(bEntity);
+                    ctx.builder.getBlocks().getRight().addBlockEntity(bEntity);
                 } catch (BlockStateNotFoundException | NoTagFoundException | MismatchedTypeException ex2) {
                     // skip for now
                     System.out.println("Failed to read block entity: ");
