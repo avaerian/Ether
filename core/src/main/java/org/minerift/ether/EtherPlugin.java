@@ -13,8 +13,16 @@ import java.util.logging.Logger;
 // Represents the Minecraft plugin (handles plugin API stuff here)
 public class EtherPlugin extends JavaPlugin {
 
+    private static EtherPlugin INST;
+
+    @Deprecated
+    public static EtherPlugin getInstance() {
+        return INST;
+    }
+
     @Override
     public void onLoad() {
+        INST = this;
         // no-op
     }
 
@@ -53,6 +61,7 @@ public class EtherPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         Ether.inst().close();
+        INST = null;
     }
 
     public void disable() {

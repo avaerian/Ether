@@ -35,7 +35,7 @@ public class DefaultIslandGrid implements IslandGrid {
         try {
             islands.add(island);
         } catch (UnsupportedOperationException ex) {
-            Ether.getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid", ex);
+            Ether.inst().getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid", ex);
         }
     }
 

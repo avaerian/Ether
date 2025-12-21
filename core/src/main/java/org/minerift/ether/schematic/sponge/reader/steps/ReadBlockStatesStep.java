@@ -47,7 +47,7 @@ public class ReadBlockStatesStep implements IReaderStep {
             // FIXME: review this item/block name upgrader
             // TODO: create fixer-upper ops class for nunbt/other needs
             String data = e.getKey();
-            data = Ether.getNms().fixUpItemName(StringTag.valueOf(data), -1).getStrVal();
+            data = Ether.inst().getNms().fixUpItemName(StringTag.valueOf(data), -1).getStrVal();
 
             // should probably check before casting; everything would fail regardless
             IntTag idx = (IntTag) e.getValue();

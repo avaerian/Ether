@@ -32,7 +32,7 @@ public class EtherUser extends CanChange {
     }
 
     public Optional<Island> getIsland() {
-        return Ether.getIslandManager().getIslandAt(islandId);
+        return Ether.inst().getIslandManager().getIslandAt(islandId);
     }
 
     public void setIsland(Island island) {

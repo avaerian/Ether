@@ -22,6 +22,7 @@ import org.minerift.ether.work.WorkQueue;
 import org.minerift.ether.util.log.StagedTimekeeper;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -32,36 +33,42 @@ import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.minerift.ether.Ether.Stages.*;
 
 // Provides static access to plugin components
 // TODO: support unloaded and loaded Ether instance for IDE & server usage
-public class Ether implements AutoCloseable {
+public class Ether /*implements AutoCloseable*/ {
+    // don't want to have warnings all over the place for
+    // potential resource leakage for not closing the
+    // Ether AutoCloseable instance
 
     // unordered init stages
-    public static final int STAGE_CFGS;
-    public static final int STAGE_DB;
-    public static final int STAGE_ISLANDS;
-    public static final int STAGE_INVITES;
-    public static final int STAGE_USERS;
-    public static final int STAGE_WORK_QUEUE;
-    public static final int STAGE_NMS;
-    
-    public static final int STAGES_MASK;
-    public static final int STAGES_COUNT;
+    public static class Stages {
+        public static final int STAGE_CFGS;
+        public static final int STAGE_DB;
+        public static final int STAGE_ISLANDS;
+        public static final int STAGE_INVITES;
+        public static final int STAGE_USERS;
+        public static final int STAGE_WORK_QUEUE;
+        public static final int STAGE_NMS;
 
-    static {
-        int i = 0;
+        public static final int STAGES_MASK;
+        public static final int STAGES_COUNT;
 
-        STAGE_CFGS       = 1 << i++; // 1, 0
-        STAGE_DB         = 1 << i++; // 2, 1
-        STAGE_ISLANDS    = 1 << i++; // 4, 2
-        STAGE_INVITES    = 1 << i++; // 8, 3
-        STAGE_USERS      = 1 << i++; // 16, 4
-        STAGE_WORK_QUEUE = 1 << i++; // 32, 5
-        STAGE_NMS        = 1 << i++; // 64, 6
+        static {
+            int i = 0;
 
-        STAGES_MASK = (1 << i) - 1; // 127
-        STAGES_COUNT = i; // 7
+            STAGE_CFGS       = 1 << i++; // 1, 0
+            STAGE_DB         = 1 << i++; // 2, 1
+            STAGE_ISLANDS    = 1 << i++; // 4, 2
+            STAGE_INVITES    = 1 << i++; // 8, 3
+            STAGE_USERS      = 1 << i++; // 16, 4
+            STAGE_WORK_QUEUE = 1 << i++; // 32, 5
+            STAGE_NMS        = 1 << i++; // 64, 6
+
+            STAGES_MASK = (1 << i) - 1; // 127
+            STAGES_COUNT = i; // 7
+        }
     }
 
     // not worried about synchronization; single-threaded impl
@@ -93,7 +100,6 @@ public class Ether implements AutoCloseable {
     }
     
     public static Ether.InitResult from(File dataDir, Logger logger) throws EtherLoadException {
-
         final StagedTimekeeper.Builder times = StagedTimekeeper.builder(STAGES_MASK);
 
         // load configs
@@ -101,8 +107,8 @@ public class Ether implements AutoCloseable {
         ConfigRegistry cfgs = new ConfigRegistry(dataDir, logger);
         try {
             cfgs.register(ConfigType.MAIN, FileSource.of(new File(dataDir, "config.yml")));
-            cfgs.register(ConfigType.ISLAND_SPECS_LIST, DirectorySource.of());
-        } catch (ConfigReadException e) {
+            cfgs.register(ConfigType.ISLAND_SPECS_LIST, DirectorySource.of(new File(dataDir, "island_specs")));
+        } catch (IOException e) {
             // If failed, log error and abort plugin loading
             // Failing will be delegated to EtherPlugin or other bootstrapper
             throw new EtherLoadException("Failed to register configs", e);
@@ -113,7 +119,7 @@ public class Ether implements AutoCloseable {
             try {
                 entry.config.save();
             } catch (ConfigWriteException e) {
-                logger.log(Level.SEVERE, "Failed to save " + entry.config.getName(), e);
+                logger.log(Level.SEVERE, "Failed to save " + entry.config.getTypeName(), e);
             }
         }
         long cfgMs = times.trackAndReset(STAGE_CFGS, MILLISECONDS);
@@ -296,9 +302,14 @@ public class Ether implements AutoCloseable {
         return log;
     }
 
-    @Override
     public void close() {
-        cfgs.getAll().forEach(Config::saveIfChanged);
+        for(Config config : cfgs.getAll()) {
+            try {
+                config.save();
+            } catch (ConfigWriteException e) {
+                throw new RuntimeException(e);
+            }
+        }
         cfgs = null;
 
         workQueue.close();

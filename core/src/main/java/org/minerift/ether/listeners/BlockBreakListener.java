@@ -13,7 +13,7 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
 
-        final IslandManager islandManager = Ether.getIslandManager();
+        final IslandManager islandManager = Ether.inst().getIslandManager();
         final Player plr = e.getPlayer();
         final Location loc = e.getBlock().getLocation();
 

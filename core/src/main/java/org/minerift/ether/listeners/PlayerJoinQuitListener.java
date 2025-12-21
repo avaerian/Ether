@@ -18,7 +18,7 @@ public class PlayerJoinQuitListener implements Listener {
         // TODO: attempt to fetch data from database, otherwise create new profile
 
         // Check if user is already registered
-        if(Ether.getUserManager().getUser(uuid).isPresent()) {
+        if(Ether.inst().getUserManager().getUser(uuid).isPresent()) {
             return;
         }
 
@@ -28,7 +28,7 @@ public class PlayerJoinQuitListener implements Listener {
                 .setIslandRole(IslandRole.VISITOR)
                 .build();
 
-        Ether.getUserManager().register(user);
+        Ether.inst().getUserManager().register(user);
     }
 
     @EventHandler
