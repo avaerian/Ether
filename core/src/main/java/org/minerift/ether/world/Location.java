@@ -31,12 +31,12 @@ public class Location implements NbtSerializable {
     }
 
     public static Location of(CompoundTag tag) throws IllegalArgumentException {
-        Tag _posTag = tag.getTag(POS_ENTRY, (e) -> new IllegalArgumentException("Failed to find position", e));
-        Tag _lookTag = tag.getTag(LOOK_ENTRY, (e) -> new IllegalArgumentException("Failed to find looking", e));
+        Tag posTag = tag.getTag(POS_ENTRY, (e) -> new IllegalArgumentException("Failed to find position", e));
+        Tag lookTag = tag.getTag(LOOK_ENTRY, (e) -> new IllegalArgumentException("Failed to find looking", e));
 
-        double[] pos = DOUBLE_LIST_OR_ARRAY.unwrap(_posTag,
+        double[] pos = DOUBLE_LIST_OR_ARRAY.unwrap(posTag,
                 (e) -> new IllegalArgumentException("Failed to read position", e));
-        double[] look = DOUBLE_LIST_OR_ARRAY.unwrap(_lookTag,
+        double[] look = DOUBLE_LIST_OR_ARRAY.unwrap(lookTag,
                 (e) -> new IllegalArgumentException("Failed to read looking", e));
 
         return new Location(new Vec3d(pos), new Vec2d(look));

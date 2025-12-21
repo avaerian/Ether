@@ -46,7 +46,8 @@ public class FloatArrayNuTag extends ArrayTag<float[]> {
     }
 
     public ListTag<FloatTag> toPrimitive() {
-        List<FloatTag> tags = floatsToTags();
+        List<FloatTag> tags = floatsToTags(value);
+        return new ListTag<>(name, FLOAT, tags);
     }
 
     public static class Codec implements TagCodec<FloatArrayNuTag> {
