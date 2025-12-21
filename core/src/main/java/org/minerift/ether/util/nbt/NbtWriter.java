@@ -3,6 +3,8 @@ package org.minerift.ether.util.nbt;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import org.minerift.ether.debug.Experimental;
+import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.Predicates;
 import org.minerift.ether.util.nbt.tags.Tag;
 
@@ -11,9 +13,6 @@ import java.nio.channels.FileChannel;
 import java.util.function.Predicate;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
-
-import static org.minerift.ether.debug.NeedsTesting;
-import static org.minerift.ether.debug.Experimental;
 
 public class NbtWriter extends NbtTraverser {
 
