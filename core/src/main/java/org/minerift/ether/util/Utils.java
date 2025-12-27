@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.fn.IntBiConsumer;
 
@@ -12,15 +13,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@SuppressWarnings("Duplicates")
 public class Utils {
 
-    public static final BiMap<?, ?> EMPTY_BIMAP = ImmutableBiMap.of();
+    @Deprecated public static final BiMap<?, ?> EMPTY_BIMAP = ImmutableBiMap.of();
 
     private Utils() {
         throw new IllegalStateException();
     }
 
+    @Deprecated
     public static <K, V> BiMap<K, V> emptyBiMap() {
         return (BiMap<K, V>) EMPTY_BIMAP;
     }
@@ -29,6 +30,27 @@ public class Utils {
     @NeedsTesting
     public static boolean isPow2(int i) {
         return (i == Integer.highestOneBit(i));
+    }
+
+    // TODO: proper Javadocs
+    // return index, or negated if not found
+    public static int binarySearch(IntList list, int key) {
+        int low = 0;
+        int high = list.size()-1;
+
+        while (low <= high) {
+            int midIdx = (low + high) >>> 1;
+            int midVal = list.getInt(midIdx);
+            int cmp = midVal - key; // compare fn at its simplest
+
+            if (cmp < 0)
+                low = midIdx + 1;
+            else if (cmp > 0)
+                high = midIdx - 1;
+            else
+                return midIdx; // key found
+        }
+        return ~low;  // key not found
     }
 
     /**
