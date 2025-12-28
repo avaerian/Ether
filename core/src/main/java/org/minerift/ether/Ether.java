@@ -16,7 +16,7 @@ import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
 import org.minerift.ether.work.WorkQueue;
-import org.minerift.ether.util.log.StagedTimekeeper;
+import org.minerift.ether.util.log.StageTimekeeper;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,74 +28,52 @@ import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.minerift.ether.Ether.Stages.*;
+import static org.minerift.ether.Ether.Stage.*;
 
 // Provides static access to plugin components
 // TODO: support unloaded and loaded Ether instance for IDE & server usage
 public class Ether /*implements AutoCloseable*/ {
-    // don't want to have warnings all over the place for
-    // potential resource leakage for not closing the
-    // Ether AutoCloseable instance
 
-    // unordered init stages
-    public static class Stages {
-        public static final int STAGE_CFGS;
-        public static final int STAGE_DB;
-        public static final int STAGE_ISLANDS;
-        public static final int STAGE_INVITES;
-        public static final int STAGE_USERS;
-        public static final int STAGE_WORK_QUEUE;
-        public static final int STAGE_NMS;
-
-        public static final int STAGES_MASK;
-        public static final int STAGES_COUNT;
-
-        static {
-            int i = 0;
-
-            STAGE_CFGS       = 1 << i++; // 1, 0
-            STAGE_DB         = 1 << i++; // 2, 1
-            STAGE_ISLANDS    = 1 << i++; // 4, 2
-            STAGE_INVITES    = 1 << i++; // 8, 3
-            STAGE_USERS      = 1 << i++; // 16, 4
-            STAGE_WORK_QUEUE = 1 << i++; // 32, 5
-            STAGE_NMS        = 1 << i++; // 64, 6
-
-            STAGES_MASK = (1 << i) - 1; // 127
-            STAGES_COUNT = i; // 7
-        }
+    public enum Stage {
+        STAGE_CFGS,
+        STAGE_DB,
+        STAGE_ISLANDS,
+        STAGE_INVITES,
+        STAGE_USERS,
+        STAGE_WORK_QUEUE,
+        STAGE_NMS
     }
 
     // not worried about synchronization; single-threaded impl
     public static class InitResult {
         public final Ether ether;
-        public final StagedTimekeeper tracker;
+        public final StageTimekeeper<Stage> tracker;
 
-        protected InitResult(Ether ether, StagedTimekeeper tracker) {
+        protected InitResult(Ether ether, StageTimekeeper<Stage> tracker) {
             this.ether = ether;
             this.tracker = tracker;
         }
 
         public long getLoadTime() {
-            return tracker.getLoadTime(NANOSECONDS, STAGES_MASK);
+            return tracker.getLoadTime(NANOSECONDS);
         }
 
         public long getLoadTime(TimeUnit unit) {
-            return tracker.getLoadTime(unit, STAGES_MASK);
+            return tracker.getLoadTime(unit);
         }
 
         // default time unit is nanoseconds
-        public long getLoadTime(int stages) {
+        public long getLoadTime(Stage... stages) {
             return tracker.getLoadTime(NANOSECONDS, stages);
         }
 
-        public long getLoadTime(TimeUnit unit, int stages) {
+        public long getLoadTime(TimeUnit unit, Stage... stages) {
             return tracker.getLoadTime(unit, stages);
         }
     }
     
     public static Ether.InitResult from(File dataDir, Logger logger) throws EtherLoadException {
-        final StagedTimekeeper.Builder times = StagedTimekeeper.builder(STAGES_MASK);
+        final StageTimekeeper<Stage> times = new StageTimekeeper<>(Stage.class);
 
         // load configs
         times.start();
@@ -163,11 +141,10 @@ public class Ether /*implements AutoCloseable*/ {
                 Result<EtherUser> usersResult = access.selectAll(UserModel.class);
                 Result<Island> islandsResult = access.selectAll(IslandModel.class);
 
-                UUID[] uuids = islandsResult.getRecord(0).get(islandModel.MEMBERS);
+                //UUID[] uuids = islandsResult.getRecord(0).get(islandModel.MEMBERS);
 
-                List<String> t = Collections.emptyList();
-                Class<List<String>> c = (Class<List<String>>) Collections.emptyList().getClass();
-                //islandModel.MEMBERS.asComplexField(); // FIXME: delete
+                //List<String> t = Collections.emptyList(); // NOTE: experiment
+                //Class<List<String>> c = (Class<List<String>>) Collections.emptyList().getClass(); // NOTE: experiment
             }).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new EtherLoadException("unexpected", e);
@@ -179,7 +156,7 @@ public class Ether /*implements AutoCloseable*/ {
         Ether ether = new Ether(cfgs, logger, dataDir,
                 db, nms, workQueue, 
                 islands, invites, users);
-        return new InitResult(ether, times.build());
+        return new InitResult(ether, times);
     }
 
     // Considering different modules (i.e. Paper, Fabric), this inst
@@ -193,7 +170,7 @@ public class Ether /*implements AutoCloseable*/ {
      * which will throw for all component getters.
      */
     protected static Ether INST = null;
-    protected static boolean DEBUG = false;
+    protected static boolean IS_DEBUG = false;
 
     // For IDE debugging, set -Dether.runInIde=true flag.
     // When the plugin loads, a new Ether instance will
@@ -205,7 +182,7 @@ public class Ether /*implements AutoCloseable*/ {
         String debug = System.getProperty("ether.runInIde");
         if(debug != null && debug.equalsIgnoreCase("true")) { // TODO: review this
             INST = new Debug();
-            DEBUG = true;
+            IS_DEBUG = true;
         } else {
             INST = new Uninit();
         }
@@ -215,10 +192,10 @@ public class Ether /*implements AutoCloseable*/ {
     public static Ether.Debug debug() {
         if(INST == null) {
             INST = new Debug();
-            DEBUG = true;
+            IS_DEBUG = true;
             return (Debug) INST;
         }
-        if(DEBUG) {
+        if(IS_DEBUG) {
             return (Debug) INST;
         } else {
             throw new UnsupportedOperationException("Ether instance is not a Debug instance");
@@ -297,7 +274,7 @@ public class Ether /*implements AutoCloseable*/ {
         return log;
     }
 
-    public void close() {
+    protected void close() {
         for(Config config : cfgs.getAll()) {
             try {
                 config.save();
