@@ -19,9 +19,9 @@ public class H2Connector implements SQLConnector {
 
         // TODO: implement unit tests for different JDBC urls with embedded dbs (?)
         config.setDriverClassName("org.h2.Driver");
-        config.setJdbcUrl("jdbc:h2:" + settings.getUrl() + File.separatorChar + settings.getDbName());
-        config.setUsername(settings.getUsername());
-        config.setPassword(settings.getPassword());
+        config.setJdbcUrl("jdbc:h2:" + settings.url() + File.separatorChar + settings.dbName());
+        config.setUsername(settings.username());
+        config.setPassword(settings.password());
         //config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("DATABASE_TO_UPPER", "false");
         config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true");

@@ -20,9 +20,11 @@ dependencies {
 
     //implementation("org.jooq:joor-java-8:0.9.15")
     compileOnly(libs.paperApi)
-    implementation(libs.dataFixerUpper) // TODO: review; compileOnly / compile ??
 
-    // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling ?
+    implementation(libs.dataFixerUpper) // TODO: review; move to :build-logic build.gradle.kts for version constraint management; compileOnly / compile ??
+    // should also review if this needs to be shaded
+
+    // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling
     // General libraries
     implementation(libs.guava)
     implementation(libs.gson)

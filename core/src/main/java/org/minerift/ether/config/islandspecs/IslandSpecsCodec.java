@@ -2,8 +2,9 @@ package org.minerift.ether.config.islandspecs;
 
 import com.google.common.base.Preconditions;
 import org.minerift.ether.config.ConfigCodec;
-import org.minerift.ether.config.ConfigFileReadException;
-import org.minerift.ether.config.ConfigFileWriteException;
+import org.minerift.ether.config.ConfigReadException;
+import org.minerift.ether.config.ConfigWriteException;
+import org.minerift.ether.config.source.DirectorySource;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.nbt.*;
 import org.minerift.ether.util.nbt.tags.*;
@@ -16,24 +17,25 @@ import java.nio.channels.FileChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.minerift.ether.util.nbt.tags.NbtOptions.USE_NUNBT_IO;
 
-public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
+public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySource> {
 
-    public static final IslandSpecsCodec CODEC = new IslandSpecsCodec();
-
-    private IslandSpecsCodec() {
-        super(TYPE_DIR);
-    }
+    public static final IslandSpecsCodec INST = new IslandSpecsCodec();
 
     @Override
-    protected IslandSpecsConfig readIt(File dir) throws ConfigFileReadException {
+    protected void readIt(IslandSpecsConfig cfg, DirectorySource src) throws ConfigReadException {
+        /* START MOVE THIS OUT OF HERE */
+        final File dir = src.getDirectory();
         Preconditions.checkArgument(dir.exists(), dir.getName() + " does not exist");
         Preconditions.checkArgument(dir.isDirectory(), dir.getName() + " must be a directory");
-        IslandSpecsConfig config = new IslandSpecsConfig();
+        /* END MOVE THIS OUT OF HERE */
 
-        //  parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler )<- shits and giggles
+        List<IslandSpec> specs = new ArrayList<>(16);
+        // parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler)<- shits and giggles
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(dir.toPath(), "*.spec")) {
             for(Path p : stream) {
                 try {
@@ -43,7 +45,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
                     CompoundTag root = nbt.readNextTag(TagTypes.COMPOUND); //FIXME: review positioning reader/writer indices
 
                     IslandSpec spec = IslandSpec.of(root);
-                    config.add(spec);
+                    specs.add(spec);
                 } catch (IslandSpecLoadException | NbtReadException | NoTagTypeFoundException e) {
                     // TODO: logger
                     // skip this file and log
@@ -51,42 +53,24 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
                 }
             }
         } catch (IOException ex) {
-            throw new ConfigFileReadException(ex);
+            throw new ConfigReadException(ex);
         }
-
-        return config;
-    }
-
-    @Debug
-    public static void main(String[] args) throws ConfigFileWriteException {
-
-        /*IslandSpec spec = new IslandSpec();
-        spec.setIslandName("Default");
-        spec.setDescription(List.of("Hello, world!", "Goodbye, world!"));
-        spec.setIconData("SNBT data here or something idk");
-
-        IslandSpecsConfig config = new IslandSpecsConfig();
-        config.islandSpecs.add(spec);
-
-        IslandSpecsCodec writer = new IslandSpecsCodec();
-        // TODO: update reference
-        /*writer.writeIt(config, Secrets.LOCAL_ISLAND_SPECS_DIR.transform(File::new));*/
-
+        cfg.islandSpecs = specs;
     }
 
     @Override
-    protected void writeIt(IslandSpecsConfig config, File dir) throws ConfigFileWriteException {
-
+    protected void writeIt(IslandSpecsConfig cfg, DirectorySource src) throws ConfigWriteException {
+        final File dir = src.getDirectory();
         final Path dirPath = dir.toPath();
         if(!dir.exists()) {
             try {
                 Files.createDirectories(dirPath);
             } catch (IOException ex) {
-                throw new ConfigFileWriteException("Failed to create directories", ex);
+                throw new ConfigWriteException("Failed to create directories", ex);
             }
         }
 
-        for(IslandSpec spec : config) {
+        for(IslandSpec spec : cfg) {
             CompoundTag tag = spec.serializeNbt();
 
             // first, write to buffer
@@ -112,7 +96,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig> {
             try(FileChannel out = FileChannel.open(spec.getFilePath())) {
                 nbt.dump(out);
             } catch (IOException e) {
-                throw new ConfigFileWriteException("Failed to write NbtWriter buffer to file", e);
+                throw new ConfigWriteException("Failed to write NbtWriter buffer to file", e);
             }
         }
 

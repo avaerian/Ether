@@ -3,6 +3,7 @@ package org.minerift.ether.work;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.Ether;
+import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.work.deprecated.Task;
 
 import java.util.ArrayDeque;
@@ -30,7 +31,7 @@ public class WorkQueue {
     }
 
     public void start() {
-        start(Bukkit.getScheduler().runTaskTimer(Ether.plugin(), this::tick, 1L, 1L));
+        start(Bukkit.getScheduler().runTaskTimer(EtherPlugin.getInstance(), this::tick, 1L, 1L));
     }
 
     // Stops the work queue from completing work

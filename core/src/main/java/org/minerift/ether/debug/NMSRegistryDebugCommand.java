@@ -35,18 +35,18 @@ public class NMSRegistryDebugCommand implements CommandExecutor {
         switch(args[0].toLowerCase()) {
             case "item" -> {
                 ItemStack item = plr.getInventory().getItemInMainHand();
-                plr.sendMessage(Ether.getNms().registryAccess().getNamespacedKey(item).asString());
+                plr.sendMessage(Ether.inst().getNms().registryAccess().getNamespacedKey(item).asString());
                 plr.sendMessage(item.getItemMeta().getAsString());
             }
             case "block" -> {
                 Block block = plr.getLocation().getBlock();
-                plr.sendMessage(Ether.getNms().registryAccess().getNamespacedKey(block.getState()).asString());
+                plr.sendMessage(Ether.inst().getNms().registryAccess().getNamespacedKey(block.getState()).asString());
             }
             case "biome" -> {
-                plr.sendMessage(Ether.getNms().registryAccess().getNamespacedKey(plr.getLocation().getBlock().getBiome()).asString()); // TODO: fix
+                plr.sendMessage(Ether.inst().getNms().registryAccess().getNamespacedKey(plr.getLocation().getBlock().getBiome()).asString()); // TODO: fix
             }
             case "dim" -> {
-                plr.sendMessage(Ether.getNms().registryAccess().getDimNamespacedKey(plr.getWorld()).asString());
+                plr.sendMessage(Ether.inst().getNms().registryAccess().getDimNamespacedKey(plr.getWorld()).asString());
             }
             default -> {
                 plr.sendMessage(USAGE_COMP);

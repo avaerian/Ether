@@ -1,6 +1,7 @@
 package org.minerift.ether.schematic;
 
 import org.minerift.ether.Ether;
+import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.SpongeSchematicPaster;
 import org.minerift.ether.schematic.worldedit.WESchematicPaster;
@@ -15,11 +16,12 @@ public class SchematicType<S extends Schematic> {
     public final static SchematicType<WorldEditSchematic> WORLDEDIT;
 
     static {
-        //UNSUPPORTED = new SchematicType(null, null);
-        UNSUPPORTED = null;
+        UNSUPPORTED = new SchematicType(null, null);
         SPONGE = new SchematicType<>(SpongeSchematicCodec.INST, new SpongeSchematicPaster());
         // Initialize only if WorldEdit is supported
-        WORLDEDIT = Ether.isUsingWorldEdit()
+        WORLDEDIT = EtherPlugin.getInstance().getServer()
+                .getPluginManager()
+                .isPluginEnabled("WorldEdit")
                 ? new SchematicType<>(new WESchematicCodec(), new WESchematicPaster())
                 : UNSUPPORTED;
     }
@@ -31,20 +33,16 @@ public class SchematicType<S extends Schematic> {
         this.paster = paster;
     }
 
-    public boolean isSupported() {
-        return this != UNSUPPORTED;
-    }
-
     public SchematicCodec<S> codec() {
-        if(!isSupported()) {
-            throw new UnsupportedOperationException("Reader unavailable because schematic type was unable to load!");
+        if(codec == null) {
+            throw new UnsupportedOperationException("Reader unavailable; schematic type was unable to load");
         }
         return codec;
     }
 
     public SchematicPaster<S> getPaster() {
-        if(!isSupported()) {
-            throw new UnsupportedOperationException("Paster unavailable because schematic type was unable to load!");
+        if(paster == null) {
+            throw new UnsupportedOperationException("Paster unavailable; schematic type was unable to load");
         }
         return paster;
     }

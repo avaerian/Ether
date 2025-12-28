@@ -115,9 +115,9 @@ public class Rotate implements Transform {
         // AXIS (rotating on X and Z, layer Y) ->
         // Precedence for coords is determined by order (?)
         // NOTE: YZX ordering used for this example
-        // Rotate Y axis -> rotate Z,X (x is inner-most loop)
-        // Rotate X axis -> rotate Y,Z (z is inner-most loop)
-        // Rotate Z axis -> rotate Y,X (x is inner-most loop)
+        // Rotate Y axis -> rotate Z,X (x is innermost loop)
+        // Rotate X axis -> rotate Y,Z (z is innermost loop)
+        // Rotate Z axis -> rotate Y,X (x is innermost loop)
 
         Vec3i dim = new Vec3i(width, height, len);
         switch (angle) {

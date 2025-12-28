@@ -9,6 +9,7 @@ import org.minerift.ether.schematic.SchematicCodec;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.schematic.sponge.reader.steps.*;
+import org.minerift.ether.util.nbt.Compression;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtReader;
 import org.minerift.ether.util.nbt.NbtWriter;
@@ -64,10 +65,10 @@ public class SpongeSchematicCodec implements SchematicCodec<SpongeSchematic> {
     }
 
     @Override
-    public SpongeSchematic read(ByteBuf buf) throws SchematicReadException {
+    public SpongeSchematic read(ByteBuf buf, Compression compress) throws SchematicReadException {
         CompoundTag tag;
         try {
-            NbtReader reader = NbtReader.from(buf);
+            NbtReader reader = NbtReader.from(buf, compress);
             tag = reader.readNextTag(COMPOUND);
         } catch (IOException | NbtReadException | NoTagTypeFoundException ex) {
             throw new SchematicReadException(ex);
@@ -101,8 +102,11 @@ public class SpongeSchematicCodec implements SchematicCodec<SpongeSchematic> {
     }
 
     @Override
-    public int write(SpongeSchematic schem, File file, int flags) {
-        return 0; // TODO
+    public int write(SpongeSchematic schem, File file, int flags) throws IOException {
+        NbtWriter writer = NbtWriter.from();
+        CompoundTag schemTag = schem.writeAsNbt(flags);
+        writer.writeTag(schemTag);
+        return writer.dump(file);
     }
 
     @Override

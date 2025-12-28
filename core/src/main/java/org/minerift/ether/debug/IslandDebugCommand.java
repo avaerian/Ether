@@ -23,14 +23,14 @@ public class IslandDebugCommand implements CommandExecutor {
             return false;
         }
 
-        EtherUser user = Ether.getUserManager().getUser(plr.getUniqueId())
+        EtherUser user = Ether.inst().getUserManager().getUser(plr.getUniqueId())
                 .orElseThrow(() -> new UnsupportedOperationException(String.format("User %s not found!", plr.getUniqueId())));
 
         switch(args[0].toLowerCase()) {
-            case "create"   -> Ether.getIslandManager().createIsland(user);
+            case "create"   -> Ether.inst().getIslandManager().createIsland(user);
             case "delete"   -> {} //Ether.getIslandManager().deleteIsland();
             case "get"      -> {
-                var optIsland = Ether.getIslandManager().getIslandAt(plr.getLocation());
+                var optIsland = Ether.inst().getIslandManager().getIslandAt(plr.getLocation());
                 optIsland.ifPresentOrElse(
                         (island) -> plr.sendMessage("You are standing in island " + island.getTile() + " : " + island.getId()),
                         ()       -> plr.sendMessage("You aren't standing in any island!")

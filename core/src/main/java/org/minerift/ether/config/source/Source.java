@@ -1,10 +1,11 @@
 package org.minerift.ether.config.source;
 
-// TODO
+import java.io.IOException;
+
 public interface Source {
 
     // returns false if already exists, or if creation fails
-    default boolean createIfNotExists() {
+    default boolean createIfNotExists() throws IOException {
         /*if(!exists()) {
             return create();
         }
@@ -12,7 +13,7 @@ public interface Source {
         return !exists() && create();
     }
 
-    boolean create();
+    boolean create() throws IOException;
     boolean exists();
     //boolean 
 

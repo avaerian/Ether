@@ -20,13 +20,13 @@ public abstract class SpawnStrategy implements NbtSerializable {
 
     @NeedsTesting
     public static class Registry {
-        private final ConcurrentHashMap<Class<? extends SpawnStrategy>, RegInfo<?, ?>> data;
+        private final ConcurrentHashMap<Class<? extends SpawnStrategy>, RegEntry<?, ?>> data;
 
         protected Registry() {
             this.data = new ConcurrentHashMap<>();
         }
 
-        protected Registry(ConcurrentHashMap<Class<? extends SpawnStrategy>, RegInfo<?, ?>> data) {
+        protected Registry(ConcurrentHashMap<Class<? extends SpawnStrategy>, RegEntry<?, ?>> data) {
             this.data = data;
         }
 
@@ -35,21 +35,21 @@ public abstract class SpawnStrategy implements NbtSerializable {
             return register(clazz, new RegInfo(tagTypes, loader));
         }*/
 
-        public <T extends SpawnStrategy> boolean register(Class<T> clazz, RegInfo<?, T> info) {
-            RegInfo<?, ?> old = data.putIfAbsent(clazz, info);
+        public <T extends SpawnStrategy> boolean register(Class<T> clazz, RegEntry<?, T> info) {
+            RegEntry<?, ?> old = data.putIfAbsent(clazz, info);
             return old == null;
         }
 
-        public <T extends SpawnStrategy> Optional<RegInfo<?, T>> tryGet(Class<T> clazz) {
-            return Optional.ofNullable( (RegInfo<?, T>) (data.get(clazz)) );
+        public <T extends SpawnStrategy> Optional<RegEntry<?, T>> tryGet(Class<T> clazz) {
+            return Optional.ofNullable( (RegEntry<?, T>) (data.get(clazz)) );
         }
 
-        public <T extends SpawnStrategy> @Nullable RegInfo<?, T> get(Class<T> clazz) {
-            return (RegInfo<?, T>) data.get(clazz);
+        public <T extends SpawnStrategy> @Nullable RegEntry<?, T> get(Class<T> clazz) {
+            return (RegEntry<?, T>) data.get(clazz);
         }
 
-        public <T extends SpawnStrategy> RegInfo<?, T> getOrThrow(Class<T> clazz) throws SpawnStrategyLoadException {
-            RegInfo<?, T> info = (RegInfo<?, T>) data.get(clazz);
+        public <T extends SpawnStrategy> RegEntry<?, T> getOrThrow(Class<T> clazz) throws SpawnStrategyLoadException {
+            RegEntry<?, T> info = (RegEntry<?, T>) data.get(clazz);
             if(info == null) {
                 throw new SpawnStrategyLoadException("No spawn strategy found of class " + clazz);
             }
@@ -57,11 +57,11 @@ public abstract class SpawnStrategy implements NbtSerializable {
         }
     }
 
-    public static class RegInfo<TT extends Tag, S extends SpawnStrategy> {
+    public static class RegEntry<TT extends Tag, S extends SpawnStrategy> {
         private final Set<TagType<?>> types;
         private final LoaderFn<TT, S> loader;
 
-        public RegInfo(Set<TagType<?>> tagTypes, LoaderFn<TT, S> loader) {
+        public RegEntry(Set<TagType<?>> tagTypes, LoaderFn<TT, S> loader) {
             this.types = Collections.unmodifiableSet(tagTypes);
             this.loader = loader;
         }
@@ -79,17 +79,17 @@ public abstract class SpawnStrategy implements NbtSerializable {
         S apply(T tag) throws SpawnStrategyLoadException;
     }
 
-    public static <T extends SpawnStrategy> boolean register(Class<T> clazz,
+    protected static <T extends SpawnStrategy> boolean register(Class<T> clazz,
                                    Set<TagType<?>> types, LoaderFn<Tag, T> loader) {
-        return REGISTRY.register(clazz, new RegInfo<>(types, loader));
+        return REGISTRY.register(clazz, new RegEntry<>(types, loader));
     }
 
-    public static <TT extends Tag, T extends SpawnStrategy> boolean register(Class<T> clazz,
+    protected static <TT extends Tag, T extends SpawnStrategy> boolean register(Class<T> clazz,
                                                                              TagType<TT> type, LoaderFn<TT, T> loader) {
-        return REGISTRY.register(clazz, new RegInfo<>(Set.of(type), loader));
+        return REGISTRY.register(clazz, new RegEntry<>(Set.of(type), loader));
     }
 
-    public static <T extends SpawnStrategy> boolean register(Class<T> clazz, RegInfo<Tag, T> info) {
+    protected static <T extends SpawnStrategy> boolean register(Class<T> clazz, RegEntry<Tag, T> info) {
         return REGISTRY.register(clazz, info);
     }
 

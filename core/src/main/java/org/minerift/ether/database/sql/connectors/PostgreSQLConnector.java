@@ -16,9 +16,9 @@ public class PostgreSQLConnector implements SQLConnector {
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
         final HikariConfig config = new HikariConfig();
 
-        config.setJdbcUrl("jdbc:postgresql://" + settings.getUrl().toString() + "/");
-        config.setUsername(settings.getUsername());
-        config.setPassword(settings.getPassword());
+        config.setJdbcUrl("jdbc:postgresql://" + settings.url().toString() + "/");
+        config.setUsername(settings.username());
+        config.setPassword(settings.password());
         config.addDataSourceProperty("cachePrepStmts", "true");
 
         return config;
@@ -32,7 +32,7 @@ public class PostgreSQLConnector implements SQLConnector {
 
         HikariConfig noDbConfig = createConfig(settings);
         HikariConfig dbConfig = createConfig(settings);
-        dbConfig.setJdbcUrl(dbConfig.getJdbcUrl() + settings.getDbName());
+        dbConfig.setJdbcUrl(dbConfig.getJdbcUrl() + settings.dbName());
 
         // Attempt to connect to db with name
         try {
@@ -53,7 +53,7 @@ public class PostgreSQLConnector implements SQLConnector {
                 System.out.println("noDbConfig connected, need to create db and reconnect with dbConfig");
 
                 SQLAccess access = new SQLAccess(db, ds.getConnection());
-                access.dsl().createDatabase(settings.getDbName()).execute();
+                access.dsl().createDatabase(settings.dbName()).execute();
                 System.out.println("Created database");
 
                 access.close();

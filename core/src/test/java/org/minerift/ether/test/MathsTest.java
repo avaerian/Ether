@@ -30,9 +30,11 @@ public class MathsTest {
         long zx = Maths.pack(vec, Maths.PackingOrder.ZX);
         Vec2i unpackedXZ = Maths.unpack(xz, Maths.PackingOrder.XZ);
         Vec2i unpackedZX = Maths.unpack(zx, Maths.PackingOrder.ZX);
-        assertEquals(vec, unpackedXZ, "Failed to pack and unpack in XZ order!");
-        assertEquals(vec, unpackedZX, "Failed to pack and unpack in ZX order!");
+        assertEquals(vec, unpackedXZ, "Failed to pack and unpack in XZ order");
+        assertEquals(vec, unpackedZX, "Failed to pack and unpack in ZX order");
     }
+
+
 
     private static Stream<Vec2i> serializationVec2iTest() {
         return Stream.of(

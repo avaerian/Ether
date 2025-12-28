@@ -29,12 +29,10 @@ public class IslandModel extends Model<Island, Integer> {
 
     @Override
     public Island.Builder readAsBuilder(Record<Island> record) {
-        var builder = Island.builder()
+        return Island.builder()
                 .setTile(       record.get(COORDS.asComplexField()), true)
                 .setMembers(    record.get(MEMBERS.asComplexField()))
-                .setDeleted(    record.get(IS_DELETED))
-                ;
-        return builder;
+                .setDeleted(    record.get(IS_DELETED));
     }
 
     @Override

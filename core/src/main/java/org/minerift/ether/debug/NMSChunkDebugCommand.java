@@ -39,7 +39,7 @@ public class NMSChunkDebugCommand implements CommandExecutor {
         Player plr = (Player) sender;
         World world = plr.getWorld();
         //NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
-        final NMSAccess nmsAccess = Ether.getNms();
+        final NMSAccess nmsAccess = Ether.inst().getNms();
 
         int centerX = plr.getChunk().getX();
         int centerZ = plr.getChunk().getZ();

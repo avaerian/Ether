@@ -1,7 +1,6 @@
 package org.minerift.ether.config.islandspecs;
 
-import org.minerift.ether.island.spawn.SpawnStrategy;
-import org.minerift.ether.island.spawn.SpawnStrategyLoadException;
+import org.minerift.ether.island.spawn.*;
 import org.minerift.ether.nms.world.ItemStack;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicReadException;
@@ -21,8 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.minerift.ether.schematic.SchematicCodec.WRITE_BIOMES_ALWAYS;
-import static org.minerift.ether.schematic.SchematicCodec.WRITE_ENTITIES_ALWAYS;
+import static org.minerift.ether.schematic.SchematicCodec.*;
 import static org.minerift.ether.util.nbt.tags.TagTypes.COMPOUND;
 import static org.minerift.ether.util.nbt.tags.TagTypes.STRING;
 
@@ -153,7 +151,7 @@ public class IslandSpec implements NbtSerializable {
     @Override
     public CompoundTag serializeNbt() {
         CompoundTag root = new CompoundTag("Data");
-        root.addTag(new StringTag(ISLAND_NAME, islandName)); // name
+        root.addTag(new StringTag(ISLAND_NAME, islandName));
 
         // description
         ListTag<StringTag> descTag = new ListTag<>(ISLAND_DESC, STRING,
@@ -167,7 +165,7 @@ public class IslandSpec implements NbtSerializable {
         root.addTag(new StringTag(ISLAND_ICON, iconSnbt));
 
         // schematic
-        CompoundTag schemTag = schem.writeAsNbt(WRITE_BIOMES_ALWAYS | WRITE_ENTITIES_ALWAYS);
+        CompoundTag schemTag = schem.writeAsNbt(EXCLUDE_BIOMES | WRITE_ENTITIES_ALWAYS);
         schemTag.setName(ISLAND_SCHEMATIC);
         root.addTag(schemTag);
 

@@ -49,7 +49,7 @@ public class TransformDebugCommand implements CommandExecutor {
         Optional<Rotate.Angle> angle = Rotate.Angle.ofDeg(Integer.parseInt(args[2]));
 
         try {
-            SpongeSchematic schem = (SpongeSchematic) Schematic.fromFile(SchematicType.SPONGE, file);
+            SpongeSchematic schem = Schematic.fromFile(SchematicType.SPONGE, file);
             BlockVolume bv = schem.getBlocks().transform(Rotate.of(axis, angle), ROTATE_BLK_DIRS);
             Pasters.pasteBlockVolume(bv, plr.getWorld(), asVec3i(plr.getLocation()), SYNC);
         } catch (SchematicReadException ex) {

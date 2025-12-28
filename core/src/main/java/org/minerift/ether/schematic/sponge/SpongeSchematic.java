@@ -106,8 +106,8 @@ public class SpongeSchematic implements Schematic {
         private SpongeVersion version;
         private Vec3i dim;
         private Vec3i offset;
-        //private Either<BlockVolume, BlockVolume.Builder> blocks;
-        private BlockVolume.Builder blocks;
+        private Either<BlockVolume, BlockVolume.Builder> blocks;
+        //private BlockVolume.Builder blocks;
         private Either<BiomeVolume, BiomeVolume.Builder> biomes;
         private List<EntityArchetype> entities;
 
@@ -139,8 +139,13 @@ public class SpongeSchematic implements Schematic {
             return this;
         }
 
+        public Builder setBlocks(BlockVolume blocks) {
+            this.blocks = Either.left(blocks);
+            return this;
+        }
+
         public Builder setBlocks(BlockVolume.Builder blocks) {
-            this.blocks = blocks;
+            this.blocks = Either.right(blocks);
             return this;
         }
 
@@ -192,7 +197,7 @@ public class SpongeSchematic implements Schematic {
             return offset;
         }
 
-        public BlockVolume.Builder getBlocks() {
+        public Either<BlockVolume, BlockVolume.Builder> getBlocks() {
             return blocks;
         }
 
@@ -206,7 +211,7 @@ public class SpongeSchematic implements Schematic {
 
         @Override
         public SpongeSchematic build() {
-            BlockVolume blocks = this.blocks.build();
+            BlockVolume blocks = this.blocks.isLeft() ? this.blocks.getLeft() : this.blocks.getRight().build();
             BiomeVolume biomes = this.biomes.isLeft() ? this.biomes.getLeft() : this.biomes.getRight().build();
             return new SpongeSchematic(dim.getX(), dim.getY(), dim.getZ(), offset, blocks, biomes, entities);
         }

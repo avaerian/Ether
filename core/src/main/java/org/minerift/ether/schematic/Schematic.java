@@ -10,6 +10,7 @@ import org.minerift.ether.util.nbt.NbtSerializable;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface Schematic extends NbtSerializable {
 
@@ -19,29 +20,26 @@ public interface Schematic extends NbtSerializable {
     }
 
     static Schematic fromFile(File file) throws SchematicReadException {
-        /*final SchematicType type = Ether.isUsingWorldEdit()
-                ? SchematicType.WORLDEDIT
-                : SchematicType.SPONGE;*/
-        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
         return fromFile(type, file);
-    }
-
-    static Schematic from(ByteBuf buf) throws SchematicReadException {
-        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
-        return fromTyped(type, buf);
     }
 
     static <S extends Schematic> S fromTyped(SchematicType<S> type, ByteBuf buf) throws SchematicReadException {
         return type.codec().read(buf);
     }
 
-    static Schematic from(CompoundTag nbt) throws SchematicReadException {
-        SchematicType type = Ether.getConfig(ConfigType.MAIN).getDefaultSchemType();
-        return fromTyped(type, nbt);
+    static Schematic from(ByteBuf buf) throws SchematicReadException {
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
+        return fromTyped(type, buf);
     }
 
     static <S extends Schematic> S fromTyped(SchematicType<S> type, CompoundTag nbt) throws SchematicReadException {
         return type.codec().read(nbt);
+    }
+
+    static Schematic from(CompoundTag nbt) throws SchematicReadException {
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
+        return fromTyped(type, nbt);
     }
 
     SchematicType type();
@@ -58,11 +56,11 @@ public interface Schematic extends NbtSerializable {
         return codec().write(this, buf, flags);
     }
 
-    default int write(File f) {
+    default int write(File f) throws IOException {
         return codec().write(this, f);
     }
 
-    default int write(File f, int flags) {
+    default int write(File f, int flags) throws IOException {
         return codec().write(this, f, flags);
     }
 

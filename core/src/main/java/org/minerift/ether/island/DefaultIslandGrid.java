@@ -2,13 +2,12 @@ package org.minerift.ether.island;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.util.collect.IndexedList;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -35,7 +34,7 @@ public class DefaultIslandGrid implements IslandGrid {
         try {
             islands.add(island);
         } catch (UnsupportedOperationException ex) {
-            Ether.getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid", ex);
+            Ether.inst().getLogger().log(Level.SEVERE, "Island " + island.getId() + " already exists in IslandGrid", ex);
         }
     }
 

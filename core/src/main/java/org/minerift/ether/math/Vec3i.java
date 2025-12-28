@@ -231,34 +231,22 @@ public class Vec3i implements Vec3, Serializable {
             return set(vec.getX(), vec.getY(), vec.getZ());
         }
 
-        public Vec3i.Mutable add(Vec3i addend) {
+        public Vec3i.Mutable add(Vec3i addend) { // TODO: change to Vec3
             return add(addend.x, addend.y, addend.z);
         }
 
-        public Vec3i.Mutable subtract(Vec3i subtrahend) {
+        public Vec3i.Mutable subtract(Vec3i subtrahend) { // TODO: change to Vec3
             return subtract(subtrahend.x, subtrahend.y, subtrahend.z);
         }
 
-        public Vec3i.Mutable add(int x1, int y1, int z1) {
-            /*return transform(
-                    x -> x + x1,
-                    y -> y + y1,
-                    z -> z + z1
-            );*/
-
+        public Vec3i.Mutable add(int x1, int y1, int z1) { // TODO: add Vec3 option
             this.x += x1;
             this.y += y1;
             this.z += z1;
             return this;
         }
 
-        public Vec3i.Mutable subtract(int x1, int y1, int z1) {
-            /*return transform(
-                    x -> x - x1,
-                    y -> y - y1,
-                    z -> z - z1
-            );*/
-
+        public Vec3i.Mutable subtract(int x1, int y1, int z1) { // TODO: add Vec3 option
             this.x -= x1;
             this.y -= y1;
             this.z -= z1;

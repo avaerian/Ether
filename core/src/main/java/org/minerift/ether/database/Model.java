@@ -7,16 +7,16 @@ import java.util.*;
 
 // obj represents modeled class
 public abstract class Model<MO, PK> {
-    protected String tableName;
-    protected Fields<MO> fields;
-    protected ForeignFields<MO> foreignFields;
+    protected final String tableName;
+    protected final Fields<MO> fields;
+    protected final ForeignFields<MO> foreignFields;
 
     public Model(DatabaseCreationContext dbCtx) {
         this.foreignFields = new ForeignFields<>(this);
-        var ctx = new ModelCreationContext<>(dbCtx, this);
+        ModelCreationContext<MO> ctx = new ModelCreationContext<>(dbCtx, this);
         createModel(ctx);
-        if(tableName.isBlank()) {
-            throw new IllegalStateException("Table name cannot be empty!");
+        if( (this.tableName = ctx.getTableName()).isBlank() ) { // a little ugly, but whatever; wanted to experiment
+            throw new IllegalStateException("Table name cannot be empty");
         }
         this.fields = new Fields<>(this, ctx.getFields());
     }

@@ -21,7 +21,7 @@ import static java.lang.String.format;
 public interface Chunk<NBS, NC, NCS, NB> {
 
     static Chunk of(org.bukkit.Chunk bukkitChunk) {
-        return Ether.getNms().getConverter().asChunk(bukkitChunk);
+        return Ether.inst().getNms().getConverter().asChunk(bukkitChunk);
     }
 
     static CompletableFuture<Chunk> of(World world, int cx, int cz) {

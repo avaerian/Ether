@@ -17,14 +17,13 @@ import static org.minerift.ether.database.sql.SQLUtils.*;
 public class DDLCreateTable {
 
     public static <MO, PK> void createTableFromModel(SQLAccess access, Model<MO, PK> model) {
-
         List<Constraint> constraints = new ArrayList<>();
 
         for(Field<MO, ?, ?> field : model.getFields()) {
             // Handle foreign field constraints
             Field<?, ?, ?> parentField = model.getForeignFields().getParentField(field);
             if(parentField != null) {
-                Model<?, ?> parentModel = access.db().getModel(parentField.getOwner());
+                Model<?, ?> parentModel = parentField.getOwner();
                 constraints.add(foreignKey(field.getName()).references(name(parentModel.getTableName()), name(parentField.getName())));
             }
 

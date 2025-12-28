@@ -18,11 +18,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 public class SQLDatabase extends Database {
-
     private final HikariDataSource dataSource;
     protected final Configuration connConfig;
     private final SQLDialect dialect;
-
 
     protected final DMLInsert insertQuery;
     protected final DMLUpdate updateQuery;
@@ -32,17 +30,17 @@ public class SQLDatabase extends Database {
     protected final DMLSelectById selectByIdQuery;
     protected final DMLSelectAllIds selectAllIdsQuery;
 
-    @SafeVarargs
-    public SQLDatabase(DatabaseConnectionSettings settings, Function<DatabaseCreationContext, Model<?, ?>> ... modelCreators) throws DatabaseException {
-        super(settings.getDbName());
-        this.dialect = settings.getDialect();
+    @SafeVarargs // TODO: create interface for function parameter to lessen the shitty trash it is as a parameter
+    public SQLDatabase(DatabaseConnectionSettings settings, Function<DatabaseCreationContext, Model<?, ?>>... modelCreators) throws DatabaseException {
+        super(settings.dbName());
+        this.dialect = settings.dialect();
 
-        // TODO: refactor connection establishment into separate abstract method/class that can support this
+        // TODO: refactor connection establishment into separate abstract method/class that can support this??
         // Connect
         CompletableFuture<HikariDataSource> futureDataSource =
                 supplyAsync(() -> dialect.getDbConnector().connect(this, settings));
 
-        // Set up database
+        // Use database creation context to load data for database
         SQLDatabaseCreationContext ctx = new SQLDatabaseCreationContext(dialect, modelCreators);
         // TODO: Register metadata model for versioning and other db metadata
         //ctx.registerModel(MetadataModel);
@@ -63,13 +61,13 @@ public class SQLDatabase extends Database {
         } catch (ExecutionException ex) {
             throw new DatabaseException(ex.getCause());
         } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
+            throw new DatabaseException(ex);
         }
 
         try {
             SQLDbStartupScript.run(new SQLAccess(this, dataSource.getConnection()));
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to run database startup script", ex);
+            throw new DatabaseException("Failed to run database startup script", ex);
         }
     }
 

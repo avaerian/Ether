@@ -8,15 +8,15 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 public interface ItemStack<NIS> {
 
     static ItemStack<?> of(String snbt) {
-        return Ether.getNms().getConverter().asItemStack(snbt);
+        return Ether.inst().getNms().getConverter().asItemStack(snbt);
     }
 
     static ItemStack<?> of(CompoundTag nbt) {
-        return Ether.getNms().getConverter().asItemStack(nbt);
+        return Ether.inst().getNms().getConverter().asItemStack(nbt);
     }
 
     static ItemStack<?> of(org.bukkit.inventory.ItemStack bukkitItem) {
-        return Ether.getNms().getConverter().asItemStack(bukkitItem);
+        return Ether.inst().getNms().getConverter().asItemStack(bukkitItem);
     }
 
     CompoundTag getNbtTag();

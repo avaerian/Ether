@@ -31,7 +31,7 @@ public class SQLDatabaseCreationContext extends DatabaseCreationContext {
     protected final DMLSelectAllIds selectAllIdsQuery;
 
     @SafeVarargs
-    public SQLDatabaseCreationContext(SQLDialect dialect, Function<DatabaseCreationContext, Model<?, ?>> ... models) {
+    public SQLDatabaseCreationContext(SQLDialect dialect, Function<DatabaseCreationContext, Model<?, ?>>... models) {
         super(new LinkedHashMap<>(models.length));
         this.dialect = dialect;
 
@@ -46,7 +46,7 @@ public class SQLDatabaseCreationContext extends DatabaseCreationContext {
         connConfig.set(connSettings);
         this.dsl = connConfig.dsl();
 
-        registerModels(models);
+        registerModels(models); //FIXME
 
         // Create/cache queries for DML operations
         this.insertQuery = new DMLInsert(this);

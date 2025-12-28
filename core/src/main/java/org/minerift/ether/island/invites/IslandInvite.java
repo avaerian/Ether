@@ -29,7 +29,7 @@ public final class IslandInvite {
     public static IslandInvite create(UUID sender, UUID receiver, Island island, boolean expires) {
         long expiration;
         if(expires) {
-            final MainConfig config = Ether.getConfig(ConfigType.MAIN);
+            final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
             expiration = System.currentTimeMillis() + config.getInviteInvalidateAfter();
         } else {
             expiration = UNEXPIRABLE;
@@ -98,11 +98,11 @@ public final class IslandInvite {
     }
 
     public boolean accept() {
-        return Ether.getInviteManager().accept(this);
+        return Ether.inst().getInviteManager().accept(this);
     }
 
     public boolean deny() {
-        return Ether.getInviteManager().deny(this);
+        return Ether.inst().getInviteManager().deny(this);
     }
 
     @Override

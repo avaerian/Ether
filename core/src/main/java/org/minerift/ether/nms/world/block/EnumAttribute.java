@@ -76,7 +76,7 @@ public class EnumAttribute<E extends Enum<E>> extends Attribute<E> {
     }
 
     @Override
-    public Collection<E> getAcceptableValues() {
+    public EnumSet<E> getAcceptableValues() {
         E[] enums = clazz.getEnumConstants();
         EnumSet<E> set = EnumSet.noneOf(clazz);
         for(int i = 0; i < universe.length; i++) {
