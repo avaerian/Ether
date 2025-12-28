@@ -55,25 +55,25 @@ public enum Axis {
     // TODO: move these functions out of this enum?
     public double getLayers(Vec3d dim) {
         return switch (this) {
-            case X -> dim.getX(); // YZ
-            case Y -> dim.getY(); // XZ
-            case Z -> dim.getZ(); // XY
+            case X -> dim.getXd(); // YZ
+            case Y -> dim.getYd(); // XZ
+            case Z -> dim.getZd(); // XY
         };
     }
 
     public double getRotatingX(Vec3d dim) {
         return switch (this) {
-            case X -> dim.getY(); // YZ
-            case Y -> dim.getX(); // XZ
-            case Z -> dim.getX(); // XY
+            case X -> dim.getYd(); // YZ
+            case Y -> dim.getXd(); // XZ
+            case Z -> dim.getXd(); // XY
         };
     }
 
     public double getRotatingZ(Vec3d dim) {
         return switch (this) {
-            case X -> dim.getZ(); // YZ
-            case Y -> dim.getZ(); // XZ
-            case Z -> dim.getY(); // XY
+            case X -> dim.getZd(); // YZ
+            case Y -> dim.getZd(); // XZ
+            case Z -> dim.getYd(); // XY
         };
     }
 
