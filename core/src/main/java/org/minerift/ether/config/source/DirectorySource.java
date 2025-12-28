@@ -1,15 +1,13 @@
 package org.minerift.ether.config.source;
 
-import org.minerift.ether.config.ConfigReadException;
-
 import java.io.File;
 import java.io.IOException;
 
 public class DirectorySource implements Source {
 
     public static DirectorySource of(File dir) throws IOException {
-        if(!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("Failed to create directory (" + dir + ")");
+        if(dir.exists() && !dir.isDirectory()) {
+            throw new IOException(dir.getPath() + " is not a directory");
         }
         return new DirectorySource(dir);
     }
