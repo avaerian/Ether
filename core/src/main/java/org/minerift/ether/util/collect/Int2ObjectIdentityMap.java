@@ -67,8 +67,10 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
 
     @Override
     public V put(final int key, final V value) {
-        if(key < 0) throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", key) );
-        if(key >= limit) throw new IllegalArgumentException(format("Key (%d) exceeds limit (%d)", key, limit));
+        if(key < 0)
+            throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", key) );
+        if(key >= limit)
+            throw new IllegalArgumentException(format("Key (%d) exceeds limit (%d)", key, limit));
         if(key >= map.length) {
             int newLen = grower.apply(map.length);
             if(newLen < key) {
@@ -139,6 +141,7 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
         return inRange && map[i] != null;*/
     }
 
+    // TODO: remember to add key to keys bitset
     @NeedsTesting
     @Override
     public void putAll(@NotNull Map<? extends Integer, ? extends V> m) {

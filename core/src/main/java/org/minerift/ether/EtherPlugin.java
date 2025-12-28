@@ -23,7 +23,6 @@ public class EtherPlugin extends JavaPlugin {
     @Override
     public void onLoad() {
         INST = this;
-        // no-op
     }
 
     @Override
@@ -33,7 +32,7 @@ public class EtherPlugin extends JavaPlugin {
         try {
             init = Ether.from(getDataFolder(), logger);
         } catch (EtherLoadException e) {
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Something went wrong", e);
             disable();
             return;
         }

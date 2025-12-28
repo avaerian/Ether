@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.minerift.ether.Ether;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.fn.IntBiConsumer;
 

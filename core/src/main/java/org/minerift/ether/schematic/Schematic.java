@@ -20,10 +20,7 @@ public interface Schematic extends NbtSerializable {
     }
 
     static Schematic fromFile(File file) throws SchematicReadException {
-        /*final SchematicType type = Ether.isUsingWorldEdit()
-                ? SchematicType.WORLDEDIT
-                : SchematicType.SPONGE;*/
-        SchematicType type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
         return fromFile(type, file);
     }
 
@@ -32,7 +29,7 @@ public interface Schematic extends NbtSerializable {
     }
 
     static Schematic from(ByteBuf buf) throws SchematicReadException {
-        SchematicType type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
         return fromTyped(type, buf);
     }
 
@@ -41,7 +38,7 @@ public interface Schematic extends NbtSerializable {
     }
 
     static Schematic from(CompoundTag nbt) throws SchematicReadException {
-        SchematicType type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
+        SchematicType<?> type = Ether.inst().getConfig(ConfigType.MAIN).getDefaultSchemType();
         return fromTyped(type, nbt);
     }
 

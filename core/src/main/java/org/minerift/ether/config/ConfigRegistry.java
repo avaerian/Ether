@@ -6,7 +6,6 @@ import org.minerift.ether.util.collect.Int2ObjectIdentityMap;
 
 import java.io.File;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +39,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
         try {
             type.codec().read(cfg, src);
         } catch (ConfigNotFoundException ex) {
+            logger.log(Level.WARNING, "Using default config", ex);
             cfg = type.getDefaultConfig(this, src);
         }
         types.put(type.id, type);
@@ -71,7 +71,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
     }
 
     public <T extends Config<T>> T get(ConfigType<T, ?> type) {
-        final T config = (T) cfgs.get(type);
+        final T config = (T) cfgs.get(type.id);
         if(config == null) {
             throw new IllegalArgumentException(String.format("Config type %s was not found", type.getName()));
         }
@@ -105,12 +105,12 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
         };
     }
 
-    public class Entry {
+    public static class Entry {
         public final int id;
         public final ConfigType<?, ?> type;
         public final Config config;
 
-        public Entry(int id, ConfigType<?, ?> type, Config config) {
+        public Entry(int id, ConfigType<?, ?> type, Config<?> config) {
             this.id = id;
             this.type = type;
             this.config = config;

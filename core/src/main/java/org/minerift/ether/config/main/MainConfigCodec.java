@@ -20,7 +20,6 @@ public class MainConfigCodec extends ConfigCodec<MainConfig, FileSource> {
 
     @Override
     public void readIt(MainConfig cfg, FileSource src) throws ConfigReadException {
-
         try {
             YamlConfigView view = YamlConfigView.from(src.getFile());
 

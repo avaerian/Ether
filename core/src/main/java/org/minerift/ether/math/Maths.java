@@ -3,8 +3,6 @@ package org.minerift.ether.math;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
-import org.minerift.ether.debug.Debug;
-import org.minerift.ether.world.ChunkCoords;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,16 +23,18 @@ public class Maths {
     public static final int TICKS_PER_SEC = 20;
 
     private static final Pattern VEC_STRING_PATTERN = Pattern.compile("[^\\d\\-,.]");
-    private static final Function<Stream<String>, int[]> INT_ARGS_ADAPTER = (stream) -> stream.mapToInt(Integer::parseInt).toArray();
-    private static final Function<Stream<String>, double[]> DOUBLE_ARGS_ADAPTER = (stream) -> stream.mapToDouble(Double::parseDouble).toArray();
+    private static final Function<Stream<String>, int[]> INT_ARGS_ADAPTER =
+            (stream) -> stream.mapToInt(Integer::parseInt).toArray();
+    private static final Function<Stream<String>, double[]> DOUBLE_ARGS_ADAPTER =
+            (stream) -> stream.mapToDouble(Double::parseDouble).toArray();
 
     // TODO: move this to MathsTest unit test
-    @Debug
+    /*@Debug
     public static void main(String[] args) {
         System.out.println(Maths.strToVec3i("    1738,  -69,   420   "));
         System.out.println(Maths.strToVec3d(" (420.69, -3.14,   1802)!   "));
         System.out.println(Maths.strToVec2i("Z(420,b-69a)!"));
-    }
+    }*/
 
     public static Vec2i getTileAt(int blockX, int blockZ) {
         final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);

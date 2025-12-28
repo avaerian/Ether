@@ -2,7 +2,6 @@ package org.minerift.ether.config;
 
 import org.minerift.ether.config.source.Source;
 
-import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
