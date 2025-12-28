@@ -1,6 +1,9 @@
 package org.minerift.ether.util.log;
 
+import org.minerift.ether.debug.NeedsUnitTests;
+
 // default time unit is nanoseconds
+@NeedsUnitTests
 public class Stopwatch {
     
     // exists for API changes & configuration
@@ -24,6 +27,7 @@ public class Stopwatch {
 
     /**
      * Start the stopwatch.
+     *
      * @return timestamp of when this stopwatch was started, in nanoseconds.
      */
     public long start() {
@@ -38,7 +42,9 @@ public class Stopwatch {
 
     /**
      * Start the stopwatch, or throw if stopwatch is already running.
+     *
      * @return timestamp of when this stopwatch was started, in nanoseconds.
+     *
      * @throws ChronoException if stopwatch is already running.
      */
     public long startOrThrow() throws ChronoException {
@@ -48,14 +54,13 @@ public class Stopwatch {
         return start();
     }
 
-    // for impl details: when stopping, track elapsed time so if timer
-    // is started again we can subtract startNs, now the elapsed time,
-    // from the new System.nanoTime()
-
     /**
-     * Stop the stopwatch.<br>
+     * Stop the stopwatch.
+     *
+     * <p>
      * Implementation details: stored value is the elapsed time so if started again
      * we can subtract the elapsed time from the new {@code System.nanoTime()} start timestamp.
+     *
      * @return timestamp of when this stopwatch was stopped, in nanoseconds.
      */
     public long stop() {
@@ -66,9 +71,13 @@ public class Stopwatch {
 
     /**
      * Stop the stopwatch, or throw if stopwatch isn't running.
+     *
+     * <p>
      * Implementation details: stored value is the elapsed time so if started again
      * we can subtract the elapsed time from the new {@code System.nanoTime()} start timestamp.
+     *
      * @return timestamp of when this stopwatch was stopped, in nanoseconds.
+     *
      * @throws ChronoException if stopwatch isn't running, or is already stopped.
      */
     public long stopOrThrow() throws ChronoException {
@@ -87,6 +96,7 @@ public class Stopwatch {
 
     /**
      * Returns the current elapsed time of the stopwatch.
+     *
      * @return the elapsed time, in nanoseconds.
      */
     public long elapsed() {
@@ -105,6 +115,7 @@ public class Stopwatch {
 
     /**
      * Returns whether the stopwatch has been started.
+     *
      * @return if the stopwatch has been started. Can return
      * true even if the stopwatch is stopped, as long as
      * there's some elapsed time. In other words, doesn't
@@ -117,6 +128,7 @@ public class Stopwatch {
 
     /**
      * Returns whether the stopwatch is actively running.
+     *
      * @return if the stopwatch is running.
      */
     public boolean isRunning() {
@@ -127,6 +139,7 @@ public class Stopwatch {
 
     /**
      * Returns whether the stopwatch is stopped.
+     *
      * @return if the stopwatch is stopped; not running.
      * Equivalent to using {@code !isRunning()}.
      */
