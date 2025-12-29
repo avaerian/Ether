@@ -41,6 +41,7 @@ import org.minerift.ether.world.EntityLoadException;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NMSAccessImpl implements NMSAccess {
@@ -114,71 +115,73 @@ public class NMSAccessImpl implements NMSAccess {
     // TODO: review
     @Override
     public void clearChunk(Chunk chunk, boolean clearEntities) { // assumes chunk is already loaded based on retrieval
-        final LevelChunk nChunk = (LevelChunk) chunk.asNative();
-        final ServerLevel level = nChunk.level;
-        final LevelChunk emptyChunk = new LevelChunk(level, nChunk.getPos());
+        synchronized (chunk.asNative()) { // TODO: review
+            final LevelChunk nChunk = (LevelChunk) chunk.asNative();
+            final ServerLevel level = nChunk.level;
+            final LevelChunk emptyChunk = new LevelChunk(level, nChunk.getPos());
 
-        final ServerChunkCache serverChunkCache = level.getChunkSource();
+            final ServerChunkCache serverChunkCache = level.getChunkSource();
 
-        // Write empty chunk section to buffer
-        final FriendlyByteBuf emptySectionBuf = new FriendlyByteBuf(Unpooled.buffer());
-        emptyChunk.getSection(0).write(emptySectionBuf, null, 0);
+            // Write empty chunk section to buffer
+            final FriendlyByteBuf emptySectionBuf = new FriendlyByteBuf(Unpooled.buffer());
+            emptyChunk.getSection(0).write(emptySectionBuf, null, 0);
 
-        // TODO: clear block entities before clearing entities?
-        // Remove entities from chunk
+            // TODO: clear block entities before clearing entities?
+            // Remove entities from chunk
 
-        if(clearEntities) {
-            // TODO: ReflectionMapping for retrieving native entities
+            if(clearEntities) {
+                // TODO: ReflectionMapping for retrieving native entities
             /*List<Entity> entities = level.getEntityLookup()
                     .getChunk(chunk.getX(), chunk.getZ())
                     .get;*/
-            Arrays.stream(level.getChunkEntities(chunk.getX(), chunk.getZ()))
-                    .filter(entity -> entity.getType() != org.bukkit.entity.EntityType.PLAYER)
-                    .forEach(org.bukkit.entity.Entity::remove);
+                Arrays.stream(level.getChunkEntities(chunk.getX(), chunk.getZ()))
+                        .filter(entity -> entity.getType() != org.bukkit.entity.EntityType.PLAYER)
+                        .forEach(org.bukkit.entity.Entity::remove);
+            }
+
+            // Update chunk and sections
+            clearAllBlockEntities(nChunk);
+            for(LevelChunkSection section : nChunk.getSections()) {
+                section.read(emptySectionBuf);
+                section.recalcBlockCounts();
+                emptySectionBuf.resetReaderIndex();
+            }
+
+            // Update heightmaps for chunk
+            for(Heightmap.Types type : ChunkStatus.FULL.heightmapsAfter()) {
+                nChunk.setHeightmap(type, emptyChunk.heightmaps.get(type).getRawData());
+            }
+
+            nChunk.setBlockEmptinessMap(emptyChunk.getBlockEmptinessMap());
+            nChunk.setSkyEmptinessMap(emptyChunk.getSkyEmptinessMap());
+            nChunk.setBlockNibbles(emptyChunk.getBlockNibbles());
+            nChunk.setSkyNibbles(emptyChunk.getSkyNibbles());
+
+            nChunk.setUnsaved(true);
+
+            // Resend entire chunk packet
+            ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nChunk, serverChunkCache.getLightEngine(), null, null, true);
+            nChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
         }
-
-        // Update chunk and sections
-        clearAllBlockEntities(nChunk);
-        for(LevelChunkSection section : nChunk.getSections()) {
-            section.read(emptySectionBuf);
-            section.recalcBlockCounts();
-            emptySectionBuf.resetReaderIndex();
-        }
-
-        // Update heightmaps for chunk
-        for(Heightmap.Types type : ChunkStatus.FULL.heightmapsAfter()) {
-            nChunk.setHeightmap(type, emptyChunk.heightmaps.get(type).getRawData());
-        }
-
-        nChunk.setBlockEmptinessMap(emptyChunk.getBlockEmptinessMap());
-        nChunk.setSkyEmptinessMap(emptyChunk.getSkyEmptinessMap());
-        nChunk.setBlockNibbles(emptyChunk.getBlockNibbles());
-        nChunk.setSkyNibbles(emptyChunk.getSkyNibbles());
-
-        nChunk.setUnsaved(true);
-
-        // Resend entire chunk packet
-        ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nChunk, serverChunkCache.getLightEngine(), null, null, true);
-        nChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
     }
 
     @Experimental
     @Override
-    public void clearChunks(Chunk e1, Chunk e2, boolean clearEntities) {
-        clearChunks(ChunkGetter.SYNC, e1, e2, clearEntities);
-    }
-
-    @Experimental
-    @Override
-    public void clearChunks(ChunkGetter cg, Chunk e1, Chunk e2, boolean clearEntities) {
-        clearChunksLogic(e1, e2, pos -> {
+    public CompletableFuture<Void> clearChunks(ChunkGetter cg, Chunk e1, Chunk e2, boolean clearEntities) {
+        return clearChunksLogic(e1, e2, pos -> {
             cg.getChunkWCallback(e1.getWorld(), pos.x, pos.z, chunk -> {
                 clearChunk(chunk, clearEntities); return chunk;
             });
         });
     }
 
-    private void clearChunksLogic(Chunk e1, Chunk e2, Consumer<ChunkPos> clearChunk) {
+    @Experimental
+    @Override
+    public CompletableFuture<Void> clearChunks(Chunk e1, Chunk e2, boolean clearEntities) {
+        return clearChunks(ChunkGetter.SYNC, e1, e2, clearEntities);
+    }
+
+    private CompletableFuture<Void> clearChunksLogic(Chunk e1, Chunk e2, Consumer<ChunkPos> clearChunk) {
         if(e1.getWorld() != e2.getWorld()) {
             throw new IllegalArgumentException("Chunks are not in the same world");
         }
@@ -190,18 +193,20 @@ public class NMSAccessImpl implements NMSAccess {
         //final ServerChunkCache serverChunkCache = level.getChunkSource();
 
         Bukkit.broadcast(Component.text("Clearing chunk contents..."));
-        ChunkPos.rangeClosed(nChunk1.getPos(), nChunk2.getPos()).forEach(clearChunk);
+        CompletableFuture<Void> res = CompletableFuture.runAsync(
+                () -> ChunkPos.rangeClosed(nChunk1.getPos(), nChunk2.getPos()).forEach(clearChunk));
 
         //Bukkit.broadcast(Component.text("Relighting..."));
         //serverChunkCache.getLightEngine().relight(getNeighboringChunks(e1, e2), a -> {}, b -> {});
 
         Bukkit.broadcast(Component.text(String.format("Cleared %d chunk(s)",
                 ChunkPos.rangeClosed(nChunk1.getPos(), nChunk2.getPos()).count())));
+        return res;
     }
 
     @NeedsTesting
     @Override
-    public int getDataVersion() {
+    public int getDataVersion() { // FIXME
         return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
     }
 

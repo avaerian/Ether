@@ -9,6 +9,8 @@ import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface NMSAccess {
 
     // TODO: review; looking into local FixerUpper that emulates native MC FixerUpper
@@ -29,8 +31,8 @@ public interface NMSAccess {
     }
 
     void clearChunk(Chunk chunk, boolean clearEntities);
-    void clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
-    void clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
+    CompletableFuture<Void> clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
+    CompletableFuture<Void> clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
 
     /*default Chunk getChunkAt(World world, int chunkX, int chunkZ) {
         return Chunk.of(world.getChunkAt(chunkX, chunkZ));

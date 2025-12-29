@@ -1,47 +1,45 @@
 package org.minerift.ether.island;
 
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.islandspecs.IslandSpec;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.nms.world.Chunk;
+import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class IslandManager {
 
     private IslandGrid grid;
-
-    public IslandManager() {
-        this(new DefaultIslandGrid());
-    }
-
     public IslandManager(IslandGrid grid) {
         this.grid = grid;
     }
 
-    public Set<Integer> getKeySet() {
-        var data = ((DefaultIslandGrid)grid).getData(); // be weary of this
-        Set<Integer> keys = new HashSet<>(data.size());
-        for(Island island : data) {
-            // Return only active island ids for key set
-            if(island != null && !island.isDeleted()) {
-                keys.add(island.getId());
-            }
-        }
-        return keys;
+    public IslandManager() {
+        this.grid = new DefaultIslandGrid();
+    }
+
+    public IntSet getKeySet() {
+        return grid.getIslandIds();
     }
 
     // Get multiple islands
-    // Returns active, deleted, and null islands
-    public List<Island> getIslands(Collection<Integer> ids) {
+    // Returns active and null islands
+    public List<Island> getIslands(IntCollection ids) {
         List<Island> islands = ids.isEmpty() ? Collections.emptyList() : new ArrayList<>(ids.size());
         for(int id : ids) {
             islands.add(grid.getIslandAt(id).orElse(null));
@@ -54,14 +52,13 @@ public class IslandManager {
         if(user.getIsland() != null) {
             // TODO: logger
         }
-        return IslandCreationRoutine.run(grid, user);
+        return IslandCreationRoutine.run(null, user);
     }
 
     @Deprecated public static final int TEMP_ISLAND_HEIGHT = 90;
-    @SuppressWarnings("Duplicates") // FIXME: temp until delete IslandCreationRoutine
-    // creates island data, places island in world, and updates user island refs
-    public Island createIsland(World world, IslandSpec spec, EtherUser owner) {
-
+    @SuppressWarnings("Duplicates") // temp until delete IslandCreationRoutine
+    // Creates island data, places island in world, and updates user island refs
+    public CompletableFuture<Island> createIsland(World world, IslandSpec spec, EtherUser owner) {
         MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
 
         final Vec2i tile = grid.getNextTile();
@@ -71,10 +68,6 @@ public class IslandManager {
 
         System.out.println("blChunk = " + blChunk);
         System.out.println("trChunk = " + trChunk);
-
-        // TODO: check if island hasn't been purged at current tile
-
-        // TODO: get center chunk, get center in chunk, and get offset for pasting
 
         Vec2i centerChunk = new Vec2i(
                 blChunk.getX() + (cfg.getTileLengthChunks() / 2),
@@ -92,7 +85,23 @@ public class IslandManager {
                 .setOffset(offset)
                 .build();
 
-        schem.paste(centerBlock, world.getName(), options);
+        // TODO: schedule clearing and pasting on another thread,
+        //  then return island in CompletableFuture
+        CompletableFuture<Void> cf = null;
+        if(grid.needsClearing(tile)) {
+            Chunk bl = Chunk.of(world, blChunk.getX(), blChunk.getZ()).join();
+            Chunk tr = Chunk.of(world, trChunk.getX(), trChunk.getZ()).join();
+            cf = Ether.inst().getNms().clearChunks(ChunkGetter.ASYNC, bl, tr, true);
+            // Iterate through chunks between bl and tr, synchronize and clear
+            // This will be a CompletableFuture#allOf to ensure chunks
+            // complete sync/async together w/out waiting for each chunk
+        }
+        if(cf == null) {
+            cf = CompletableFuture.runAsync(() -> schem.paste(centerBlock, world.getName(), options));
+        }
+
+        // Experimental stuff to explore concurrency
+        //CompletableFuture.runAsync(() -> {}).thenApply((__) -> Island.builder().build()).join();
 
         Island.Builder builder = Island.builder()
                 .setOwner(owner)
@@ -101,9 +110,9 @@ public class IslandManager {
                 .setTopRightBound(trChunk)
                 .setDeleted(false);
 
-        //new PermissionSet().set();
-
-        return builder.build();
+        final Island island = builder.build();
+        grid.registerIsland(island);
+        return CompletableFuture.completedFuture(island); // FIXME: switch once scheduling is done
     }
 
     public void deleteIsland(Island island) { // TODO
