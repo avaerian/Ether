@@ -1,7 +1,6 @@
 package org.minerift.ether.database.sql;
 
 import com.google.common.net.HostAndPort;
-import org.minerift.ether.Ether;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.DatabaseConnectionSettings;
 import org.minerift.ether.database.diff.DiffType;
@@ -11,7 +10,7 @@ import org.minerift.ether.database.models.UserModel;
 import org.minerift.ether.database.sql.op.ddl.DDLGetColumns;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.DefaultIslandGrid;
+import org.minerift.ether.island.IndexedListIslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
@@ -73,7 +72,7 @@ public class SQLPlayground {
         Random random = new Random();
 
         final int GRID_SIZE = 100;
-        DefaultIslandGrid grid = new DefaultIslandGrid();
+        IndexedListIslandGrid grid = new IndexedListIslandGrid();
         UserManager users = new UserManager();
         for(int i = 0; i < GRID_SIZE; i++) {
             final EtherUser user = EtherUser.builder().setUUID(UUID.randomUUID()).build();

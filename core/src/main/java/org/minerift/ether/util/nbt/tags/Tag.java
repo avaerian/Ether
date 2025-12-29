@@ -35,6 +35,7 @@ public abstract class Tag {
         return type().getTagClass().equals(type.getTagClass());
     }
 
+    @Deprecated // TODO: delete completely later today
     public abstract void accept(TagVisitor visit);
 
     public abstract TagType<?> type();

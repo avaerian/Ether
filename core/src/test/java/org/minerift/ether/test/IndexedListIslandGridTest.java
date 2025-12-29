@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.DefaultIslandGrid;
+import org.minerift.ether.island.IndexedListIslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
 
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DefaultIslandGridTest {
+public class IndexedListIslandGridTest {
 
     // Test to see behavior of registering islands in random order
     @Test
@@ -28,7 +28,7 @@ public class DefaultIslandGridTest {
         final int ISLAND_COUNT = 300;
 
         List<Integer> ids = getRandomlyOrderedRange(0, ISLAND_COUNT);
-        DefaultIslandGrid grid = new DefaultIslandGrid();
+        IndexedListIslandGrid grid = new IndexedListIslandGrid();
 
         System.out.println(ids);
 
@@ -56,7 +56,7 @@ public class DefaultIslandGridTest {
         List<Integer> ids = getRandomlyOrderedRange(0, ISLAND_COUNT);
 
         // Setup island grid
-        DefaultIslandGrid grid = new DefaultIslandGrid();
+        IndexedListIslandGrid grid = new IndexedListIslandGrid();
         for(int id : ids) {
             Island island = Island.builder()
                     .setTile(GridAlgorithm.computeTile(id), true)

@@ -19,10 +19,10 @@ import java.io.File;
 @Deprecated
 public class IslandCreationRoutine {
 
-    public static Island run(IslandGrid grid, EtherUser user) {
+    public static Island run(OldIslandGrid grid, EtherUser user) {
 
         final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
-        final World islandWorld = plr.getWorld(); // TODO: change this to island world (add config thing and load in Ether class)
+        final World islandWorld = plr.getWorld();
 
         final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         //final SchematicsConfig schemConfig = Ether.getConfig(ConfigType.SCHEM_LIST);
@@ -49,7 +49,7 @@ public class IslandCreationRoutine {
 
         // Paste island at tile
         // Refer to the Island Placement Graph (https://www.desmos.com/calculator/fuwvk1rgkf) for easy maths and representation
-        //final File schemFile = new File(Ether.getPluginDir(), "test_schem1.schem"); // TODO: move this into function parameter
+        //final File schemFile = new File(Ether.getPluginDir(), "test_schem1.schem");
         File schemFile = Ether.inst().getPluginFile("test_schem1.schem");
 
         // Get schematic paste position
@@ -57,7 +57,6 @@ public class IslandCreationRoutine {
         //final int bottomLeftOffset = (config.getTileSize() / 2) - (config.getTileAccessibleArea() / 2);
         //bottomLeftPos.add(bottomLeftOffset, 0, bottomLeftOffset);
 
-        // TODO: this needs to be the center of the island, with the schematic offset being the middle of the schematic
         final int halfTile = config.getTileLengthBlocks() / 2;
         System.out.println("halfTile = " + halfTile);
         Vec3i.Mutable tileCenterPos = island.getBottomLeftBlock().asMutable().add(halfTile, 0, halfTile); //.transform(x -> x + halfTile, y -> config.getTileHeight(), z -> z + halfTile);
@@ -85,7 +84,6 @@ public class IslandCreationRoutine {
         grid.registerIsland(island);
 
         // Teleport player
-        // TODO: find sign and spawn player in front
 
         Location plrTp = new Location(islandWorld, tileCenterPos.getX(), tileCenterPos.getY() + 2, tileCenterPos.getZ());
         plr.teleportAsync(plrTp, PlayerTeleportEvent.TeleportCause.PLUGIN);

@@ -25,7 +25,6 @@ public class ReadBiomesStep implements IReaderStep {
     @NeedsTesting
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicReadException {
-
         final int width = ctx.builder.getWidth();
         final int height = ctx.builder.getHeight();
         final int length = ctx.builder.getLength();
@@ -38,9 +37,6 @@ public class ReadBiomesStep implements IReaderStep {
         try {
             biomePaletteTag = ctx.root.getCompound(NBT_BIOME_PALETTE);
         } catch(NoTagFoundException | MismatchedTypeException e) {
-            // TODO: fix up biome palette to have lazy variation;
-            //  assumption is schematics typically don't have biomes
-            //  saved, so why not optimize?
             BytePalette<String> biomePalette = BytePalette.of(1);
             biomePalette.add((byte) 0, "minecraft:plains");
             biomeVolume.setData(new byte[width * height * length]);
