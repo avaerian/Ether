@@ -5,7 +5,8 @@ import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.world.ChunkCoords;
 
 // manager for regions in the provided world
-// TODO: move to world package ??
+// FIXME: not sure if this is the right class?
+@Deprecated
 public class Regions {
 
     // Test if region is empty.
