@@ -2,10 +2,8 @@ package org.minerift.ether.island;
 
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.islandspecs.IslandSpec;

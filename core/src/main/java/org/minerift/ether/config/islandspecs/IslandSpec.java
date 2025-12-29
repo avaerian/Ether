@@ -27,7 +27,6 @@ import static org.minerift.ether.util.nbt.tags.TagTypes.STRING;
 // Immutable, with builder that can copy spec to mutate before finalizing.
 // If two threads try to read IslandSpec and spec is updated between reading in threads,
 // the old spec will be read in the first thread and second thread will see copied, updated spec
-// TODO: allow serializing as bytebuf and/or json?
 public class IslandSpec implements NbtSerializable {
 
     public static final String ISLAND_NAME = "IslandName";

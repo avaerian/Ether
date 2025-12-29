@@ -9,14 +9,10 @@ import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.util.nbt.tags.IntTag;
-import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.MismatchedTypeException;
 import org.minerift.ether.util.nbt.tags.container.NoTagFoundException;
 
-import java.util.Map;
-
-import static java.lang.String.format;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
 import static org.minerift.ether.util.nbt.tags.TagTypes.INT;
 
