@@ -7,7 +7,9 @@ import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.Utils;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -27,18 +29,18 @@ import static java.lang.String.format;
  *
  * @param <V> value type
  */
-public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
+public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2ObjectIdentityMap.Entry<V>> {
 
-    private static final int DEFAULT_INIT_SIZE = 16;
-    private static final int DEFAULT_ENTRY_LIMIT = 1024;
-    private static final IntUnaryOperator DEFAULT_GROWER = (i) -> i == 0 ? 2 : i * 2;
-
-    public static <V> Int2ObjectIdentityMap<V> noLimit() {
-        return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE);
-    }
+    public static final int DEFAULT_INIT_SIZE = 16;
+    public static final int DEFAULT_ENTRY_LIMIT = 1024;
+    public static final IntUnaryOperator DEFAULT_GROWER = (i) -> i == 0 ? 2 : i * 2;
 
     public static <V> Int2ObjectIdentityMap<V> noLimit(IntUnaryOperator grower) {
         return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE, grower);
+    }
+
+    public static <V> Int2ObjectIdentityMap<V> noLimit() {
+        return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE);
     }
 
     private BitSet keys;
@@ -121,6 +123,22 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
         if(i >= map.length) return defaultRet;
         V item = (V) map[i];
         return item != null ? item : defaultRet;
+    }
+
+    public int nextAvailableKey(final int fromKey) {
+        return keys.nextClearBit(fromKey);
+    }
+
+    public int nextAvailableKey() {
+        return nextAvailableKey(0);
+    }
+
+    public int nextUsedKey(final int fromKey) {
+        return keys.nextSetBit(fromKey);
+    }
+
+    public int nextUsedKey() {
+        return nextUsedKey(0);
     }
 
     @Override
@@ -209,7 +227,7 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
     }
 
     @Override
-    public ObjectSet<Entry<V>> int2ObjectEntrySet() {
+    public ObjectSet<Int2ObjectMap.Entry<V>> int2ObjectEntrySet() {
         return null;
     }
 
@@ -245,5 +263,49 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
         public int size() {
             return size;
         }
+    }
+
+    // TODO
+    @Override
+    public @NotNull Iterator<Entry<V>> iterator() {
+        return null;
+    }
+
+    public static final class Entry<V> {
+        private final Int2ObjectIdentityMap<V> holder;
+        private final int key;
+        private V value;
+        private Entry(Int2ObjectIdentityMap<V> holder, int key, V value) {
+            this.holder = holder;
+            this.key = key;
+            this.value = value;
+        }
+
+        public int getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public V setValue(V value) {
+            V old = (V) holder.map[key];
+            this.value = (V) (holder.map[key] = value);
+            return old;
+        }
+    }
+
+    // TODO
+    public Iterator<Entry<V>> fastIterator() {
+        return null;
+    }
+
+    public Stream<Entry<V>> stream() {
+        Stream.Builder<Entry<V>> stream = Stream.builder();
+        for(Entry<V> entry : this) {
+            stream.add(entry);
+        }
+        return stream.build();
     }
 }
