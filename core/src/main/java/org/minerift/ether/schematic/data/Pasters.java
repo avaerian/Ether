@@ -28,10 +28,10 @@ public class Pasters {
         Vec3i end = loc.copy().asMutable().add(bv.getDimensions());
         bv.getBlockEntities().forEach((be) -> be.getPos().add(loc));
 
-        Vec2i tr = ChunkCoords.from(loc);
-        Vec2i tl = ChunkCoords.from(loc.asMutable().add(bv.getWidth(), 0, 0));
-        Vec2i bl = ChunkCoords.from(loc.asMutable().add(0, 0, bv.getLength()));
-        Vec2i br = ChunkCoords.from(loc.asMutable().add(bv.getDimensions()));
+        Vec2i tr = ChunkCoords.getChunkAt(loc);
+        Vec2i tl = ChunkCoords.getChunkAt(loc.asMutable().add(bv.getWidth(), 0, 0));
+        Vec2i bl = ChunkCoords.getChunkAt(loc.asMutable().add(0, 0, bv.getLength()));
+        Vec2i br = ChunkCoords.getChunkAt(loc.asMutable().add(bv.getDimensions()));
 
         /*System.out.println("loc: " + loc);
         System.out.println("end: " + end);
@@ -99,7 +99,7 @@ public class Pasters {
         int normZ = roundChunk(loc.getZ());
 
         /* DEBUG */
-        Vec2i startChunk = ChunkCoords.from(loc);
+        Vec2i startChunk = ChunkCoords.getChunkAt(loc);
         Vec2i.Mutable normalizedChunk = new Vec2i.Mutable(cx, cz);
         //System.out.println("Chunk: " + normalizedChunk);
         normalizedChunk.subtract(startChunk);
