@@ -105,11 +105,11 @@ public class IslandGridSearchBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridV2State {
-        DefaultIslandGrid grid;
+        IndexedListIslandGrid grid;
 
         @Setup
         public void setup() {
-            this.grid = new DefaultIslandGrid();
+            this.grid = new IndexedListIslandGrid();
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Deprecated
-public class DeprecatedIslandGrid implements IslandGrid {
+public class DeprecatedIslandGrid implements OldIslandGrid {
 
     // All islands on the grid, including deleted islands
     private SortedList<Island> islands;
