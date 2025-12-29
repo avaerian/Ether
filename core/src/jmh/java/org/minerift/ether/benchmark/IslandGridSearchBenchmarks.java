@@ -15,6 +15,7 @@ import org.openjdk.jmh.runner.options.TimeValue;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+// TODO: review
 public class IslandGridSearchBenchmarks {
 
     private static final int TILE_COUNT = 365875;
@@ -87,29 +88,11 @@ public class IslandGridSearchBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridState {
-        DeprecatedIslandGrid grid;
+        IslandGrid grid;
 
         @Setup
         public void setup() {
-            this.grid = new DeprecatedIslandGrid();
-            for(int i = 0; i < TILE_COUNT; i++) {
-                Island island = Island.builder()
-                        .setTile(grid.getNextTile(), true)
-                        .setDeleted(false)
-                        .definePermissions(IslandRole.VISITOR)
-                        .build();
-                grid.registerIsland(island);
-            }
-        }
-    }
-
-    @State(Scope.Benchmark)
-    public static class IslandGridV2State {
-        IndexedListIslandGrid grid;
-
-        @Setup
-        public void setup() {
-            this.grid = new IndexedListIslandGrid();
+            this.grid = new DefaultIslandGrid();
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)
@@ -160,11 +143,6 @@ public class IslandGridSearchBenchmarks {
 
     @Benchmark
     public Optional<Island> islandGrid_findIslandBenchmark(IslandGridState state) {
-        return state.grid.getIslandAt(TILE_TO_FIND);
-    }
-
-    @Benchmark
-    public Optional<Island> islandGridV2_findIslandBenchmark(IslandGridV2State state) {
         return state.grid.getIslandAt(TILE_TO_FIND);
     }
 

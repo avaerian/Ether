@@ -4,19 +4,24 @@ import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.minerift.ether.math.GridAlgorithm;
+import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.DeprecatedIslandGrid;
+import org.minerift.ether.island.IslandGrid;
+import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.math.Vec2i;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DeprecatedIslandGridTest {
+// TODO: review
+public class IslandGridTest {
 
     // Test to see behavior of registering islands in random order
     @Test
@@ -25,7 +30,9 @@ public class DeprecatedIslandGridTest {
         final int ISLAND_COUNT = 300;
 
         List<Integer> ids = getRandomlyOrderedRange(0, ISLAND_COUNT);
-        DeprecatedIslandGrid grid = new DeprecatedIslandGrid();
+        IslandGrid grid = new DefaultIslandGrid();
+
+        System.out.println(ids);
 
         // Add islands to test grid
         for (int id : ids) {
@@ -48,12 +55,14 @@ public class DeprecatedIslandGridTest {
     public void getIslandAtTest(Vec2i tile) {
 
         final int ISLAND_COUNT = 300;
+        List<Integer> ids = getRandomlyOrderedRange(0, ISLAND_COUNT);
 
         // Setup island grid
-        DeprecatedIslandGrid grid = new DeprecatedIslandGrid();
-        for(int i = 0; i < ISLAND_COUNT; i++) {
+        IslandGrid grid = new DefaultIslandGrid();
+        for(int id : ids) {
             Island island = Island.builder()
-                    .setTile(grid.getNextTile(), true)
+                    .setTile(GridAlgorithm.computeTile(id), true)
+                    .setDeleted(false)
                     .build();
 
             grid.registerIsland(island);
@@ -64,6 +73,9 @@ public class DeprecatedIslandGridTest {
         assertDoesNotThrow(() -> grid.getIslandAt(tile).get());
         assertEquals(tile.getTileId(), grid.getIslandAt(tile).get().getId());
     }
+
+    // TODO: write tests for registering deleted islands and overriding them on the grid
+
 
     private static Stream<Vec2i> getIslandAtTest() {
         return Stream.of(

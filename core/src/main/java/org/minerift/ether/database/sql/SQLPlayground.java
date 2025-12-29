@@ -9,8 +9,9 @@ import org.minerift.ether.database.models.IslandModel;
 import org.minerift.ether.database.models.UserModel;
 import org.minerift.ether.database.sql.op.ddl.DDLGetColumns;
 import org.minerift.ether.debug.Debug;
+import org.minerift.ether.island.DefaultIslandGrid;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.IndexedListIslandGrid;
+import org.minerift.ether.island.IslandGrid;
 import org.minerift.ether.math.GridAlgorithm;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
@@ -18,8 +19,6 @@ import org.minerift.ether.user.UserManager;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-
-//import static org.minerift.ether.Secrets.HIDDEN;
 
 @SuppressWarnings("Duplicates")
 @Debug
@@ -72,7 +71,7 @@ public class SQLPlayground {
         Random random = new Random();
 
         final int GRID_SIZE = 100;
-        IndexedListIslandGrid grid = new IndexedListIslandGrid();
+        IslandGrid grid = new DefaultIslandGrid();
         UserManager users = new UserManager();
         for(int i = 0; i < GRID_SIZE; i++) {
             final EtherUser user = EtherUser.builder().setUUID(UUID.randomUUID()).build();

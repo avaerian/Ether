@@ -19,7 +19,7 @@ import java.io.File;
 @Deprecated
 public class IslandCreationRoutine {
 
-    public static Island run(OldIslandGrid grid, EtherUser user) {
+    public static Island run(IslandGrid grid, EtherUser user) {
 
         final Player plr = user.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
         final World islandWorld = plr.getWorld();
