@@ -76,7 +76,7 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2
         if(key >= map.length) {
             int newLen = grower.apply(map.length);
             if(newLen < key) {
-                newLen = key;
+                newLen = key + 1;
             }
             Object[] copy = new Object[newLen];
             System.arraycopy(map, 0, copy, 0, map.length);
@@ -268,7 +268,20 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2
     // TODO
     @Override
     public @NotNull Iterator<Entry<V>> iterator() {
-        return null;
+        Int2ObjectIdentityMap<V> t = this;
+        return new Iterator<>() {
+            int i = -1;
+
+            @Override
+            public boolean hasNext() {
+                return i != Integer.MAX_VALUE && (i = keys.nextSetBit(i+1)) != -1;
+            }
+
+            @Override
+            public Entry<V> next() {
+                return new Entry<>(t, i, (V)map[i]); // I don't know if I like this, but whatever; I'll review later
+            }
+        };
     }
 
     public static final class Entry<V> {
@@ -294,11 +307,6 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2
             this.value = (V) (holder.map[key] = value);
             return old;
         }
-    }
-
-    // TODO
-    public Iterator<Entry<V>> fastIterator() {
-        return null;
     }
 
     public Stream<Entry<V>> stream() {
