@@ -7,6 +7,8 @@ import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
+import java.util.Objects;
+
 public class ByteTag extends Tag implements ScalarTag {
 
     public static ByteTag valueOf(byte value) {
@@ -85,6 +87,17 @@ public class ByteTag extends Tag implements ScalarTag {
                 "value=" + value +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ByteTag byteTag)) return false;
+        return value == byteTag.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 
     public static class Codec implements TagCodec<ByteTag> {

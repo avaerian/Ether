@@ -6,6 +6,8 @@ import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
+import java.util.Objects;
+
 public class ShortTag extends Tag implements ScalarTag {
 
     public static ShortTag valueOf(short value) {
@@ -80,6 +82,17 @@ public class ShortTag extends Tag implements ScalarTag {
                 "value=" + value +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ShortTag shortTag)) return false;
+        return value == shortTag.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 
     public static class Codec implements TagCodec<ShortTag> {
