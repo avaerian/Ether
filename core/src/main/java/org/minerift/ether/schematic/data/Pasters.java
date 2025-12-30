@@ -20,18 +20,16 @@ import org.minerift.ether.world.ChunkCoords;
 import static org.minerift.ether.nms.world.Section.*;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 
-@SuppressWarnings("Duplicates") // TODO: remove once finished
 public class Pasters {
 
-    // TODO: refactor to instead use schedulers?? (controls sync, async, chunk/region locking, etc.)
     public static void pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
-        Vec3i end = loc.copy().asMutable().add(bv.getDimensions());
+        //Vec3i end = loc.copy().copyMutable().add(bv.getDimensions());
         bv.getBlockEntities().forEach((be) -> be.getPos().add(loc));
 
         Vec2i tr = ChunkCoords.getChunkAt(loc);
-        Vec2i tl = ChunkCoords.getChunkAt(loc.asMutable().add(bv.getWidth(), 0, 0));
-        Vec2i bl = ChunkCoords.getChunkAt(loc.asMutable().add(0, 0, bv.getLength()));
-        Vec2i br = ChunkCoords.getChunkAt(loc.asMutable().add(bv.getDimensions()));
+        Vec2i tl = ChunkCoords.getChunkAt(loc.copyMutable().add(bv.getWidth(), 0, 0));
+        Vec2i bl = ChunkCoords.getChunkAt(loc.copyMutable().add(0, 0, bv.getLength()));
+        Vec2i br = ChunkCoords.getChunkAt(loc.copyMutable().add(bv.getDimensions()));
 
         /*System.out.println("loc: " + loc);
         System.out.println("end: " + end);
@@ -50,7 +48,6 @@ public class Pasters {
         // Start at top right
         // TODO: test async
         BatchedTask operation = new BatchedTask();
-        // TODO: review method calls to getX
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
@@ -72,7 +69,6 @@ public class Pasters {
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
 
-        // TODO: rework work queue system entirely
         Ether.inst().getWorkQueue().enqueue(operation);
 
         //System.out.println(bv.getBlocks().getData().length);
@@ -87,7 +83,7 @@ public class Pasters {
         pasteBlockVolume(bv, world, loc, ChunkGetter.SYNC);
     }
 
-    // TODO: add flag for acquiring/releasing chunk sections?
+    // add flag for acquiring/releasing chunk sections?
     private static void pasteSection(Chunk chunk, int sy, BlockVolume bv, Vec3i loc) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
@@ -98,13 +94,11 @@ public class Pasters {
         int normY = roundChunk(loc.getY());
         int normZ = roundChunk(loc.getZ());
 
-        /* DEBUG */
         Vec2i startChunk = ChunkCoords.getChunkAt(loc);
         Vec2i.Mutable normalizedChunk = new Vec2i.Mutable(cx, cz);
-        //System.out.println("Chunk: " + normalizedChunk);
+        //@Debug System.out.println("Chunk: " + normalizedChunk);
         normalizedChunk.subtract(startChunk);
-        //System.out.println("Normalized: " + normalizedChunk);
-        /* END DEBUG */
+        //@Debug System.out.println("Normalized: " + normalizedChunk);
 
         int realStartSecY = getSectionReal(loc.getY());
         int normStartSecY = realSectionY - realStartSecY;
@@ -151,7 +145,8 @@ public class Pasters {
                         int worldBlockY = loc.getY() + arrayBlockY;
                         int worldBlockZ = loc.getZ() + arrayBlockZ;
 
-                        //System.out.println(format("array: %d, %d, %d", arrayBlockX, arrayBlockY, arrayBlockZ));
+                        //@Debug System.out.printf("array: %d, %d, %d\n", arrayBlockX, arrayBlockY, arrayBlockZ);
+
                         int idx = YZX.flatten(bv.getWidth(), bv.getLength(), arrayBlockX, arrayBlockY, arrayBlockZ);
 
                         // Set block state
@@ -201,7 +196,6 @@ public class Pasters {
 
 
     public static int roundChunk(int i) {
-        //return i >= 0 ? i & 15 : 15-(~i&15);
         return i & 15;
     }
 }
