@@ -1,6 +1,7 @@
 package org.minerift.ether.nms;
 
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.nms.world.Chunk;
@@ -9,6 +10,7 @@ import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface NMSAccess {
@@ -42,6 +44,8 @@ public interface NMSAccess {
         return world.getChunkAtAsync(chunkX, chunkZ)
                 .thenApply(Chunk::of);
     }*/
+
+    void broadcastChunkBiomeUpdates(World world, List<Chunk> chunks);
 
     int getDataVersion(); // TODO: review for DataFixerUpper
     RegistryAccess registryAccess();
