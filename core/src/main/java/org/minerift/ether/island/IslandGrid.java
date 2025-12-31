@@ -14,6 +14,10 @@ import java.util.concurrent.locks.Lock;
 //  more on this soon
 public interface IslandGrid {
 
+    static Synchronized synchronize(IslandGrid grid, Object mutex) {
+        return new Synchronized(grid, mutex);
+    }
+
     static Synchronized synchronize(IslandGrid grid) {
         return new Synchronized(grid);
     }
@@ -55,85 +59,122 @@ public interface IslandGrid {
 
     class Synchronized implements IslandGrid {
 
-        private IslandGrid grid; // backing grid
+        private final IslandGrid grid; // backing grid
+        private final Object mutex;
+
+        private Synchronized(IslandGrid grid, Object mutex) {
+            this.grid = grid;
+            this.mutex = mutex;
+        }
 
         private Synchronized(IslandGrid grid) {
             this.grid = grid;
+            this.mutex = this;
         }
 
         @Override
-        public synchronized void registerIsland(Island island) throws IllegalStateException {
-            grid.registerIsland(island);
+        public void registerIsland(Island island) throws IllegalStateException {
+            synchronized (mutex) {
+                grid.registerIsland(island);
+            }
         }
 
         @Override
-        public synchronized void unregisterIsland(int id) {
-            grid.unregisterIsland(id);
+        public void unregisterIsland(int id) {
+            synchronized (mutex) {
+                grid.unregisterIsland(id);
+            }
         }
 
         @Override
-        public synchronized void unregisterIsland(Island island) {
-            grid.unregisterIsland(island);
+        public void unregisterIsland(Island island) {
+            synchronized (mutex) {
+                grid.unregisterIsland(island);
+            }
         }
 
         @Override
-        public synchronized Optional<Island> getIslandAt(int id) {
-            return grid.getIslandAt(id);
+        public Optional<Island> getIslandAt(int id) {
+            synchronized (mutex) {
+                return grid.getIslandAt(id);
+            }
         }
 
         @Override
-        public synchronized Optional<Island> getIslandAt(Vec2i tile) {
-            return grid.getIslandAt(tile);
+        public Optional<Island> getIslandAt(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.getIslandAt(tile);
+            }
         }
 
         @Override
-        public synchronized boolean isTileOccupied(int id) {
-            return grid.isTileOccupied(id);
+        public boolean isTileOccupied(int id) {
+            synchronized (mutex) {
+                return grid.isTileOccupied(id);
+            }
         }
 
         @Override
-        public synchronized boolean isTileOccupied(Vec2i tile) {
-            return grid.isTileOccupied(tile);
+        public boolean isTileOccupied(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.isTileOccupied(tile);
+            }
         }
 
         @Override
-        public synchronized boolean needsClearing(Vec2i tile) {
-            return grid.needsClearing(tile);
+        public boolean needsClearing(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.needsClearing(tile);
+            }
         }
 
         @Override
-        public synchronized int getIslandCount() {
-            return grid.getIslandCount();
+        public int getIslandCount() {
+            synchronized (mutex) {
+                return grid.getIslandCount();
+            }
         }
 
         @Override
-        public synchronized ImmutableList<Island> getIslandsView() {
-            return grid.getIslandsView();
+        public ImmutableList<Island> getIslandsView() {
+            synchronized (mutex) {
+                return grid.getIslandsView();
+            }
         }
 
         @Override
-        public synchronized ImmutableList<Vec2i> getAvailableTiles() {
-            return grid.getAvailableTiles();
+        public ImmutableList<Vec2i> getAvailableTiles() {
+            synchronized (mutex) {
+                return grid.getAvailableTiles();
+            }
         }
 
         @Override
-        public synchronized Vec2i getNextTile() {
-            return grid.getNextTile();
+        public Vec2i getNextTile() {
+            synchronized (mutex) {
+                return grid.getNextTile();
+            }
         }
 
         @Override
-        public synchronized IntSet getIslandIds() {
-            return grid.getIslandIds();
+        public IntSet getIslandIds() {
+            synchronized (mutex) {
+                return grid.getIslandIds();
+            }
         }
 
         @Override
-        public synchronized Lock readLock() {
-            return grid.readLock();
+        public Lock readLock() {
+            synchronized (mutex) {
+                return grid.readLock();
+            }
         }
 
         @Override
-        public synchronized Lock writeLock() {
-            return grid.writeLock();
+        public Lock writeLock() {
+            synchronized (mutex) {
+                return grid.writeLock();
+            }
         }
     }
 

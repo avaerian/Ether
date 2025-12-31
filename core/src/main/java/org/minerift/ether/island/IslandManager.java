@@ -12,7 +12,6 @@ import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.NMSAccess;
-import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicPasteOptions;
@@ -79,9 +78,9 @@ public class IslandManager {
                 .build();
 
         @Debug final ChunkGetter cg = ChunkGetter.ASYNC;
-        final IslandGrid syncGrid = IslandGrid.synchronize(grid);
+        final IslandGrid syncGrid = IslandGrid.synchronize(grid, grid);
 
-        // seems messy; we'll see if there's a better solution
+        // seems messy; need to find a better solution
         CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
             final NMSAccess nms = Ether.inst().getNms();
             if(syncGrid.needsClearing(tile)) {
@@ -90,12 +89,12 @@ public class IslandManager {
                 for(int z = blChunk.getZ(), i = 0; z < trChunk.getZ(); z++) {
                     for(int x = blChunk.getX(); x < trChunk.getX(); x++) {
                         futures[i++] = cg.getChunk(world, x, z)
-                                .thenAccept((chunk) -> nms.clearChunk(chunk, true));
+                                .thenAcceptAsync((chunk) -> nms.clearChunk(chunk, true));
                     }
                 }
                 CompletableFuture.allOf(futures).join();
             }
-            schem.paste(centerBlock, world.getName(), options);
+            schem.paste(centerBlock, world.getName(), options); // this needs to be blocking
         });
 
         return cf.thenApply((__) -> { // FIXME: may need to schedule via WorkQueue for main thread
@@ -103,12 +102,15 @@ public class IslandManager {
                     .setOwner(owner)
                     .setTile(tile, true)
                     .setBottomLeftBound(blChunk)
-                    .setTopRightBound(trChunk)
-                    .setDeleted(false);
+                    .setTopRightBound(trChunk);
 
             final Island island = builder.build();
             syncGrid.registerIsland(island);
-            owner.getPlayer().get().teleportAsync(BukkitUtils.asLocation(world, centerBlock));
+
+            owner.setIsland(island);
+
+            owner.getPlayer().orElseThrow(() -> new IllegalStateException("User offline before island creation completed"))
+                    .teleportAsync(BukkitUtils.asLocation(world, centerBlock));
             return island;
         });
     }
