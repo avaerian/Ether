@@ -10,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
@@ -19,13 +20,17 @@ import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
+import org.bukkit.entity.Player;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.debug.NeedsTesting;
@@ -39,7 +44,9 @@ import org.minerift.ether.util.reflect.ReflectedObject;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -102,6 +109,7 @@ public class NMSAccessImpl implements NMSAccess {
         if(!level.tryAddFreshEntityWithPassengers(worldEntity)) {
             throw new EntityLoadException("Entity failed to add to world: duplicate UUID " + worldEntity.getStringUUID());
         }
+        // TODO: ClientboundAddEntityPacket
         System.out.println("Added entity " + entity.getId() + " at " + entity.getPos()); // debug
     }
 
@@ -112,13 +120,18 @@ public class NMSAccessImpl implements NMSAccess {
         chunk.clearAllBlockEntities(); // do rest of the work
     }
 
-    // TODO: review
     @Override
     public void clearChunk(Chunk chunk, boolean clearEntities) { // assumes chunk is already loaded based on retrieval
         synchronized (chunk.asNative()) { // TODO: review
             final LevelChunk nChunk = (LevelChunk) chunk.asNative();
             final ServerLevel level = nChunk.level;
             final LevelChunk emptyChunk = new LevelChunk(level, nChunk.getPos());
+
+            // TODO: for biomes:
+            //  - use VarHandle to get biomes palette in each LevelChunkSection
+            //  - write each section's biome palette to a buffer (or array of buffers)
+            //  - once cleared, read each section's biome palette back
+            //  - if this doesn't work, could add a biome parameter (in core, a Dimension class could contain the main biome)
 
             final ServerChunkCache serverChunkCache = level.getChunkSource();
 
@@ -130,7 +143,7 @@ public class NMSAccessImpl implements NMSAccess {
             // Remove entities from chunk
 
             if(clearEntities) {
-                // TODO: ReflectionMapping for retrieving native entities
+                // ReflectionMapping for retrieving native entities?
             /*List<Entity> entities = level.getEntityLookup()
                     .getChunk(chunk.getX(), chunk.getZ())
                     .get;*/
@@ -162,12 +175,15 @@ public class NMSAccessImpl implements NMSAccess {
             // Resend entire chunk packet
             ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nChunk, serverChunkCache.getLightEngine(), null, null, true);
             nChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
+            System.out.println("Cleared chunk at " + chunk.getX() + ", " + chunk.getZ());
         }
     }
 
     @Experimental
     @Override
     public CompletableFuture<Void> clearChunks(ChunkGetter cg, Chunk e1, Chunk e2, boolean clearEntities) {
+        // TODO: create new impl that iterates over chunk coords with CompletableFuture's
+        //  for each chunk, then use CompletableFuture#allOf
         return clearChunksLogic(e1, e2, pos -> {
             cg.getChunkWCallback(e1.getWorld(), pos.x, pos.z, chunk -> {
                 clearChunk(chunk, clearEntities); return chunk;
@@ -202,6 +218,15 @@ public class NMSAccessImpl implements NMSAccess {
         Bukkit.broadcast(Component.text(String.format("Cleared %d chunk(s)",
                 ChunkPos.rangeClosed(nChunk1.getPos(), nChunk2.getPos()).count())));
         return res;
+    }
+
+    @Override
+    public void broadcastChunkBiomeUpdates(World world, List<Chunk> chunks) {
+        // because native is LevelChunk, just cast to ChunkAccess (superclass)
+        List<ChunkAccess> lcs = chunks.stream().map((c) -> (ChunkAccess)c.asNative()).toList();
+        ((CraftWorld)world).getHandle().getChunkSource().chunkMap.resendBiomesForChunks(lcs);
+
+        //((LevelChunk)null).level.getChunkSource().chunkMap.generator // TODO: really good step towards finding biome gen solution
     }
 
     @NeedsTesting
