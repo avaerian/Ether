@@ -8,8 +8,10 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.islandspecs.IslandSpec;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.debug.Debug;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.schematic.Schematic;
@@ -22,7 +24,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class IslandManager {
 
-    private IslandGrid grid;
+    private final IslandGrid grid;
+
     public IslandManager(IslandGrid grid) {
         this.grid = grid;
     }
@@ -45,72 +48,69 @@ public class IslandManager {
         return islands;
     }
 
-    @Deprecated(forRemoval = true)
-    public Island createIsland(EtherUser user) {
-        if(user.getIsland() != null) {
-            // TODO: logger
-        }
-        return IslandCreationRoutine.run(null, user);
-    }
-
-    @Deprecated public static final int TEMP_ISLAND_HEIGHT = 90;
-    @SuppressWarnings("Duplicates") // temp until delete IslandCreationRoutine
+    // TODO: add options parameter for additional island creation config (e.g. ChunkGetter)
     // Creates island data, places island in world, and updates user island refs
     public CompletableFuture<Island> createIsland(World world, IslandSpec spec, EtherUser owner) {
+
+        owner.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
         MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
 
         final Vec2i tile = grid.getNextTile();
-        System.out.println("Tile = " + tile);
         final Vec2i blChunk = new Vec2i(tile.getX() * cfg.getTileLengthChunks(), tile.getZ() * cfg.getTileLengthChunks());
         final Vec2i trChunk = new Vec2i((cfg.getTileLengthChunks() * (tile.getX() + 1)) - 1, (cfg.getTileLengthChunks() * (tile.getZ() + 1)) - 1);
 
+        /*System.out.println("Tile = " + tile);
         System.out.println("blChunk = " + blChunk);
-        System.out.println("trChunk = " + trChunk);
+        System.out.println("trChunk = " + trChunk);*/
 
         Vec2i centerChunk = new Vec2i(
                 blChunk.getX() + (cfg.getTileLengthChunks() / 2),
                 blChunk.getZ() + (cfg.getTileLengthChunks() / 2));
 
-        // TODO: for different dimensions, allow for individual island heights
-        Vec3i centerBlock = new Vec3i((centerChunk.getX() * 16) - 8, TEMP_ISLAND_HEIGHT, (centerChunk.getZ() * 16) - 8);
+        // TODO: for different dimensions, allow for individual island heights; add this in main cfg
+        Vec3i centerBlock = new Vec3i((centerChunk.getX() * 16) - 8, cfg.getTileHeight(), (centerChunk.getZ() * 16) - 8);
         Schematic schem = spec.getSchematic();
 
-        // center of schematic struct
         Vec3i offset = new Vec3i(-schem.getWidth() / 2, -schem.getHeight() / 2, -schem.getLength() / 2);
         SchematicPasteOptions options = SchematicPasteOptions.builder()
-                .copyBiomes(false) // TODO: review; will set manually?
+                .copyBiomes(false)
                 .copyEntities(true)
                 .setOffset(offset)
                 .build();
 
-        // TODO: schedule clearing and pasting on another thread,
-        //  then return island in CompletableFuture
-        CompletableFuture<Void> cf = null;
-        if(grid.needsClearing(tile)) {
-            Chunk bl = Chunk.of(world, blChunk.getX(), blChunk.getZ()).join();
-            Chunk tr = Chunk.of(world, trChunk.getX(), trChunk.getZ()).join();
-            cf = Ether.inst().getNms().clearChunks(ChunkGetter.ASYNC, bl, tr, true);
-            // Iterate through chunks between bl and tr, synchronize and clear
-            // This will be a CompletableFuture#allOf to ensure chunks
-            // complete sync/async together w/out waiting for each chunk
-        }
-        if(cf == null) {
-            cf = CompletableFuture.runAsync(() -> schem.paste(centerBlock, world.getName(), options));
-        }
+        @Debug final ChunkGetter cg = ChunkGetter.ASYNC;
+        final IslandGrid syncGrid = IslandGrid.synchronize(grid);
 
-        // Experimental stuff to explore concurrency
-        //CompletableFuture.runAsync(() -> {}).thenApply((__) -> Island.builder().build()).join();
+        // seems messy; we'll see if there's a better solution
+        CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
+            final NMSAccess nms = Ether.inst().getNms();
+            if(syncGrid.needsClearing(tile)) {
+                CompletableFuture<Void>[] futures =
+                        new CompletableFuture[(trChunk.getX() - blChunk.getX()) * (trChunk.getZ() - blChunk.getZ())];
+                for(int z = blChunk.getZ(), i = 0; z < trChunk.getZ(); z++) {
+                    for(int x = blChunk.getX(); x < trChunk.getX(); x++) {
+                        futures[i++] = cg.getChunk(world, x, z)
+                                .thenAccept((chunk) -> nms.clearChunk(chunk, true));
+                    }
+                }
+                CompletableFuture.allOf(futures).join();
+            }
+            schem.paste(centerBlock, world.getName(), options);
+        });
 
-        Island.Builder builder = Island.builder()
-                .setOwner(owner)
-                .setTile(tile, true)
-                .setBottomLeftBound(blChunk)
-                .setTopRightBound(trChunk)
-                .setDeleted(false);
+        return cf.thenApply((__) -> { // FIXME: may need to schedule via WorkQueue for main thread
+            Island.Builder builder = Island.builder()
+                    .setOwner(owner)
+                    .setTile(tile, true)
+                    .setBottomLeftBound(blChunk)
+                    .setTopRightBound(trChunk)
+                    .setDeleted(false);
 
-        final Island island = builder.build();
-        grid.registerIsland(island);
-        return CompletableFuture.completedFuture(island); // FIXME: switch once scheduling is done
+            final Island island = builder.build();
+            syncGrid.registerIsland(island);
+            owner.getPlayer().get().teleportAsync(BukkitUtils.asLocation(world, centerBlock));
+            return island;
+        });
     }
 
     public void deleteIsland(Island island) { // TODO
