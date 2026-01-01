@@ -46,9 +46,9 @@ public class ReadBiomesStep implements IReaderStep {
         BytePalette<Biome<?>> biomePalette = BytePalette.of(biomePaletteTag.size());
 
         // Verify size
-        IntTag _expSize = ctx.root.tryGetTag(NBT_BIOME_PALETTE_MAX, INT);
+        IntTag _expSize = ctx.root.tryGetTag(NBT_BIOME_PALETTE_MAX, INT); // optional
         if(_expSize != null) {
-            int expSize = _expSize.getAsInt(); // optional
+            int expSize = _expSize.getAsInt();
             if(biomePaletteTag.size() != expSize) {
                 // TODO: proper logger
                 System.out.printf("Expected a palette size of %d, but actually got %d\n",

@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.debug.NeedsReview;
 import org.minerift.ether.util.CanChange;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
@@ -43,14 +44,13 @@ public class Island extends CanChange {
 
     private boolean isDeleted;
 
-    // Private constructor
+    @NeedsReview
     private Island(Island.Builder builder) {
 
-        // TODO: load all values from builder to object
         this.tile = builder.tile;
         this.id = builder.id;
         this.isDeleted = builder.isDeleted;
-        this.permissions = builder.permissions;
+        this.permissions = builder.perms;
 
         // TODO: figure out addTeamMember and handling/storing team members for islands
         this.members = builder.members.stream().map(EtherUser::getUUID).collect(Collectors.toSet());
@@ -58,8 +58,8 @@ public class Island extends CanChange {
             addTeamMember(builder.owner, IslandRole.OWNER);
         }
 
-        this.blChunkZX = builder.bottomLeftChunkBound;
-        this.trChunkZX = builder.topRightChunkBound;
+        this.blChunkZX = builder.blChunk;
+        this.trChunkZX = builder.trChunk;
 
         setChanged(false);
     }
@@ -203,9 +203,9 @@ public class Island extends CanChange {
 
         private Vec2i tile;
         private int id;
-        private long bottomLeftChunkBound, topRightChunkBound;
+        private long blChunk, trChunk;
         private boolean isDeleted;
-        private PermissionSet permissions;
+        private PermissionSet perms;
 
         private EtherUser owner;
         private List<EtherUser> members;
@@ -217,9 +217,10 @@ public class Island extends CanChange {
         /**
          *
          * @param tile
-         * @param withId Whether the builder should also set the id from tile
+         * @param withId whether the builder should also set the id from tile
          * @return
          */
+        // Javadocs need to be written properly
         public Builder setTile(Vec2i tile, boolean withId) {
             this.tile = tile;
             if(withId) {
@@ -234,24 +235,23 @@ public class Island extends CanChange {
         }
 
         public Builder definePermissions(IslandRole role, EnumSet<IslandPermission> rolePermissions) {
-            this.permissions = new PermissionSet();
-            permissions.set(role, rolePermissions);
+            this.perms = new PermissionSet();
+            perms.set(role, rolePermissions);
             return this;
         }
 
         public Builder definePermissions(IslandRole role, IslandPermission ... rolePermissions) {
-            this.permissions = new PermissionSet();
-            permissions.set(role, rolePermissions);
+            this.perms = new PermissionSet();
+            perms.set(role, rolePermissions);
             return this;
         }
 
         public Builder setPermission(IslandRole role, IslandPermission rolePermission) {
-            this.permissions = new PermissionSet();
-            permissions.set(role, rolePermission);
+            this.perms = new PermissionSet();
+            perms.set(role, rolePermission);
             return this;
         }
 
-        // TODO: either call setOwner or setMembers (setOwner for creating new island, setMembers for database/persist loading)
         public Builder setOwner(EtherUser owner) {
             this.owner = owner;
             return this;
@@ -278,15 +278,13 @@ public class Island extends CanChange {
             return setTopRightBound(chunk.getX(), chunk.getZ());
         }
 
-        // Corner 1
         public Builder setBottomLeftBound(long bottomLeftChunkBound) {
-            this.bottomLeftChunkBound = bottomLeftChunkBound;
+            this.blChunk = bottomLeftChunkBound;
             return this;
         }
 
-        // Corner 2
         public Builder setTopRightBound(long topRightChunkBound) {
-            this.topRightChunkBound = topRightChunkBound;
+            this.trChunk = topRightChunkBound;
             return this;
         }
 
@@ -296,7 +294,7 @@ public class Island extends CanChange {
             return new Island(this);
         }
 
-        // TODO: implement
+        // validation really required?
         private void validate() {
             // Tile and Id are required
         }

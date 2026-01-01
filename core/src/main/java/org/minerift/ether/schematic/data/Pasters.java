@@ -51,12 +51,12 @@ public class Pasters {
 
         // Start at top right
         // TODO: experiment w/ CompletableFuture#allOf for pasting in each chunk (each chunk being locked)
-        BatchedTask operation = new BatchedTask();
+        BatchedTask batch = new BatchedTask(); // needs to be blocking
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
                 int finalCz = cz;
-                operation.addTask(() -> {
+                batch.addTask(() -> {
                     cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> { // returns CompletableFuture
                         for(int sy = startSecY; sy <= endSecY; sy++) {
                             pasteBlockSection(chunk, sy, bv, loc);
@@ -67,13 +67,13 @@ public class Pasters {
                 });
             }
         }
-        operation.whenComplete((status) -> {
+        batch.whenComplete((status) -> {
             System.out.println(bv.blockEntities);
             //System.out.println(bv.getBlocks().getBlockEntities());
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
 
-        Ether.inst().getWorkQueue().enqueue(operation);
+        Ether.inst().getWorkQueue().enqueue(batch);
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
