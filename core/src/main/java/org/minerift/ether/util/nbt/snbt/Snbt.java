@@ -47,9 +47,15 @@ public class Snbt {
         System.out.println(tag);
 
         System.out.println("Snbt: " + Snbt.writeTag(tag));
-    }
 
-    // FIXME: Snbt class needs to be cleaned up and polished
+        try {
+            System.out.println(Snbt.readTag("{minecraft:grass_block}"));
+        } catch (UnexpectedTokenException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(Snbt.readTag("{minecraft:[\"test1\", \"test2\", \"test3\", \"test4\"], test:}"));
+    }
 
     public static class Parser {
 
@@ -91,7 +97,7 @@ public class Snbt {
                 throw new UnexpectedTokenException("Expected a name, found '" + tok + "'");
             }
 
-            // TODO: test token if it fits regex
+            // test token if it fits regex?
 
             return tok.strTok;
         }
@@ -193,17 +199,18 @@ public class Snbt {
             return false;
         }
 
-        public TagTypeParserResult getTagType(Token tok) {
+        public TagTypeParserResult getTagType(Token tok) throws UnexpectedTokenException {
             return getTagType(stream, tok);
         }
 
-        public static TagTypeParserResult getTagType(TokenStream toks, Token tok) {
+        public static TagTypeParserResult getTagType(TokenStream toks, Token tok) throws UnexpectedTokenException {
             final String strTok = tok.strTok;
+            System.out.println("getting tag type: " + strTok);
             return switch (tok.strTok) {
                 case "{" -> new TagTypeParserResult(TagTypes.COMPOUND, tok);
                 case "[" -> {
                     Token arrayType = tok.next();
-                    TagType type = switch (arrayType.strTok) {
+                    TagType<?> type = switch (arrayType.strTok) {
                         case "B" -> TagTypes.BYTE_ARRAY;
                         case "I" -> TagTypes.INT_ARRAY;
                         case "L" -> TagTypes.LONG_ARRAY;
@@ -235,8 +242,7 @@ public class Snbt {
                     } else if(tok.matches(STRING_VALUE)) {
                         type = TagTypes.STRING;
                     } else {
-                        type = null;
-                        //throw new IllegalArgumentException("'" + tok + "' is not a valid tag type!");
+                        throw new UnexpectedTokenException("Unable to identify tag type for token (" + strTok + ")");
                     }
 
                     yield new TagTypeParserResult(type, tok);
@@ -245,7 +251,7 @@ public class Snbt {
         }
     }
 
-    public record TagTypeParserResult(TagType type, Token token) {
+    public record TagTypeParserResult(TagType<?> type, Token token) {
         // !!!! PRIORITY !!!!
         // TODO: fix TagTypeParserResult so that the token is the next token to read for the value (for compound, name. for byte/int/etc, val)
 
@@ -275,6 +281,7 @@ public class Snbt {
 
         Token valToken = parser.peek();
         TagTypeParserResult result = parser.getTagType(valToken);
+        System.out.println(result.type); // for debugging
         if(expectedType != null && result.type != expectedType) {
             throw new SnbtReadException("Expected type " + expectedType + " for SNBT, found " + result.type);
         }
@@ -344,14 +351,13 @@ public class Snbt {
         private final CharSequence chars;
         private int pos;
         private int nToken;
-        //private int nextIdx; // for peeking TODO: review this
+        //private int nextIdx; // for peeking; review this
 
         public TokenStream(CharSequence snbt) {
             this.chars = snbt;
             this.pos = 0;
         }
 
-        // TODO: create overload for peeking tokens with offsets; NOTE: will need to be careful because this can be dangerous if done incorrectly
         public Token peekNextToken() {
             return readToken(pos);
         }

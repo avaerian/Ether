@@ -189,7 +189,8 @@ public class IslandSpec implements NbtSerializable {
         public Builder() {
             this.islandName = "";
             this.desc = Collections.emptyList();
-            this.icon = ItemStack.of("minecraft:grass_block");
+            //this.icon = ItemStack.of("minecraft:grass_block"); // FIXME: this isn't working <-----------
+            this.icon = ItemStack.of("{id:\"minecraft:grass_block\"}"); // temp until resolved for above format
             this.schem = null; // FIXME: review default
             this.spawns = null; // FIXME: create proper default (single spawn)
             this.fpath = null;
