@@ -5,12 +5,16 @@ import io.netty.buffer.ByteBuf;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.schematic.data.BiomeVolume;
+import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.nbt.NbtSerializable;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.world.EntityArchetype;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public interface Schematic extends NbtSerializable {
 
@@ -72,6 +76,15 @@ public interface Schematic extends NbtSerializable {
         return codec().writeAsNbt(this, flags);
     }
 
+    /**
+     * Pastes this schematic in the world at the specified position, with some additional options
+     * indicating how the schematic should be pasted. A few {@link SchematicPasteOptions} configurations
+     * already exist, but can be also created and customized using {@link SchematicPasteOptions#builder()}.
+     *
+     * @param pos the position in the world to be paste at
+     * @param worldName the name of the world to paste in
+     * @param options additional options specifying how the schematic should be pasted
+     */
     void paste(Vec3i pos, String worldName, SchematicPasteOptions options);
 
     int getWidth();
@@ -81,7 +94,10 @@ public interface Schematic extends NbtSerializable {
     Vec3i getDimensions();
     Vec3i getOffset();
 
+    BlockVolume getBlocks();
+    BiomeVolume getBiomes();
+    List<EntityArchetype> getEntities();
+
     Schematic transform(Transforms ts);
     Schematic transformMut(Transforms ts);
-
 }
