@@ -52,4 +52,8 @@ public class BukkitUtils {
         return new Vec3d(loc.getX(), loc.getY(), loc.getZ());
     }
 
+    public static Location asLocation(World world, Vec3i vec) {
+        return new Location(world, vec.getX(), vec.getY(), vec.getZ());
+    }
+
 }

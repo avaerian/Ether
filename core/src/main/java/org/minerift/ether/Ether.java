@@ -73,6 +73,9 @@ public class Ether /*implements AutoCloseable*/ {
     }
     
     public static Ether.InitResult from(File dataDir, Logger logger) throws EtherLoadException {
+        System.setProperty("org.jooq.no-logo", "true");
+        System.setProperty("org.jooq.no-tips", "true");
+
         final StageTimekeeper<Stage> times = new StageTimekeeper<>(Stage.class);
 
         // load configs
