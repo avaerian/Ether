@@ -2,6 +2,7 @@ package org.minerift.ether.nms.v1_20_R2;
 
 import com.mojang.serialization.Dynamic;
 import io.netty.buffer.Unpooled;
+import io.papermc.paper.world.ChunkEntitySlices;
 import net.kyori.adventure.text.Component;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
@@ -27,6 +28,8 @@ import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
@@ -120,6 +123,14 @@ public class NMSAccessImpl implements NMSAccess {
         chunk.clearAllBlockEntities(); // do rest of the work
     }
 
+
+    // TODO: for biomes: let's do it manually as a configurable parameter
+    //  - each time a chunk is cleared or an island pasted, a BiomeSource or BiomeProvider could be used
+    //    to provide the ability to determine how to set the biomes; a simple one by default may exist with just
+    //    simply setting the whole chunk to a specific biome (for icy islands, icy biomes, or desert islands, or
+    //    other sources to describe biome setting.
+    //  - the BiomeSource could also describe for the SchematicPasteOptions to read the biomes saved to the schematic
+    //    and use those for more complex islands.
     @Override
     public void clearChunk(Chunk chunk, boolean clearEntities) { // assumes chunk is already loaded based on retrieval
         synchronized (chunk.asNative()) { // TODO: review
@@ -140,14 +151,16 @@ public class NMSAccessImpl implements NMSAccess {
             emptyChunk.getSection(0).write(emptySectionBuf, null, 0);
 
             // TODO: clear block entities before clearing entities?
-            // Remove entities from chunk
 
             if(clearEntities) {
-                // ReflectionMapping for retrieving native entities?
-            /*List<Entity> entities = level.getEntityLookup()
-                    .getChunk(chunk.getX(), chunk.getZ())
-                    .get;*/
-                Arrays.stream(level.getChunkEntities(chunk.getX(), chunk.getZ()))
+                // TODO: switch to native impl for entities; schedule on main thread?
+                /*ChunkEntitySlices entityStore = level.getEntityLookup().getChunk(chunk.getX(), chunk.getZ());
+                if(entityStore != null) {
+                    List<Entity> entities = new ArrayList<>(16);
+                    entityStore.getEntities(null,
+                            new AABB(new Vec3()));
+                }*/
+                Arrays.stream(level.getChunkEntities(chunk.getX(), chunk.getZ())) // this needs to be done sync
                         .filter(entity -> entity.getType() != org.bukkit.entity.EntityType.PLAYER)
                         .forEach(org.bukkit.entity.Entity::remove);
             }

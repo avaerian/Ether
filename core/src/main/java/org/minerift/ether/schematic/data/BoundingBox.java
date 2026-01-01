@@ -108,7 +108,6 @@ public class BoundingBox {
 
     }*/
 
-    @SuppressWarnings("Duplicates")
     private static void accessSection(Chunk chunk, int sy, BlockVolume.Builder bv, Vec3i min) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
@@ -155,6 +154,12 @@ public class BoundingBox {
 
                         int idx = YZX.flatten(bv.getWidth(), bv.getLength(), arrayBlockX, arrayBlockY, arrayBlockZ);
 
+                        // TODO: refactor this to use a context (can create one and update it each iteration
+                        //  rather than create a new one every iteration) for saving BlockVolume's, BiomeVolume's,
+                        //  entities, and Schematics. Entities may be different when saving; this may require
+                        //  NMS for an easier, faster time, but the Context<V> would allow for one function
+                        //  with many different lambdas. Will try and dedup other classes copying and pasting
+                        //  this same type of code.
                         BlockState<?> state = section.getBlockState(x, y, z);
                         //System.out.println("state -> " + state.asNative());
                         byte id;
