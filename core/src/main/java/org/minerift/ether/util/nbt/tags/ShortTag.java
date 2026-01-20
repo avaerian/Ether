@@ -2,7 +2,6 @@ package org.minerift.ether.util.nbt.tags;
 
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
@@ -19,11 +18,6 @@ public class ShortTag extends Tag implements ScalarTag {
     public ShortTag(String name, short value) {
         this.name = name;
         this.value = value;
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitShort(this);
     }
 
     @Override

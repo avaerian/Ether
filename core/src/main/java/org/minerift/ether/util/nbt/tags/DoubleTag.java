@@ -2,7 +2,6 @@ package org.minerift.ether.util.nbt.tags;
 
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 
@@ -17,11 +16,6 @@ public class DoubleTag extends Tag implements ScalarTag {
     public DoubleTag(String name, double value) {
         this.name = name;
         this.value = value;
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitDouble(this);
     }
 
     @Override

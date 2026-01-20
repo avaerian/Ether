@@ -152,11 +152,6 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         tags.remove(name);
     }
 
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitCompound(this);
-    }
-
     /*private <R, F extends Function<Tag, R>> R getTagValue(String name, TagType<> expectedType, F none, F some) {
         Tag tag = tags.get(name);
         if(tag == null) {
