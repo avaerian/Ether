@@ -14,12 +14,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class DefaultIslandGrid implements IslandGrid {
 
     private final Int2ObjectIdentityMap<Island> islands;
-    public final Set<Vec2i> needsClearing;
     private final ReadWriteLock lock;
+    private final Set<Vec2i> purgeQueue;
 
     public DefaultIslandGrid(Int2ObjectIdentityMap<Island> islands, Set<Vec2i> needsClearing) {
         this.islands = islands;
-        this.needsClearing = needsClearing;
+        this.purgeQueue = needsClearing;
         this.lock = new ReentrantReadWriteLock();
     }
 
@@ -54,7 +54,17 @@ public class DefaultIslandGrid implements IslandGrid {
 
     @Override
     public boolean needsClearing(Vec2i tile) {
-        return needsClearing.contains(tile);
+        return purgeQueue.contains(tile);
+    }
+
+    @Override
+    public void queueForClearing(Vec2i tile) {
+        this.purgeQueue.add(tile);
+    }
+
+    @Override
+    public Set<Vec2i> getPurgeQueue() {
+        return purgeQueue;
     }
 
     @Override

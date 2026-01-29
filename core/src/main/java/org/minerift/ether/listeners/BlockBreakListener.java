@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.minerift.ether.Ether;
+import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.island.IslandManager;
 
 public class BlockBreakListener implements Listener {
@@ -20,7 +21,7 @@ public class BlockBreakListener implements Listener {
         islandManager.getIslandAt(loc).ifPresentOrElse((island) -> {
 
             // TODO
-            if(island.isInAccessibleRegion(loc)) {
+            if(island.isInAccessibleRegion(Dimension.from(loc.getWorld()), loc)) {
                 plr.sendMessage("Broke block in accessible region!");
             } else {
                 plr.sendMessage("Not in accessible region!");

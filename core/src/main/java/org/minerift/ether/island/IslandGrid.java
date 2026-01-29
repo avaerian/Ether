@@ -3,8 +3,8 @@ package org.minerift.ether.island;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.util.Note;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
@@ -42,6 +42,8 @@ public interface IslandGrid {
     }
 
     boolean needsClearing(Vec2i tile);
+    void queueForClearing(Vec2i tile);
+    Collection<Vec2i> getPurgeQueue();
 
     int getIslandCount();
 
@@ -49,7 +51,15 @@ public interface IslandGrid {
 
     ImmutableList<Vec2i> getAvailableTiles(); // tiles that should be occupied before appending to end of grid
 
-    @Note("Returns the next available tile that can be occupied")
+    /**
+     * Return the next available tile in the grid.
+     *
+     * **NOTE:** If there is a deleted island on the grid ready to be reoccupied again,
+     * this method will return the next island in the purge queue before returning
+     * the next tile from the grid bounds.
+     *
+     * @return the next available tile in the grid to be occupied.
+     */
     Vec2i getNextTile();
 
     IntSet getIslandIds();
@@ -174,6 +184,20 @@ public interface IslandGrid {
         public Lock writeLock() {
             synchronized (mutex) {
                 return grid.writeLock();
+            }
+        }
+
+        @Override
+        public void queueForClearing(Vec2i tile) {
+            synchronized (mutex) {
+                grid.queueForClearing(tile);
+            }
+        }
+
+        @Override
+        public Collection<Vec2i> getPurgeQueue() {
+            synchronized (mutex) {
+                return grid.getPurgeQueue();
             }
         }
     }
