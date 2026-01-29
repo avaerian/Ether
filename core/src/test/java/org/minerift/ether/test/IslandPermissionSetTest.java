@@ -22,7 +22,6 @@ public class IslandPermissionSetTest {
                 .definePermissions(IslandRole.OWNER, EnumSet.allOf(IslandPermission.class))
                 .definePermissions(IslandRole.MEMBER, EnumSet.range(IslandPermission.BLOCK_BREAK, IslandPermission.ENTITY_INTERACT))
                 .definePermissions(IslandRole.VISITOR, EnumSet.noneOf(IslandPermission.class))
-                .setDeleted(false)
                 .build();
 
         this.permissions = island.getPermissions();

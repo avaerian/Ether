@@ -62,7 +62,6 @@ public class IslandGridTest {
         for(int id : ids) {
             Island island = Island.builder()
                     .setTile(GridAlgorithm.computeTile(id), true)
-                    .setDeleted(false)
                     .build();
 
             grid.registerIsland(island);
