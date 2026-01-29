@@ -52,7 +52,6 @@ public class IslandGridSearchBenchmarks {
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(GridAlgorithm.computeTile(i), true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 islands.add(island);
@@ -60,7 +59,6 @@ public class IslandGridSearchBenchmarks {
 
             this.islandToFind = Island.builder()
                     .setTile(TILE_TO_FIND, true)
-                    .setDeleted(false)
                     .build();
         }
     }
@@ -77,7 +75,6 @@ public class IslandGridSearchBenchmarks {
                 Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 islands.put(tile, island);
@@ -96,7 +93,6 @@ public class IslandGridSearchBenchmarks {
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 grid.registerIsland(island);
@@ -116,7 +112,6 @@ public class IslandGridSearchBenchmarks {
                 Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 grid.put(i, island);

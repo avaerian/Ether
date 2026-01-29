@@ -2,7 +2,6 @@ package org.minerift.ether.nms.v1_20_R2;
 
 import com.mojang.serialization.Dynamic;
 import io.netty.buffer.Unpooled;
-import io.papermc.paper.world.ChunkEntitySlices;
 import net.kyori.adventure.text.Component;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
@@ -11,8 +10,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -21,49 +21,54 @@ import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
-import org.bukkit.entity.Player;
+import org.minerift.ether.Ether;
+import org.minerift.ether.config.ConfigType;
+import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.debug.NeedsTesting;
+import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.nms.v1_20_R2.data.AttributeRegistry;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
+import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.util.reflect.ReflectedObject;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class NMSAccessImpl implements NMSAccess {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(NMSAccessImpl.class);
+
     private final RegistryAccessImpl registryAccess;
     private final AttributeRegistry attrRegistry;
     private final ExperimentsImpl exp;
+    private Map<ResourceLocation, Dimension> dimLookup;
 
     public NMSAccessImpl() {
         this.registryAccess = new RegistryAccessImpl();
         this.attrRegistry = AttributeRegistry.access();
         this.exp = new ExperimentsImpl();
+        this.dimLookup = new HashMap<>();
+        // iterate through cfg dims and check if they exist; err log if they are invalid
 
         // testing reflection mapping
         ReflectionMappings.class.getClass(); // load class and fields for reflection
@@ -103,7 +108,7 @@ public class NMSAccessImpl implements NMSAccess {
         ServerLevel level = getConverter().asNativeWorld(world);
         CompoundTag nativeTag = (CompoundTag) getConverter().tryAsNativeTag(entity.getNbtData());
         Entity worldEntity = EntityType.loadEntityRecursive(nativeTag, level, (entity1) -> {
-            entity1.moveTo(entity.getPos().getXd(), entity.getPos().getYd(), entity.getPos().getZd());
+            entity1.moveTo(entity.getLocation().getXd(), entity.getLocation().getYd(), entity.getLocation().getZd());
             return entity1;
         });
         if(worldEntity == null) {
@@ -112,8 +117,21 @@ public class NMSAccessImpl implements NMSAccess {
         if(!level.tryAddFreshEntityWithPassengers(worldEntity)) {
             throw new EntityLoadException("Entity failed to add to world: duplicate UUID " + worldEntity.getStringUUID());
         }
-        // TODO: ClientboundAddEntityPacket
-        System.out.println("Added entity " + entity.getId() + " at " + entity.getPos()); // debug
+        world.getChunkAtAsync(BukkitUtils.asBukkitLocation(world, entity.getLocation())).thenAccept((_chunk) -> {
+            LevelChunk chunk = getConverter().asChunk(_chunk).asNative();
+            chunk.playerChunk.broadcast(new ClientboundAddEntityPacket(worldEntity), false);
+            LOGGER.debug("Broadcast add entity packet");
+        });
+        LOGGER.debug("Added entity {} at {}", entity.getId(), entity.getLocation()); // debug
+    }
+
+    @Override
+    public Dimension getDimFromWorld(World world) {
+        MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
+        ServerLevel lvl = ((CraftWorld)world).getHandle();
+        String resLoc = lvl.dimension().location().toString();
+        LOGGER.error(resLoc);
+        return cfg.getDimensions().get(resLoc);
     }
 
 
@@ -184,6 +202,14 @@ public class NMSAccessImpl implements NMSAccess {
             nChunk.setSkyNibbles(emptyChunk.getSkyNibbles());
 
             nChunk.setUnsaved(true);
+
+            for(int i = 0; i < 4; i++) {
+                for(int j = nChunk.getMinSection() * 4; j < nChunk.getMaxSection() * 4; j++) {
+                    for(int k = 0; k < 4; k++) {
+                        nChunk.setBiome(i, j, k, emptyChunk.getNoiseBiome(i, j, k));
+                    }
+                }
+            }
 
             // Resend entire chunk packet
             ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nChunk, serverChunkCache.getLightEngine(), null, null, true);

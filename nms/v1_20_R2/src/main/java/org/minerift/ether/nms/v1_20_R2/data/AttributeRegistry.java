@@ -8,12 +8,16 @@ import org.minerift.ether.nms.world.block.Attribute;
 import org.minerift.ether.nms.world.block.Attributes;
 import org.minerift.ether.schematic.transform.Axis;
 import org.minerift.ether.schematic.transform.Direction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 import static net.minecraft.core.Direction.*;
 import static net.minecraft.core.Direction.Axis.*;
 
 public class AttributeRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AttributeRegistry.class);
 
     private static AttributeRegistry INST;
 
@@ -81,7 +85,6 @@ public class AttributeRegistry {
         return ((AttributeCodec<T, NT>)entry.codec).fromNative(nVal);
     }
 
-    // TODO: review
     public <T, NT extends Comparable<NT>> T getValue(BlockState state, Attribute<T> attr) {
         Entry<T> entry = (Entry<T>) mappings[attr.getId()];
         NT val = state.getValue((Property<NT>) entry.mapping);
@@ -100,7 +103,7 @@ public class AttributeRegistry {
             Comparable compVal = entry.codec.toNative(val);
             return state.setValue((Property)entry.mapping, compVal);
         } catch (IllegalArgumentException ex) {
-            // TODO: logger
+            LOGGER.debug("Falling back to default state ({}); illegal attribute or value", state, ex);
             return state;
         }
     }
