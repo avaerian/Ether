@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.sponge;
 
+import org.minerift.ether.Ether;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicPasteOptions;
@@ -50,8 +51,8 @@ public class SpongeSchematic implements Schematic {
 
     /**
      * {@inheritDoc}
-     *
-     * @implNote Pasting is propagated to {@link SpongeSchematicPaster} and, more specifically, {@link Pasters}.
+     * <p>
+     * <b>NOTE:</b> pasting is propagated to {@link SpongeSchematicPaster} and, more importantly, {@link Pasters}.
      */
     @Override
     public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
@@ -173,11 +174,14 @@ public class SpongeSchematic implements Schematic {
         }
 
         public Builder addEntity(EntityArchetype entity) {
-            if (Maths.inRangeI(Vec3i.ZERO, dim, entity.getPos())) // TODO
-
+            if (Maths.inRangeI(Vec3i.ZERO, dim, entity.getLocation().pos())) {
                 if (entities == Collections.EMPTY_LIST) {
                     this.entities = new ArrayList<>();
                 }
+                entities.add(entity);
+            } else {
+                Ether.LOGGER.error("Entity exceeds bounds of schematic ({})", entity.getLocation().pos());
+            }
             return this;
         }
 

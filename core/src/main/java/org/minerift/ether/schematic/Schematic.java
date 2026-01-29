@@ -79,9 +79,10 @@ public interface Schematic extends NbtSerializable {
     /**
      * Pastes this schematic in the world at the specified position, with some additional options
      * indicating how the schematic should be pasted. A few {@link SchematicPasteOptions} configurations
-     * already exist, but can be also created and customized using {@link SchematicPasteOptions#builder()}.
+     * already exist with some prefilled defaults, or can also be created and customized using
+     * {@link SchematicPasteOptions#builder()}.
      *
-     * @param pos the position in the world to be paste at
+     * @param pos the position in the world to paste this schematic at
      * @param worldName the name of the world to paste in
      * @param options additional options specifying how the schematic should be pasted
      */
