@@ -109,7 +109,6 @@ public class IslandSpec implements NbtSerializable {
     private final SpawnStrategy spawns;
     @Deprecated private final Path fpath;
 
-    @Deprecated // TODO: protected/private access ??
     public IslandSpec(String islandName, List<String> desc, ItemStack<?> icon, Schematic schem, SpawnStrategy spawns, Path fpath) {
         this.islandName = islandName;
         this.desc = desc;

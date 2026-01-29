@@ -1,27 +1,37 @@
 package org.minerift.ether.config.main;
 
+import org.bukkit.NamespacedKey;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.sql.SQLDialect;
+import org.minerift.ether.dimension.Dimension;
+import org.minerift.ether.island.PurgeIslandsOption;
 import org.minerift.ether.schematic.SchematicType;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class MainConfig extends Config<MainConfig> {
 
+    public static final int CURRENT_VERSION = 0;
+
     public static final int CHUNK_SIZE = 16;
     public static final int MIN_TILE_CHUNKS = 3;
     public static final int MIN_TILE_SIZE = MIN_TILE_CHUNKS * CHUNK_SIZE; // 3 chunks * 16 blocks/chunk = 48 blocks
 
-    private int tileLengthChunks;
-    private int tileHeight;
+    private int version; // TODO: comment; DO NOT CHANGE!
 
-    // I plan on adding permissions to this and allowing for different tiers
-    private int tileAccessibleAreaBlocks;
+    // purge settings
+    private PurgeIslandsOption purgeIslandsOption;
+    private int timeUntilNextIslandPurgeSecs; // in seconds
+    private int purgedIslandsThreshold;
+
+    private Map<String, Dimension> dimensions;
 
     private long inviteInvalidateAfter; // ms time unit
 
@@ -36,9 +46,13 @@ public class MainConfig extends Config<MainConfig> {
     // Default values for config
     public MainConfig(ConfigRegistry reg, FileSource src) {
         super(reg, src);
-        this.tileLengthChunks = 9; // default value for now
-        this.tileHeight = 90;
-        this.tileAccessibleAreaBlocks = 180; // default value for now; this is subject to change
+        this.version = CURRENT_VERSION;
+
+        this.dimensions = new HashMap<>();
+        dimensions.put("minecraft:overworld", new Dimension("overworld", new NamespacedKey("minecraft", "overworld"), 24, 12 * 16, 90));
+        dimensions.put("minecraft:nether", new Dimension("nether", new NamespacedKey("minecraft", "nether"), 32, 24 * 16, 90));
+        dimensions.put("minecraft:end", new Dimension("end", new NamespacedKey("minecraft", "end"), 32, 24 * 16, 90));
+
         this.inviteInvalidateAfter = TimeUnit.MINUTES.toMillis(2);
 
         this.dbType = Database.Type.SQL;
@@ -47,10 +61,18 @@ public class MainConfig extends Config<MainConfig> {
         this.sqlUsername = "root";
         this.sqlPassword = "";
 
+        this.purgeIslandsOption = PurgeIslandsOption.QUEUED;
+        this.timeUntilNextIslandPurgeSecs = 60 * 5;
+        this.purgedIslandsThreshold = 5;
+
         this.defaultSchemType = SchematicType.SPONGE;
     }
 
     // Getters
+    public int getVersion() {
+        return version;
+    }
+
     public Database.Type getPersistMethod() {
         return dbType;
     }
@@ -75,20 +97,12 @@ public class MainConfig extends Config<MainConfig> {
         return sqlPassword;
     }
 
-    public int getTileLengthChunks() {
-        return tileLengthChunks;
+    public PurgeIslandsOption getPurgeIslandsOption() {
+        return purgeIslandsOption;
     }
 
-    public int getTileLengthBlocks() {
-        return tileLengthChunks * CHUNK_SIZE;
-    }
-
-    public int getTileHeight() {
-        return tileHeight;
-    }
-
-    public int getTileAccessibleAreaBlocks() {
-        return tileAccessibleAreaBlocks;
+    public Map<String, Dimension> getDimensions() {
+        return dimensions;
     }
 
     public long getInviteInvalidateAfter() {
@@ -99,8 +113,31 @@ public class MainConfig extends Config<MainConfig> {
         return defaultSchemType;
     }
 
-    // TODO: review use of setters; move to use Builder pattern once more for immutability
+    public PurgeIslandsOption purgeIslandsOption() {
+        return purgeIslandsOption;
+    }
+
+    public int getPurgedIslandsThreshold() {
+        return purgedIslandsThreshold;
+    }
+
+    public int getTimeUntilNextIslandPurgeSecs() {
+        return timeUntilNextIslandPurgeSecs;
+    }
+
+    public Database.Type getDbType() {
+        return dbType;
+    }
+
+    public void setDbType(Database.Type dbType) {
+        this.dbType = dbType;
+    }
+
     // Setters
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
     public void setPersistMethod(Database.Type dbType) {
         this.dbType = dbType;
     }
@@ -125,46 +162,34 @@ public class MainConfig extends Config<MainConfig> {
         this.inviteInvalidateAfter = ms;
     }
 
-    public void setTileLengthChunks(int tileLengthChunks) {
-        this.tileLengthChunks = tileLengthChunks;
-    }
-
     public void setDefaultSchemType(SchematicType<?> type) {
         this.defaultSchemType = type;
     }
 
-    /*
-    @Deprecated(forRemoval = true)
-    // Don't use this function. The variables are all wrong so it won't work properly.
-    public void setTileSizeBlocks(int tileSize) {
-        // Round the tile size down to chunks (multiples of 16)
-        final int tileSizeActual = tileSize - (tileSize % CHUNK_SIZE);
-        checkArgument(tileSizeActual >= MIN_TILE_SIZE, String.format("Tile size (%d -> %d) cannot be below min size %d!", tileSize, tileSizeActual, MIN_TILE_SIZE));
-
-        this.tileLengthChunks = tileSizeActual;
-
-        // Update accessible region if bigger than new tile size
-        if(tileAccessibleArea > tileSizeActual) {
-            tileAccessibleArea = tileSizeActual;
-        }
-
-        setChanged(true);
-    }*/
-
-    public void setTileHeight(int tileHeight) {
-        this.tileHeight = tileHeight;
+    public void setPurgeIslandsOption(PurgeIslandsOption option) {
+        this.purgeIslandsOption = option;
     }
 
-    public void setTileAccessibleAreaBlocks(int tileAccessibleAreaBlocks) {
-        this.tileAccessibleAreaBlocks = tileAccessibleAreaBlocks;
+    public void setTimeUntilNextIslandPurgeSecs(int timeUntilNextIslandPurgeSecs) {
+        this.timeUntilNextIslandPurgeSecs = timeUntilNextIslandPurgeSecs;
+    }
+
+    public void setPurgedIslandsThreshold(int threshold) {
+        this.purgedIslandsThreshold = threshold;
+    }
+
+    public void setDimensions(Map<String, Dimension> dimensions) {
+        this.dimensions = dimensions;
+
     }
 
     @Override
     protected void copyFrom(MainConfig o) {
         if(!o.equals(this)) {
-            this.tileLengthChunks = o.tileLengthChunks;
-            this.tileHeight = o.tileHeight;
-            this.tileAccessibleAreaBlocks = o.tileAccessibleAreaBlocks;
+            this.version = o.version;
+
+            this.dimensions = o.dimensions;
+
             this.inviteInvalidateAfter = o.inviteInvalidateAfter;
 
             this.dbType = o.dbType;
@@ -175,23 +200,37 @@ public class MainConfig extends Config<MainConfig> {
 
             this.defaultSchemType = o.defaultSchemType;
 
+            this.purgeIslandsOption = PurgeIslandsOption.QUEUED;
+            this.timeUntilNextIslandPurgeSecs = 60 * 5;
+            this.purgedIslandsThreshold = 5;
         }
     }
 
-    @Override // TODO: update to include new fields
+    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MainConfig that = (MainConfig) o;
-        return tileLengthChunks == that.tileLengthChunks
-                && tileHeight == that.tileHeight
-                && tileAccessibleAreaBlocks == that.tileAccessibleAreaBlocks
-                && inviteInvalidateAfter == that.inviteInvalidateAfter;
+        if (!(o instanceof MainConfig that)) return false;
+        return version == that.version
+                && timeUntilNextIslandPurgeSecs == that.timeUntilNextIslandPurgeSecs
+                && purgedIslandsThreshold == that.purgedIslandsThreshold
+                && inviteInvalidateAfter == that.inviteInvalidateAfter
+                && purgeIslandsOption == that.purgeIslandsOption
+                && Objects.equals(dimensions, that.dimensions)
+                && dbType == that.dbType && sqlDialect == that.sqlDialect
+                && Objects.equals(sqlUrl, that.sqlUrl) &&
+                Objects.equals(sqlUsername, that.sqlUsername)
+                && Objects.equals(sqlPassword, that.sqlPassword)
+                && Objects.equals(defaultSchemType, that.defaultSchemType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tileLengthChunks, tileHeight, tileAccessibleAreaBlocks, inviteInvalidateAfter);
+        return Objects.hash(version,
+                dimensions,
+                inviteInvalidateAfter,
+                purgeIslandsOption, timeUntilNextIslandPurgeSecs, purgedIslandsThreshold,
+                dbType,
+                sqlDialect, sqlUrl, sqlUsername, sqlPassword,
+                defaultSchemType);
     }
 
     @Override

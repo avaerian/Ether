@@ -2,9 +2,9 @@ package org.minerift.ether.config.main;
 
 public class MainConfigPaths {
 
-    public static final String TILE_HEIGHT_PATH = "island.tile.height";
-    public static final String TILE_SIZE_CHUNKS_PATH = "island.tile.size";
-    public static final String TILE_ACCESSIBLE_AREA_PATH = "island.tile.accessible_area";
+    //public static final String TILE_HEIGHT = "island.tile.height";
+    //public static final String TILE_SIZE_CHUNKS = "island.tile.size";
+    //public static final String TILE_ACCESSIBLE_AREA = "island.tile.accessible_area";
 
     public static final String PERSIST_METHOD = "persist.method";
     public static final String SQL_DIALECT = "persist.sql.dialect";
@@ -13,6 +13,12 @@ public class MainConfigPaths {
     public static final String SQL_PASSWORD = "persist.sql.password";
 
     public static final String DEFAULT_SCHEM_TYPE = "schematic.type";
+
+    public static final String PURGE_ISLANDS_OPTION = "island.manage.should_insta_delete_islands";
+    public static final String TIME_UNTIL_NEXT_PURGE_SECS = "island.manage.time_until_next_purge_seconds"; // FIXME: need comment for this in yaml to signify seconds time unit
+    public static final String PURGED_ISLANDS_THRESHOLD = "island.manage.purged_islands_threshold";
+
+    public static final String DIMENSIONS = "island.dimensions";
 
     private MainConfigPaths() {}
 }
