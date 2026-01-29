@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.adapters;
+package org.minerift.ether.database.adapters;
 
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;

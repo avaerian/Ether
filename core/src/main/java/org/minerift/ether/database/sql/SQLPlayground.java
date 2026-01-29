@@ -79,7 +79,6 @@ public class SQLPlayground {
             final Island island = Island.builder()
                     .setTile(GridAlgorithm.computeTile(i), true)
                     .setOwner(user)
-                    .setDeleted(random.nextBoolean())
                     .build();
             grid.registerIsland(island);
         }

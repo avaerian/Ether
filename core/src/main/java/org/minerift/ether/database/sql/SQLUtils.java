@@ -8,9 +8,9 @@ import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.DefaultDataType;
 import org.minerift.ether.database.*;
-import org.minerift.ether.database.sql.fallback.EnumOrdinalFallback;
-import org.minerift.ether.database.sql.fallback.EnumStrFallback;
-import org.minerift.ether.database.sql.fallback.Fallback;
+import org.minerift.ether.database.fallback.EnumOrdinalFallback;
+import org.minerift.ether.database.fallback.EnumStrFallback;
+import org.minerift.ether.database.fallback.Fallback;
 import org.minerift.ether.database.sql.op.bind.NamedBindValues;
 
 import java.sql.Connection;
