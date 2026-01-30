@@ -18,7 +18,6 @@ import org.minerift.ether.world.ChunkCoords;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.IntConsumer;
 
 import static org.minerift.ether.nms.world.Section.*;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
@@ -51,13 +50,22 @@ public class Pasters {
 
         // Start at top right
         // TODO: experiment w/ CompletableFuture#allOf for pasting in each chunk (each chunk being locked)
-        BatchedTask batch = new BatchedTask(); // needs to be blocking
+        BatchedTask batch = new BatchedTask(); // TODO: needs to be blocking
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
+            //Bukkit.getScheduler()
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
                 int finalCz = cz;
                 batch.addTask(() -> {
                     cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> { // returns CompletableFuture
+                        // TODO:
+                        //  - remove synchronized from NMSAccess#clearChunk ?
+                        //  - move synchronized block here
+                        //  - after chunk is done updating, notifyAll() ?? (research more)
+                        //  - any critical errors that happen during block setting should cancel
+                        //    task entirely and rollback ?? (this could be an option because even if for
+                        //    a tile being cleaned before pasting island, we could check the tile chunks
+                        //    to test if it's empty
                         for(int sy = startSecY; sy <= endSecY; sy++) {
                             pasteBlockSection(chunk, sy, bv, loc);
                         }
