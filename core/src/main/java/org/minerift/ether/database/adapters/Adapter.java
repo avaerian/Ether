@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.adapters;
+package org.minerift.ether.database.adapters;
 
 // F - from
 // T - to

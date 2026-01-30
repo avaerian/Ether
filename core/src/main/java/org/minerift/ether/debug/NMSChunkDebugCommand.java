@@ -8,9 +8,11 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
+import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.nms.NMSAccess;
-import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
+
+import java.util.concurrent.CompletableFuture;
 
 public class NMSChunkDebugCommand implements CommandExecutor {
 
@@ -30,7 +32,6 @@ public class NMSChunkDebugCommand implements CommandExecutor {
             diameter = Integer.parseInt(args[0]);
         }
 
-        // TODO: mode doesn't matter as of right now
         String mode = "CLEAR"; // modes: "CLEAR", "REGEN", "ASYNC"
         if(args.length >= 2) {
             mode = args[1].toUpperCase();
@@ -38,22 +39,32 @@ public class NMSChunkDebugCommand implements CommandExecutor {
 
         Player plr = (Player) sender;
         World world = plr.getWorld();
-        //NMSAccess nmsAccess = EtherPlugin.getInstance().getNMS();
-        final NMSAccess nmsAccess = Ether.inst().getNms();
+        final NMSAccess nms = Ether.inst().getNms();
 
         int centerX = plr.getChunk().getX();
         int centerZ = plr.getChunk().getZ();
 
         int radius = (diameter - 1) / 2;
 
-        Chunk e1 = Chunk.of(world.getChunkAt(centerX - radius, centerZ - radius));
-        Chunk e2 = Chunk.of(world.getChunkAt(centerX + radius, centerZ + radius));
+        Vec2i e1 = new Vec2i(centerX - radius, centerZ - radius);
+        Vec2i e2 = new Vec2i(centerX + radius, centerZ + radius);
 
         // Perform action
+        final ChunkGetter cg;
         switch(mode) {
-            case "ASYNC" -> nmsAccess.clearChunks(ChunkGetter.ASYNC, e1, e2, true);
-            default -> nmsAccess.clearChunks(ChunkGetter.SYNC, e1, e2, true);
+            case "ASYNC" -> cg = ChunkGetter.ASYNC;
+            default -> cg = ChunkGetter.SYNC;
         }
+
+        CompletableFuture<Void>[] futures =
+                new CompletableFuture[(e2.getX() - e1.getX()) * (e2.getZ() - e1.getZ())];
+        for(int z = e1.getZ(), i = 0; z < e2.getZ(); z++) {
+            for(int x = e1.getX(); x < e2.getX(); x++) {
+                futures[i++] = cg.getChunk(world, x, z)
+                        .thenAcceptAsync((chunk) -> nms.clearChunk(chunk, true));
+            }
+        }
+        CompletableFuture.allOf(futures).thenRun(() -> plr.sendMessage("Chunks cleared"));
 
         return true;
     }

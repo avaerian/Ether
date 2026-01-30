@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.fallback;
+package org.minerift.ether.database.fallback;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.util.Default;

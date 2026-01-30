@@ -1,7 +1,5 @@
 package org.minerift.ether.util.nbt.tags;
 
-import org.minerift.ether.util.nbt.TagVisitor;
-
 public abstract class Tag {
 
     protected String name;
@@ -34,8 +32,6 @@ public abstract class Tag {
     public boolean is(TagType<?> type) {
         return type().getTagClass().equals(type.getTagClass());
     }
-
-    public abstract void accept(TagVisitor visit);
 
     public abstract TagType<?> type();
 

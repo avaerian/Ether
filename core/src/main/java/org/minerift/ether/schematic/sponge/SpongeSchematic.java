@@ -1,5 +1,6 @@
 package org.minerift.ether.schematic.sponge;
 
+import org.minerift.ether.Ether;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.SchematicPasteOptions;
@@ -7,6 +8,7 @@ import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
+import org.minerift.ether.schematic.data.Pasters;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.Either;
 import org.minerift.ether.util.UnreachableException;
@@ -47,6 +49,11 @@ public class SpongeSchematic implements Schematic {
         return SchematicType.SPONGE;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <b>NOTE:</b> pasting is propagated to {@link SpongeSchematicPaster} and, more importantly, {@link Pasters}.
+     */
     @Override
     public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
         type().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
@@ -89,14 +96,17 @@ public class SpongeSchematic implements Schematic {
         throw new UnreachableException("unimplemented");
     }
 
+    @Override
     public BlockVolume getBlocks() {
         return blocks;
     }
 
+    @Override
     public BiomeVolume getBiomes() {
         return biomes;
     }
 
+    @Override
     public List<EntityArchetype> getEntities() {
         return entities; // wrap with Collections.unmodifiable ??
     }
@@ -107,7 +117,6 @@ public class SpongeSchematic implements Schematic {
         private Vec3i dim;
         private Vec3i offset;
         private Either<BlockVolume, BlockVolume.Builder> blocks;
-        //private BlockVolume.Builder blocks;
         private Either<BiomeVolume, BiomeVolume.Builder> biomes;
         private List<EntityArchetype> entities;
 
@@ -165,11 +174,14 @@ public class SpongeSchematic implements Schematic {
         }
 
         public Builder addEntity(EntityArchetype entity) {
-            if (Maths.inRangeI(Vec3i.ZERO, dim, entity.getPos())) // TODO
-
+            if (Maths.inRangeI(Vec3i.ZERO, dim, entity.getLocation().pos())) {
                 if (entities == Collections.EMPTY_LIST) {
                     this.entities = new ArrayList<>();
                 }
+                entities.add(entity);
+            } else {
+                Ether.LOGGER.error("Entity exceeds bounds of schematic ({})", entity.getLocation().pos());
+            }
             return this;
         }
 

@@ -6,6 +6,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
+import org.minerift.ether.config.islandspecs.IslandSpec;
+import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.nms.world.ChunkGetter;
+import org.minerift.ether.schematic.Schematic;
+import org.minerift.ether.schematic.SchematicReadException;
+import org.minerift.ether.schematic.SchematicType;
 import org.minerift.ether.user.EtherUser;
 
 public class IslandDebugCommand implements CommandExecutor {
@@ -24,11 +30,25 @@ public class IslandDebugCommand implements CommandExecutor {
         }
 
         EtherUser user = Ether.inst().getUserManager().getUser(plr.getUniqueId())
-                .orElseThrow(() -> new UnsupportedOperationException(String.format("User %s not found!", plr.getUniqueId())));
+                .orElseThrow(() -> new UnsupportedOperationException(String.format("User %s not found", plr.getUniqueId())));
+
+        Schematic schem;
+        try {
+            schem = Schematic.fromFile(SchematicType.SPONGE, Ether.inst().getPluginFile("test_schem1.schem"));
+        } catch (SchematicReadException e) {
+            throw new RuntimeException(e);
+        }
+
+        IslandSpec spec = IslandSpec.builder()
+                .setSchematic(schem)
+                .build();
 
         switch(args[0].toLowerCase()) {
-            case "create"   -> Ether.inst().getIslandManager().createIsland(user);
-            case "delete"   -> {} //Ether.getIslandManager().deleteIsland();
+            // island create
+            case "create"   -> Ether.inst().getIslandManager().createIsland(plr.getWorld(), spec, user);
+            // island delete <x> <z>
+            case "delete"   -> Ether.inst().getIslandManager().deleteIsland(new Vec2i(Integer.parseInt(args[1]), Integer.parseInt(args[2])), ChunkGetter.ASYNC);
+            // island get
             case "get"      -> {
                 var optIsland = Ether.inst().getIslandManager().getIslandAt(plr.getLocation());
                 optIsland.ifPresentOrElse(

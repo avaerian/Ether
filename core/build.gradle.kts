@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("com.gradleup.shadow")
+    `java-library`
     id("me.champeau.jmh") version("0.7.2")
 }
 

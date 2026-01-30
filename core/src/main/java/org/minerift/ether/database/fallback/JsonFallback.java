@@ -1,4 +1,4 @@
-package org.minerift.ether.database.sql.fallback;
+package org.minerift.ether.database.fallback;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

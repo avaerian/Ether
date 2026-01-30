@@ -23,8 +23,9 @@ public class InviteRegistry implements Iterable<IslandInvite> {
     // Returns whether invite was registered successfully
     public boolean register(IslandInvite invite) {
         if(inviteTable.contains(invite.getSender(), invite.getReceiver())) {
-            Ether.inst().getLogger().warning("Cannot register island invite because existing invite exists between players: \n"
-                                         + "{Sender:" + invite.getSender() + "} {Receiver:" + invite.getReceiver() + "}");
+            Ether.inst().getLogger().warn(
+                    "Cannot register island invite because existing invite exists between players: \n{Sender:{}} {Receiver:{}}",
+                    invite.getSender(), invite.getReceiver());
             return false;
         }
 

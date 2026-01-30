@@ -3,11 +3,15 @@ package org.minerift.ether.nms;
 import org.bukkit.World;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
+import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface NMSAccess {
 
@@ -28,9 +32,11 @@ public interface NMSAccess {
         }
     }
 
+    Dimension getDimFromWorld(World world);
+
     void clearChunk(Chunk chunk, boolean clearEntities);
-    void clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
-    void clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
+    CompletableFuture<Void> clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
+    CompletableFuture<Void> clearChunks(ChunkGetter cg, Chunk c1, Chunk c2, boolean clearEntities);
 
     /*default Chunk getChunkAt(World world, int chunkX, int chunkZ) {
         return Chunk.of(world.getChunkAt(chunkX, chunkZ));
@@ -40,6 +46,8 @@ public interface NMSAccess {
         return world.getChunkAtAsync(chunkX, chunkZ)
                 .thenApply(Chunk::of);
     }*/
+
+    void broadcastChunkBiomeUpdates(World world, List<Chunk> chunks);
 
     int getDataVersion(); // TODO: review for DataFixerUpper
     RegistryAccess registryAccess();
