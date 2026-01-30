@@ -6,12 +6,12 @@ import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 public class EntityArchetype {
 
     private final String id;
-    private final Vec3d.Mutable pos;
+    private final Location.Mutable loc;
     private final CompoundTag nbtData;
 
-    public EntityArchetype(String id, Vec3d pos, CompoundTag nbtData) {
+    public EntityArchetype(String id, Location loc, CompoundTag nbtData) {
         this.id = id;
-        this.pos = pos.asMutable();
+        this.loc = loc.asMutable();
         this.nbtData = nbtData;
     }
 
@@ -19,8 +19,8 @@ public class EntityArchetype {
         return id;
     }
 
-    public Vec3d.Mutable getPos() {
-        return pos;
+    public Location.Mutable getLocation() {
+        return loc;
     }
 
     public CompoundTag getNbtData() {
@@ -29,6 +29,6 @@ public class EntityArchetype {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s", pos, id);
+        return String.format("%s -> %s", loc, id);
     }
 }
