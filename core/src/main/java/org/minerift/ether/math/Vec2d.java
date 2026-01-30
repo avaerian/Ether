@@ -96,6 +96,18 @@ public class Vec2d implements Vec2 {
             return this;
         }
 
+        public Vec2d.Mutable multiply(Vec2 minuend) {
+            this.x *= minuend.getXd();
+            this.z *= minuend.getZd();
+            return this;
+        }
+
+        public Vec2d.Mutable divide(Vec2 diff) {
+            this.x /= diff.getXd();
+            this.z /= diff.getZd();
+            return this;
+        }
+
         public Vec2d.Mutable setX(double x) {
             this.x = x;
             return this;
@@ -106,8 +118,8 @@ public class Vec2d implements Vec2 {
             return this;
         }
 
-        public Vec2d.Mutable set(Vec2d vec) {
-            return set(vec.x, vec.z);
+        public Vec2d.Mutable set(Vec2 vec) {
+            return set(vec.getXd(), vec.getZd());
         }
 
         public Vec2d.Mutable set(double x, double z) {
