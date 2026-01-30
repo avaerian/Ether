@@ -6,6 +6,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.minerift.ether.Ether;
+import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3d;
@@ -31,7 +32,7 @@ public class BukkitUtils {
 
     // Get a tile from a Bukkit location
     public static Vec2i getTileAt(Location loc) {
-        return Maths.getTileAt(loc.getBlockX(), loc.getBlockZ());
+        return Maths.getTileAt(Dimension.from(loc.getWorld()), loc.getBlockX(), loc.getBlockZ());
     }
 
     // Get the top right corner Bukkit location from a tile (world coordinates)
@@ -40,7 +41,7 @@ public class BukkitUtils {
     }
 
     public static Location getLocationAt(World world, Vec2i tile) {
-        final Vec3i vec = Maths.getVec3iAt(tile);
+        final Vec3i vec = Maths.getVec3iAt(Dimension.from(world), tile);
         return new Location(null, vec.getX(), vec.getY(), vec.getZ());
     }
 
@@ -52,8 +53,14 @@ public class BukkitUtils {
         return new Vec3d(loc.getX(), loc.getY(), loc.getZ());
     }
 
-    public static Location asLocation(World world, Vec3i vec) {
+    public static Location asBukkitLocation(World world, Vec3i vec) {
         return new Location(world, vec.getX(), vec.getY(), vec.getZ());
+    }
+
+    public static Location asBukkitLocation(World world, org.minerift.ether.world.Location loc) {
+        return new Location(
+                world, loc.getXd(), loc.getYd(), loc.getZd(),
+                (float) loc.getYaw(), (float) loc.getPitch());
     }
 
 }

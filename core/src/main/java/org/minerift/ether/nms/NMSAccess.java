@@ -1,9 +1,9 @@
 package org.minerift.ether.nms;
 
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
+import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.util.nbt.tags.Tag;
@@ -31,6 +31,8 @@ public interface NMSAccess {
             return false;
         }
     }
+
+    Dimension getDimFromWorld(World world);
 
     void clearChunk(Chunk chunk, boolean clearEntities);
     CompletableFuture<Void> clearChunks(Chunk c1, Chunk c2, boolean clearEntities);
