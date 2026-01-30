@@ -3,6 +3,7 @@ package org.minerift.ether.util.collect;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.Utils;
 
@@ -69,8 +70,10 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2
 
     @Override
     public V put(final int key, final V value) {
-        if(key < 0)
-            throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", key) );
+        if(key < 0) { // FIXME: review!!!
+            Ether.LOGGER.debug("Key {} is negative", key);
+            return defaultRet;
+        }
         if(key >= limit)
             throw new IllegalArgumentException(format("Key (%d) exceeds limit (%d)", key, limit));
         if(key >= map.length) {
@@ -119,7 +122,7 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2
 
     @Override
     public V get(final int i) {
-        if(i < 0) throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", i));
+        if(i < 0) return defaultRet; /*throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", i));*/
         if(i >= map.length) return defaultRet;
         V item = (V) map[i];
         return item != null ? item : defaultRet;
