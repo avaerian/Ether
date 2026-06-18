@@ -38,6 +38,8 @@ public class AttributeRegistry {
         register(Attributes.HORIZONTAL_FACING, BlockStateProperties.HORIZONTAL_FACING, DirectionAttrCodec.INST);
         register(Attributes.FACING, BlockStateProperties.FACING, DirectionAttrCodec.INST);
         register(Attributes.AXIS, BlockStateProperties.AXIS, AxisAttrCodec.INST);
+        register(Attributes.LIT, BlockStateProperties.LIT, BoolAttributeCodec.INST);
+        register(Attributes.FALLING, BlockStateProperties.FALLING, BoolAttributeCodec.INST);
     }
 
     private <A extends Attribute<T>, T, NT extends Comparable<NT>> void register(A attr,
@@ -167,6 +169,21 @@ public class AttributeRegistry {
                 case Y -> Y;
                 case Z -> Z;
             };
+        }
+    }
+
+    static class BoolAttributeCodec implements AttributeCodec<Boolean, Boolean> {
+
+        public static final AttributeCodec<Boolean, Boolean> INST = new BoolAttributeCodec();
+
+        @Override
+        public Boolean fromNative(Boolean nType) {
+            return nType;
+        }
+
+        @Override
+        public Boolean toNative(Boolean type) {
+            return type;
         }
     }
 
