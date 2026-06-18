@@ -1,4 +1,4 @@
-package org.minerift.ether.work.deprecated;
+package org.minerift.ether.oldwork;
 
 public interface MayThrow {
 

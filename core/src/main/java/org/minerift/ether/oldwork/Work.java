@@ -1,23 +1,30 @@
-package org.minerift.ether.work.deprecated;
+package org.minerift.ether.oldwork;
 
 import com.google.common.base.Preconditions;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public abstract class Task {
+public abstract class Work {
 
-    public static SingleTask of(Runnable task) {
-        return new SingleTask(task);
+    public static SingleWork of(Runnable task) {
+        return new SingleWork(task);
     }
 
-    public static BatchedTask batch() {
-        return new BatchedTask();
+    public static BatchedWork batch() {
+        return new BatchedWork();
     }
 
+    protected CompletableFuture<Void> future;
     protected Consumer<Status> callback;
 
-    protected Task() {
+    protected Work() {
         this.callback = null;
+        this.future = new CompletableFuture<>();
+    }
+
+    public CompletableFuture<Void> getFuture() {
+        return future;
     }
 
     /**
@@ -26,19 +33,19 @@ public abstract class Task {
      */
     public abstract boolean completeNextTask();
 
-    public Task whenComplete(Consumer<Task.Status> callback) {
+    public Work whenComplete(Consumer<Work.Status> callback) {
         this.callback = callback;
         return this;
     }
 
     // Fail the operation
-    public void fail(Task.Status reason) {
+    public void fail(Work.Status reason) {
         Preconditions.checkNotNull(reason, "Fail status cannot be null!");
         Preconditions.checkArgument(reason.isFailure(), "Status must be a fail status");
         runCallback(reason);
     }
 
-    protected void runCallback(Task.Status status) {
+    protected void runCallback(Work.Status status) {
         if(callback != null) {
             callback.accept(status);
         }

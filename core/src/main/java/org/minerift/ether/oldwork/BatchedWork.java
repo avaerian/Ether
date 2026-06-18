@@ -1,4 +1,4 @@
-package org.minerift.ether.work.deprecated;
+package org.minerift.ether.oldwork;
 
 import com.google.common.collect.ImmutableList;
 
@@ -7,26 +7,26 @@ import java.util.Deque;
 
 // Batch of tasks associated with a single operation
 // TODO: refactor WorkQueue system for better clarity and exception handling
-public class BatchedTask extends Task {
+public class BatchedWork extends Work {
 
     private Deque<Runnable> tasks;
 
-    public BatchedTask() {
+    public BatchedWork() {
         this(new ArrayDeque<>());
     }
 
-    public BatchedTask(Deque<Runnable> tasks) {
+    public BatchedWork(Deque<Runnable> tasks) {
         super();
         this.tasks = tasks;
     }
 
-    public BatchedTask addTask(Runnable task) {
+    public BatchedWork addTask(Runnable task) {
         tasks.add(task);
         return this;
     }
 
     // Append all tasks from other operation to this operation
-    public BatchedTask join(BatchedTask other) {
+    public BatchedWork join(BatchedWork other) {
         tasks.addAll(other.tasks);
         return this;
     }
@@ -45,7 +45,8 @@ public class BatchedTask extends Task {
     public boolean completeNextTask() {
         Runnable task = tasks.poll();
         if(task == null) {
-            runCallback(Task.Status.OP_COMPLETE);
+            future.complete(null);
+            runCallback(Work.Status.OP_COMPLETE);
             return true;
         }
 
