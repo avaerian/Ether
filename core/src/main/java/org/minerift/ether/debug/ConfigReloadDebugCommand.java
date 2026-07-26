@@ -25,11 +25,11 @@ public class ConfigReloadDebugCommand implements CommandExecutor {
             sender.sendMessage("Config reloaded successfully!");
 
             MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
-            for(Dimension dim : cfg.getDimensions().values()) {
-                Ether.LOGGER.debug(dim.getName());
-                Ether.LOGGER.debug("tileLenChunks: {}", dim.getTileLenChunks());
-                Ether.LOGGER.debug("islandSpawnY: {}", dim.getIslandSpawnY());
-                Ether.LOGGER.debug("tileAccessibleLenBlocks: {}", dim.getTileAccessibleLenBlocks());
+            for(Dimension dim : cfg.getDimensions()) {
+                Ether.LOGGER.warn(dim.getName());
+                Ether.LOGGER.warn("tileLenChunks: {}", dim.getTileLenChunks());
+                Ether.LOGGER.warn("islandSpawnY: {}", dim.getIslandSpawnY());
+                Ether.LOGGER.warn("tileAccessibleLenBlocks: {}", dim.getTileAccessibleLenBlocks());
             }
         }
         return reload;

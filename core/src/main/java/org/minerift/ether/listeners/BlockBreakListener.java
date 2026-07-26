@@ -9,19 +9,19 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.island.IslandManager;
 
+import static org.minerift.ether.util.BukkitUtils.asVec3i;
+
 public class BlockBreakListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
-
-        final IslandManager islandManager = Ether.inst().getIslandManager();
+        final IslandManager islandMan = Ether.inst().getIslandManager();
         final Player plr = e.getPlayer();
         final Location loc = e.getBlock().getLocation();
 
-        islandManager.getIslandAt(loc).ifPresentOrElse((island) -> {
+        islandMan.getIslandAt(asVec3i(loc)).ifPresentOrElse((island) -> {
 
-            // TODO
-            if(island.isInAccessibleRegion(Dimension.from(loc.getWorld()), loc)) {
+            if(island.isInAccessibleRegion(Dimension.from(loc.getWorld()), asVec3i(loc))) {
                 plr.sendMessage("Broke block in accessible region!");
             } else {
                 plr.sendMessage("Not in accessible region!");

@@ -20,7 +20,6 @@ public class PlayerJoinQuitListener implements Listener {
     @EventHandler
     public void onPlayerLogin(AsyncPlayerPreLoginEvent event) {
         UUID uuid = event.getUniqueId();
-
         AtomicReference<EtherUser> user = new AtomicReference<>();
         Ether.inst().getDatabase().accessSync((access) -> {
             Result<EtherUser> res = access.selectById(UserModel.class, uuid);
@@ -41,7 +40,6 @@ public class PlayerJoinQuitListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-
         EtherUser user = Ether.inst().getUserManager().getUser(event.getPlayer().getUniqueId()).orElseThrow();
         Ether.inst().getDatabase().access((access) -> {
             Result<EtherUser> oldUser = access.selectById(UserModel.class, user.getUUID());
@@ -53,7 +51,6 @@ public class PlayerJoinQuitListener implements Listener {
 
             Ether.inst().getUserManager().unregister(user);
         });
-
     }
 
 }

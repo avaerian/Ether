@@ -1,14 +1,18 @@
 package org.minerift.ether.user;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.minerift.ether.Ether;
+import org.minerift.ether.math.Vec3;
+import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.util.CanChange;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandPermission;
 import org.minerift.ether.island.IslandRole;
 import org.minerift.ether.util.fn.IBuilder;
+import org.minerift.ether.world.Location;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -73,6 +77,14 @@ public class EtherUser extends CanChange {
         IslandRole islandRole = island.isTeamMember(this) ? role : IslandRole.VISITOR;
         return island.getPermissions().has(islandRole, permission);
     }
+
+    /*public void print(String msg) {
+
+    }
+
+    public void print(Component msg) {
+
+    }*/
 
     @Override
     public String toString() {

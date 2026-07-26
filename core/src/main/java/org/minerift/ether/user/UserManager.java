@@ -3,6 +3,7 @@ package org.minerift.ether.user;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+// built with concurrency in-mind
 public class UserManager {
 
     private Map<UUID, EtherUser> users;
