@@ -15,9 +15,9 @@ public class DefaultIslandGrid implements IslandGrid {
 
     private final Int2ObjectIdentityMap<Island> islands;
     private final ReadWriteLock lock;
-    private final Set<Vec2i> purgeQueue;
+    private final Set<DeletedTile> purgeQueue;
 
-    public DefaultIslandGrid(Int2ObjectIdentityMap<Island> islands, Set<Vec2i> needsClearing) {
+    public DefaultIslandGrid(Int2ObjectIdentityMap<Island> islands, Set<DeletedTile> needsClearing) {
         this.islands = islands;
         this.purgeQueue = needsClearing;
         this.lock = new ReentrantReadWriteLock();
@@ -58,12 +58,17 @@ public class DefaultIslandGrid implements IslandGrid {
     }
 
     @Override
-    public void queueForClearing(Vec2i tile) {
+    public void queueForClearing(DeletedTile tile) {
         this.purgeQueue.add(tile);
     }
 
     @Override
-    public Set<Vec2i> getPurgeQueue() {
+    public DeletedTile getTileForClearing(Vec2i tile) {
+        return null;
+    }
+
+    @Override
+    public Collection<DeletedTile> getPurgeQueue() {
         return purgeQueue;
     }
 

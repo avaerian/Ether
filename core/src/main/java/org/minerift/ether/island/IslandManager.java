@@ -2,34 +2,60 @@ package org.minerift.ether.island;
 
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.bukkit.Location;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.islandspecs.IslandSpec;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.math.Vec2i;
+import org.minerift.ether.math.Vec3;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.nms.world.ChunkGetter;
+import org.minerift.ether.nms.world.ItemStack;
+import org.minerift.ether.panel.Panel;
+import org.minerift.ether.panel.PanelIcon;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.BukkitUtils;
+import org.minerift.ether.world.ChunkCoords;
+import org.minerift.ether.world.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class IslandManager {
 
+    public static final Logger LOGGER = LoggerFactory.getLogger(IslandManager.class);
+    public static final Panel PANEL = Panel.builder(Component.text("Manage your Island"), 6)
+            .put(0, PanelIcon.of(ItemStack.of("minecraft:grass_block"), (user) -> {
+                Player plr = user.getPlayer().orElseThrow();
+                Island island = user.getIsland().orElse(null);
+                if(island == null)
+                    plr.sendMessage(Component.text("You don't have an island!").color(TextColor.color(255, 0, 0)));
+                plr.teleportAsync(BukkitUtils.asBukkitLocation(plr.getWorld(), island.getSpawn()));
+            }))
+            .build();
+
     private final IslandGrid grid;
 
+    private Map<Vec2i, ReadWriteLock> lockedTiles;
     private long nextClearTimestamp;
 
     public IslandManager(IslandGrid grid, int timeUntilNextPurgeSecs) {
         this.grid = grid;
+        this.lockedTiles = new ConcurrentHashMap<>();
         this.nextClearTimestamp += System.currentTimeMillis()
                 + TimeUnit.SECONDS.toMillis(timeUntilNextPurgeSecs);
         // TODO: create task for checking if islands needs to be cleared
@@ -37,6 +63,11 @@ public class IslandManager {
 
     public IntSet getKeySet() {
         return grid.getIslandIds();
+    }
+
+    // NOTE: careful when tinkering with the locks
+    public Map<Vec2i, ReadWriteLock> getLockedTiles() {
+        return Collections.unmodifiableMap(lockedTiles);
     }
 
     // Get multiple islands
@@ -51,13 +82,16 @@ public class IslandManager {
 
     // TODO: add options parameter for additional island creation config (e.g. ChunkGetter)
     // Creates island data, places island in world, and updates user island refs
-    public CompletableFuture<Island> createIsland(World world, IslandSpec spec, EtherUser owner) {
+    public CompletableFuture<Island> createIsland(Dimension dim, IslandSpec spec, EtherUser owner) {
 
         owner.getPlayer().orElseThrow(() -> new IllegalArgumentException("User must be online to create island"));
-        MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
-        final Dimension dim = Dimension.from(world);
+        final World world = dim.getWorld(); // TODO: review this;
 
         final Vec2i tile = grid.getNextTile();
+        final ReadWriteLock lock = lockedTiles.computeIfAbsent(tile, (__) -> new ReentrantReadWriteLock());
+        lock.writeLock().lock(); // lock should be unlocked after future is run
+        LOGGER.warn("Write lock locked");
+
         final Vec2i blChunk = Island.getBottomLeftBound(dim, tile);
         final Vec2i trChunk = Island.getTopRightBound(dim, tile);
 
@@ -79,7 +113,8 @@ public class IslandManager {
 
         CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
             final NMSAccess nms = Ether.inst().getNms();
-            if(syncGrid.needsClearing(tile)) {
+            DeletedTile deleted = syncGrid.getTileForClearing(tile);
+            if(deleted != null && deleted.dimsToClear().contains(dim.getResourceLocation())) {
                 CompletableFuture<Void>[] chunkTasks =
                         new CompletableFuture[(trChunk.getX() - blChunk.getX()) * (trChunk.getZ() - blChunk.getZ())];
                 for(int z = blChunk.getZ(), i = 0; z < trChunk.getZ(); z++) {
@@ -96,62 +131,87 @@ public class IslandManager {
         return cf.thenApply((__) -> { // FIXME: may need to schedule via WorkQueue for main thread
             Island.Builder builder = Island.builder()
                     .setOwner(owner)
-                    .setTile(tile, true)
-                    .setBottomLeftBound(blChunk)
-                    .setTopRightBound(trChunk);
+                    .setTile(tile, true);
 
             final Island island = builder.build();
             syncGrid.registerIsland(island);
 
             owner.setIsland(island);
 
+            Ether.LOGGER.warn("Created island at {}", island.getTile());
+
             owner.getPlayer().orElseThrow(() -> new IllegalStateException("User offline before island creation completed"))
                     .teleportAsync(BukkitUtils.asBukkitLocation(world, centerBlock));
             return island;
+        }).whenComplete((o, ex) -> {
+            lock.writeLock().unlock();
+            LOGGER.warn("Write lock unlocked");
+        }); // unlock tile
+    }
+
+    protected CompletableFuture<DeletedTile[]> clearPurgeQueue() {
+        DeletedTile[] tiles = getPurgeQueue().toArray(DeletedTile[]::new);
+        return CompletableFuture.supplyAsync(() -> {
+            for(DeletedTile tile : getPurgeQueue()) {
+                /*Dimension.from()
+                for() {
+
+                }*/
+            }
+            return tiles;
         });
     }
 
-    public CompletableFuture<Vec2i> deleteIsland(Island island, ChunkGetter cg) {
-
+    public CompletableFuture<DeletedTile> deleteIsland(Island island, ChunkGetter cg) {
         final MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
-        final CompletableFuture<Vec2i> cf;
+        final CompletableFuture<DeletedTile> cf;
+        final ReadWriteLock lock = lockedTiles.computeIfAbsent(island.getTile(), (__) -> new ReentrantReadWriteLock());
+        lock.writeLock().lock();
+        LOGGER.warn("Write lock locked");
         switch(cfg.purgeIslandsOption()) {
-            case THRESHOLD -> {
-                grid.queueForClearing(island.getTile());
-                final Collection<Vec2i> queue = Collections.synchronizedCollection(grid.getPurgeQueue());
+            case THRESHOLD -> { // FIXME: review; too laggy??
+                // proposed solution: clear tiles one at a time until each is complete
+                // - possible time margin between each clearing
+                // - clearing all tiles at once seems to add too much workload at once
+
+                // proposed implementation:
+                // - CompletableFuture for each tile
+                // - CompletableFuture is immediately locked until
+
+                grid.queueForClearing(island);
+                final Collection<DeletedTile> queue = Collections.synchronizedCollection(grid.getPurgeQueue());
                 CompletableFuture<Vec2i>[] clearAllTilesFs = new CompletableFuture[queue.size()];
                 int i = 0;
+                // TODO: refactor this code into separate clearQueue function
+                // TODO: refactor to instead delete only this island, then call to clear queue
                 if(queue.size() >= cfg.getPurgedIslandsThreshold()) {
-                    for(Vec2i tile : queue) {
-                        for(Dimension dim : cfg.getDimensions().values()) {
-                            clearAllTilesFs[i++] = clearTile(dim, tile, cg).thenApply((tile0) -> {
-                                queue.remove(tile0);
+                    for(DeletedTile tile : queue) {
+                        for(Dimension dim : cfg.getDimensions()) {
+                            // TODO: review this
+                            CompletableFuture<Vec2i> _cf = clearTile(dim, tile.tile(), cg).thenApply((tile0) -> {
+                                queue.remove(tile);
                                 return tile0;
                             });
+                            clearAllTilesFs[i++] = _cf;
+                            _cf.join();
                         }
                     }
                 }
-                cf = CompletableFuture.allOf(clearAllTilesFs).thenApply((__) -> island.getTile());
+                cf = CompletableFuture.allOf(clearAllTilesFs)
+                        .thenApply((__) -> DeletedTile.from(island.getTile(), cfg.getDimensions()));
             }
 
             case QUEUED -> {
-                grid.queueForClearing(island.getTile());
-                cf = CompletableFuture.completedFuture(island.getTile());
-            }
-
-            case INSTANT -> {
-                CompletableFuture<Void>[] clearTileFs = new CompletableFuture[cfg.getDimensions().size()];
-                int i = 0;
-                for(Dimension dim : cfg.getDimensions().values()) {
-                    clearTileFs[i++] = clearTile(dim, island.getTile(), cg).thenAccept((tile) -> {
-                        Collections.synchronizedCollection(grid.getPurgeQueue()).remove(tile);
-                    });
-                }
-                cf = CompletableFuture.allOf(clearTileFs).thenApply((__) -> island.getTile());
+                grid.queueForClearing(island);
+                cf = CompletableFuture.completedFuture(DeletedTile.from(island.getTile(), cfg.getDimensions()));
             }
 
             default -> throw new IllegalStateException("Unexpected value: " + cfg.purgeIslandsOption());
         }
+        cf.whenComplete((o, ex) -> {
+            lock.writeLock().unlock();
+            LOGGER.warn("Write lock unlocked"); // debug; FIXME: allow debug level to work
+        }); // unlock tile
 
         grid.unregisterIsland(island);
 
@@ -162,26 +222,7 @@ public class IslandManager {
         return cf;
     }
 
-    public CompletableFuture<Vec2i> deleteIsland(int islandId, ChunkGetter cg) {
-        return deleteIsland(grid.getIslandAt(islandId).orElseThrow(), cg);
-    }
-
-    public CompletableFuture<Vec2i> deleteIsland(Vec2i tile, ChunkGetter cg) {
-        return deleteIsland(grid.getIslandAt(tile).orElseThrow(), cg);
-    }
-
-    public CompletableFuture<Vec2i> deleteIsland(Island island) {
-        return deleteIsland(island, ChunkGetter.SYNC);
-    }
-
-    public CompletableFuture<Vec2i> deleteIsland(int islandId) {
-        return deleteIsland(grid.getIslandAt(islandId).orElseThrow(), ChunkGetter.SYNC);
-    }
-
-    public CompletableFuture<Vec2i> deleteIsland(Vec2i tile) {
-        return deleteIsland(grid.getIslandAt(tile).orElseThrow(), ChunkGetter.SYNC);
-    }
-
+    // NOTE: doesn't handle locking
     public CompletableFuture<Vec2i> clearTile(Dimension dim, Vec2i tile, ChunkGetter cg) {
         Vec2i trChunk = Island.getTopRightBound(dim, tile);
         Vec2i blChunk = Island.getBottomLeftBound(dim, tile);
@@ -197,19 +238,47 @@ public class IslandManager {
         return CompletableFuture.allOf(clearChunkFs).thenApply((__) -> tile);
     }
 
+    public CompletableFuture<DeletedTile> deleteIsland(int islandId, ChunkGetter cg) {
+        return deleteIsland(grid.getIslandAt(islandId).orElseThrow(), cg);
+    }
+
+    public CompletableFuture<DeletedTile> deleteIsland(Vec2i tile, ChunkGetter cg) {
+        return deleteIsland(grid.getIslandAt(tile).orElseThrow(), cg);
+    }
+
+    public CompletableFuture<DeletedTile> deleteIsland(Island island) {
+        return deleteIsland(island, ChunkGetter.SYNC);
+    }
+
+    public CompletableFuture<DeletedTile> deleteIsland(int islandId) {
+        return deleteIsland(grid.getIslandAt(islandId).orElseThrow(), ChunkGetter.SYNC);
+    }
+
+    public CompletableFuture<DeletedTile> deleteIsland(Vec2i tile) {
+        return deleteIsland(grid.getIslandAt(tile).orElseThrow(), ChunkGetter.SYNC);
+    }
+
     public Optional<Island> getIslandAt(Vec2i tile) {
         return grid.getIslandAt(tile);
     }
 
-    public Optional<Island> getIslandAt(Integer islandId) {
+    public Optional<Island> getIslandAt(int islandId) {
         return grid.getIslandAt(islandId);
     }
 
-    public Optional<Island> getIslandAt(Location location) {
-        return getIslandAt(BukkitUtils.getTileAt(location));
+    public Optional<Island> getIslandAt(Location loc) {
+        return getIslandAt(ChunkCoords.getChunkAt(loc.getX(), loc.getZ()));
     }
 
-    public Collection<Vec2i> getPurgeQueue() {
+    public Optional<Island> getIslandAt(int blockX, int blockZ) {
+        return getIslandAt(ChunkCoords.getChunkAt(blockX, blockZ));
+    }
+
+    public Optional<Island> getIslandAt(Vec3 blockPos) {
+        return getIslandAt(ChunkCoords.getChunkAt(blockPos));
+    }
+
+    public Collection<DeletedTile> getPurgeQueue() {
         return Collections.unmodifiableCollection(grid.getPurgeQueue());
     }
 }

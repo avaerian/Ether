@@ -1,28 +1,30 @@
 package org.minerift.ether.island;
 
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
+import lombok.Getter;
+import lombok.Setter;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.dimension.Dimension;
-import org.minerift.ether.math.Vec2l;
 import org.minerift.ether.util.CanChange;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.util.fn.IBuilder;
-import org.minerift.ether.world.ChunkCoords;
+import org.minerift.ether.util.nbt.NbtSerializable;
+import org.minerift.ether.util.nbt.NbtWriter;
+import org.minerift.ether.util.nbt.tags.NbtOptions;
+import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.warp.Warp;
+import org.minerift.ether.world.Location;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
-public class Island extends CanChange {
+public class Island extends CanChange implements NbtSerializable {
 
     public static final int INVALID_ID = -1;
 
@@ -30,52 +32,54 @@ public class Island extends CanChange {
     //       then load Island's (set island for users and attach as island members here)
     //       This may require a DatabaseReaderContext or something similar for handling data loading
 
-    private long blChunkZX, trChunkZX;
-    private int accessibleRegionLength;
+    @Getter private int id;
+    @Getter private Vec2i tile;
 
-    // These 2 pieces of data can be calculated from each other
-    private int id;
-    private Vec2i tile;
+    @Getter private Location spawn;
 
-    // Team related fields
-    private int maxTeamSize;
+    @Deprecated
+    @Getter private int maxTeamSize;
 
-    private IslandWorth.Mutable value;
+    private IslandValue.Mutable value;
     private UUID owner;
     private Set<UUID> members;
     private PermissionSet perms;
+    private Set<String> dimsUnlocked; // dimension ids, NOT resource locations
 
-    public static Island from(Vec2i tile, int id, Vec2l chunkBounds,
+    // per-dimension data: warp signs
+    private List<Warp> warps;
+
+    public static Island from(Vec2i tile, int id,
                               EtherUser owner, Set<EtherUser> members,
-                              PermissionSet perms, IslandWorth.Mutable worth) {
-        return new Island(tile, id, chunkBounds.getXl(), chunkBounds.getZl(), owner.getUUID(),
+                              PermissionSet perms, IslandValue.Mutable value,
+                              Set<String> dimsUnlocked) {
+        return new Island(tile, id, owner.getUUID(),
                 members.stream().map(EtherUser::getUUID).collect(Collectors.toSet()),
-                perms, worth);
+                perms, value, dimsUnlocked);
     }
 
-    public static Island from(Vec2i tile, int id, Vec2l chunkBounds,
+    public static Island from(Vec2i tile, int id,
                               UUID owner, Set<UUID> members,
-                              PermissionSet perms, IslandWorth.Mutable worth) {
-        return new Island(tile, id, chunkBounds.getXl(), chunkBounds.getZl(),
-                owner, members, perms, worth);
+                              PermissionSet perms, IslandValue.Mutable value,
+                              Set<String> dimsUnlocked) {
+        return new Island(tile, id, owner, members, perms, value, dimsUnlocked);
     }
 
     public Island(Vec2i tile, int id,
-                  long blChunkZX, long trChunkZX,
                   UUID owner, Set<UUID> members,
-                  PermissionSet perms, IslandWorth.Mutable worth) {
+                  PermissionSet perms, IslandValue.Mutable value,
+                  Set<String> dimsUnlocked) {
 
         this.tile = tile;
         this.id = id;
-        this.perms = perms;
 
         this.owner = owner;
         this.members = members;
         addTeamMember(owner, IslandRole.OWNER);
-        this.value = worth;
+        this.perms = perms;
 
-        this.blChunkZX = blChunkZX;
-        this.trChunkZX = trChunkZX;
+        this.value = value;
+        this.dimsUnlocked = dimsUnlocked;
 
         setChanged(false);
     }
@@ -93,28 +97,15 @@ public class Island extends CanChange {
     }
 
 
-    public int getId() {
-        return id;
-    }
-
-    public Vec2i getTile() {
-        return tile;
-    }
-
-    public IslandWorth getWorth() {
+    public IslandValue getValue() {
         return value;
     }
 
-    public boolean isInAccessibleRegion(Dimension dim, Location loc) {
-        return isInAccessibleRegion(dim, asVec3i(loc));
-    }
-
     public boolean isInAccessibleRegion(Dimension dim, Vec3i loc) {
-        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
         final int offset = (dim.getTileLenBlocks() / 2) - (dim.getTileAccessibleLenBlocks() / 2);
 
-        Vec3i.Mutable blBlock = getBottomLeftBlock().asMutable().add(offset, 0, offset);
-        Vec3i.Mutable trBlock = getTopRightBlock().asMutable().subtract(offset, 0, offset);
+        Vec3i.Mutable blBlock = getBottomLeftBlock(dim).asMutable().add(offset, 0, offset);
+        Vec3i.Mutable trBlock = getTopRightBlock(dim).asMutable().subtract(offset, 0, offset);
 
         return Maths.inRangeInclusiveI(blBlock, trBlock, loc);
     }
@@ -132,6 +123,23 @@ public class Island extends CanChange {
     public EtherUser getOwner() {
         return Ether.inst().getUserManager().getUser(owner).orElseThrow(() -> new IllegalStateException("Owner " + owner + " is offline"));
         //return getTeamMembersWithRole(IslandRole.OWNER).iterator().next();
+    }
+
+    public Set<String> getUnlockedDimensionResources() {
+        return dimsUnlocked;
+    }
+
+    public Set<Dimension> getUnlockedDimensions() {
+        // skip any invalid/unregistered dimensions
+        final MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
+        Set<Dimension> dims = new HashSet<>();
+        for(String sdim : dimsUnlocked) {
+            Dimension dim = cfg.getDimensions().getByName(sdim);
+            if(dim != null) {
+                dims.add(dim);
+            }
+        }
+        return dims;
     }
 
     public boolean isTeamMember(EtherUser user) {
@@ -161,7 +169,7 @@ public class Island extends CanChange {
     public void removeTeamMember(EtherUser user) {
         if(isTeamMember(user)) {
             members.remove(user.getUUID());
-            user.setIsland((Integer) null);
+            user.setIsland(INVALID_ID);
             user.setIslandRole(IslandRole.VISITOR);
 
             setChanged(true);
@@ -172,47 +180,31 @@ public class Island extends CanChange {
         return perms;
     }
 
-    public int getMaxTeamSize() {
-        return maxTeamSize;
+    public Vec2i getBottomLeftChunk(Dimension dim) {
+        return new Vec2i(
+                tile.getX() * dim.getTileLenChunks(),
+                tile.getZ() * dim.getTileLenChunks());
     }
 
-    public long getBottomLeftChunkKey() {
-        return blChunkZX;
-    }
-
-    public long getTopRightChunkKey() {
-        return trChunkZX;
-    }
-
-    public Vec2i getBottomLeftChunk() {
-        return Maths.unpack(blChunkZX, Maths.PackingOrder.ZX);
-    }
-
-    public Vec2i getTopRightChunk() {
-        return Maths.unpack(trChunkZX, Maths.PackingOrder.ZX);
+    public Vec2i getTopRightChunk(Dimension dim) {
+        return new Vec2i(
+                (tile.getX() + 1) * dim.getTileLenChunks() - 1,
+                (tile.getZ() + 1) * dim.getTileLenChunks() - 1);
     }
 
     // Mutable for math purposes
     // NOTE: Height is set to 0
-    public Vec3i.Mutable getBottomLeftBlock() {
-        final Vec2i blChunk = getBottomLeftChunk();
+    public Vec3i.Mutable getBottomLeftBlock(Dimension dim) {
+        final Vec2i blChunk = getBottomLeftChunk(dim);
         return new Vec3i.Mutable(blChunk.getX() * 16, 0, blChunk.getZ() * 16);
     }
 
     // Mutable for math purposes
     // NOTE: Height is set to 0
-    public Vec3i.Mutable getTopRightBlock() {
-        final Vec2i.Mutable trChunk = getTopRightChunk().asMutable();
+    public Vec3i.Mutable getTopRightBlock(Dimension dim) {
+        final Vec2i.Mutable trChunk = getTopRightChunk(dim).asMutable();
         trChunk.add(1, 1);
         return new Vec3i.Mutable((trChunk.getX() * 16) - 1, 0, (trChunk.getZ() * 16) - 1);
-    }
-
-    public Chunk getBottomLeftChunk(World world) {
-        return world.getChunkAt(blChunkZX);
-    }
-
-    public Chunk getTopRightChunk(World world) {
-        return world.getChunkAt(trChunkZX);
     }
 
     public static Island.Builder builder() {
@@ -224,27 +216,45 @@ public class Island extends CanChange {
         return "Island{" +
                 "id=" + id +
                 ", tile=" + tile +
-                ", bottomLeftBound=" + blChunkZX +
-                ", topRightBound=" + trChunkZX +
                 ", maxTeamSize=" + maxTeamSize +
                 ", members=" + members +
                 ", permissions=" + perms +
                 "}\n";
     }
 
+    @Override
+    public CompoundTag serializeNbt() {
+        CompoundTag root = new CompoundTag();
+        //root.addTag();
+        return root;
+    }
+
+    @Override
+    public int hashCode() {
+        // TODO: better hash code
+        NbtWriter writer = NbtWriter.withOptions()
+                .options(NbtOptions.USE_NUNBT_IO)
+                .build();
+        writer.writeTag(serializeNbt());
+        return writer.buf.hashCode();
+    }
+
+    @Getter
     public static class Builder implements IBuilder<Island> {
 
         private Vec2i tile;
         private int id;
-        private long blChunk, trChunk;
+        private Location spawn;
 
         private UUID owner;
         private Set<EtherUser> members;
         private PermissionSet perms;
-        private IslandWorth.Mutable value;
+        private IslandValue.Mutable value;
+        private Set<String> dimsUnlocked;
 
         private Builder() {
             this.members = new HashSet<>();
+            this.dimsUnlocked = new HashSet<>();
         }
 
         /**
@@ -302,43 +312,28 @@ public class Island extends CanChange {
             return this;
         }
 
-        public Builder setBottomLeftBound(int x, int z) {
-            return setBottomLeftBound(ChunkCoords.getChunkKey(x, z));
-        }
-
-        public Builder setBottomLeftBound(Vec2i chunk) {
-            return setBottomLeftBound(chunk.getX(), chunk.getZ());
-        }
-
-        public Builder setTopRightBound(int x, int z) {
-            return setTopRightBound(ChunkCoords.getChunkKey(x, z));
-        }
-
-        public Builder setTopRightBound(Vec2i chunk) {
-            return setTopRightBound(chunk.getX(), chunk.getZ());
-        }
-
-        public Builder setBottomLeftBound(long blChunk) {
-            this.blChunk = blChunk;
-            return this;
-        }
-
-        public Builder setTopRightBound(long trChunk) {
-            this.trChunk = trChunk;
-            return this;
-        }
-
-        public Builder setWorth(IslandWorth.Mutable value) {
+        public Builder setWorth(IslandValue.Mutable value) {
             this.value = value;
+            return this;
+        }
+
+        public Builder setUnlockedDimensionResources(Set<String> dims) {
+            this.dimsUnlocked = dims;
+            return this;
+        }
+
+        public Builder setUnlockedDimensions(Set<Dimension> dims) {
+            this.dimsUnlocked = dims.stream()
+                    .map(Dimension::getResourceLocation).collect(Collectors.toSet());
             return this;
         }
 
         // tileBounds are formatted as blChunk, trChunk
         @Override
         public Island build() {
-            return new Island(tile, id, blChunk, trChunk, owner,
+            return new Island(tile, id, owner,
                     members.stream().map(EtherUser::getUUID).collect(Collectors.toSet()),
-                    perms, value);
+                    perms, value, dimsUnlocked);
         }
     }
 

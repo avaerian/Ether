@@ -42,8 +42,12 @@ public interface IslandGrid {
     }
 
     boolean needsClearing(Vec2i tile);
-    void queueForClearing(Vec2i tile);
-    Collection<Vec2i> getPurgeQueue();
+    default void queueForClearing(Island island) {
+
+    }
+    void queueForClearing(DeletedTile tile);
+    DeletedTile getTileForClearing(Vec2i tile);
+    Collection<DeletedTile> getPurgeQueue();
 
     int getIslandCount();
 
@@ -188,14 +192,21 @@ public interface IslandGrid {
         }
 
         @Override
-        public void queueForClearing(Vec2i tile) {
+        public void queueForClearing(DeletedTile tile) {
             synchronized (mutex) {
                 grid.queueForClearing(tile);
             }
         }
 
         @Override
-        public Collection<Vec2i> getPurgeQueue() {
+        public DeletedTile getTileForClearing(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.getTileForClearing(tile);
+            }
+        }
+
+        @Override
+        public Collection<DeletedTile> getPurgeQueue() {
             synchronized (mutex) {
                 return grid.getPurgeQueue();
             }
