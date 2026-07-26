@@ -18,6 +18,7 @@ import org.minerift.ether.world.EntityArchetype;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class SpongeSchematic implements Schematic {
 
@@ -55,8 +56,8 @@ public class SpongeSchematic implements Schematic {
      * <b>NOTE:</b> pasting is propagated to {@link SpongeSchematicPaster} and, more importantly, {@link Pasters}.
      */
     @Override
-    public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
-        type().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
+    public CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
+        return type().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
     }
 
     @Override

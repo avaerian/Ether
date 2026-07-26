@@ -17,10 +17,12 @@ import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.math.Vec3i;
 
+import java.util.concurrent.CompletableFuture;
+
 public class WESchematicPaster implements SchematicPaster<WorldEditSchematic> {
 
     @Override
-    public void paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
+    public CompletableFuture<Void> paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
 
         final World world = Bukkit.getWorld(worldName);
         Preconditions.checkNotNull(world, String.format("World %s could not be found!", worldName));
@@ -48,5 +50,6 @@ public class WESchematicPaster implements SchematicPaster<WorldEditSchematic> {
             throw new RuntimeException(e);
         }
 
+        return CompletableFuture.completedFuture(null);
     }
 }

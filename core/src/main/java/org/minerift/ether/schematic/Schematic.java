@@ -15,6 +15,7 @@ import org.minerift.ether.world.EntityArchetype;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface Schematic extends NbtSerializable {
 
@@ -82,23 +83,75 @@ public interface Schematic extends NbtSerializable {
      * already exist with some prefilled defaults, or can also be created and customized using
      * {@link SchematicPasteOptions#builder()}.
      *
-     * @param pos the position in the world to paste this schematic at
-     * @param worldName the name of the world to paste in
-     * @param options additional options specifying how the schematic should be pasted
+     * @param pos the position in the world to paste this schematic at.
+     * @param worldName the name of the world to paste in.
+     * @param options additional options specifying how the schematic should be pasted.
+     * @return future indicating when the operation completes.
      */
-    void paste(Vec3i pos, String worldName, SchematicPasteOptions options);
+    CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options);
 
+    /**
+     * Get the width.
+     * @return schematic width.
+     */
     int getWidth();
+
+    /**
+     * Get the height.
+     * @return schematic height.
+     */
     int getHeight();
+
+    /**
+     * Get the length.
+     * @return schematic length.
+     */
     int getLength();
 
+    /**
+     * Get the dimensions.
+     * @return schematic dimensions.
+     */
     Vec3i getDimensions();
+
+    /**
+     * Get the offset.
+     * @return schematic offset.
+     */
     Vec3i getOffset();
 
+    /**
+     * Get the blocks.
+     * @return schematic blocks.
+     */
     BlockVolume getBlocks();
+
+    /**
+     * Get the biomes.
+     * @return schemtic biomes.
+     */
     BiomeVolume getBiomes();
+
+    /**
+     * Get the entities.
+     * @return schematic entities.
+     */
     List<EntityArchetype> getEntities();
 
+    /**
+     * Transform the schematic using the provided list of transforms.
+     *
+     * @param ts list of transforms to apply.
+     * @return a new schematic with the applied transforms.
+     */
     Schematic transform(Transforms ts);
+
+    /**
+     * Transform the schematic mutably using the provided list of transforms.
+     *
+     * @param ts list of transforms to apply.
+     * @return the schematic mutated from the applied transforms.
+     */
+    @Deprecated
     Schematic transformMut(Transforms ts);
 }

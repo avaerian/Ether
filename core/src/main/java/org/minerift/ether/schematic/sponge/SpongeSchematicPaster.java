@@ -8,10 +8,12 @@ import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.schematic.data.Pasters;
 
+import java.util.concurrent.CompletableFuture;
+
 public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
 
     @Override
-    public void paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
+    public CompletableFuture<Void> paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
         World world = Bukkit.getWorld(worldName);
         ChunkGetter cg = ChunkGetter.ASYNC; // TODO: make this an option
 
@@ -20,7 +22,7 @@ public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
             pasteLoc = pasteLoc.copyMutable().add(options.offset);
         }
 
-        Pasters.pasteBlockVolume(schem.getBlocks(), world, pasteLoc, cg);
+        return Pasters.pasteBlockVolume(schem.getBlocks(), world, pasteLoc, cg);
     }
 
 }
