@@ -1,21 +1,21 @@
 package org.minerift.ether.config.main;
 
-import org.bukkit.NamespacedKey;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.minerift.ether.config.Config;
 import org.minerift.ether.config.ConfigRegistry;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.database.Database;
 import org.minerift.ether.database.sql.SQLDialect;
-import org.minerift.ether.dimension.Dimension;
+import org.minerift.ether.dimension.Dimensions;
 import org.minerift.ether.island.PurgeIslandsOption;
 import org.minerift.ether.schematic.SchematicType;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+@EqualsAndHashCode(callSuper = false)
 public class MainConfig extends Config<MainConfig> {
 
     public static final int CURRENT_VERSION = 0;
@@ -24,14 +24,20 @@ public class MainConfig extends Config<MainConfig> {
     public static final int MIN_TILE_CHUNKS = 3;
     public static final int MIN_TILE_SIZE = MIN_TILE_CHUNKS * CHUNK_SIZE; // 3 chunks * 16 blocks/chunk = 48 blocks
 
+    // TODO: ensure case is handled where less deleted tiles exist than min purged islands
+    public static final int DEFAULT_MIN_PURGED_ISLANDS = 0;
+    public static final int DEFAULT_MAX_PURGED_ISLANDS = Integer.MAX_VALUE;
+
     private int version; // TODO: comment; DO NOT CHANGE!
 
     // purge settings
     private PurgeIslandsOption purgeIslandsOption;
     private int timeUntilNextIslandPurgeSecs; // in seconds
     private int purgedIslandsThreshold;
+    @Getter @Setter private int maxPurgedIslands; // per clear
+    @Getter @Setter private int minPurgedIslands; // per clear
 
-    private Map<String, Dimension> dimensions;
+    private Dimensions dims;
 
     private long inviteInvalidateAfter; // ms time unit
 
@@ -43,24 +49,26 @@ public class MainConfig extends Config<MainConfig> {
 
     private SchematicType<?> defaultSchemType;
 
+    private boolean tpAfterVoidJump; // teleport user back to the island after jumping into void
+
     // Default values for config
     public MainConfig(ConfigRegistry reg, FileSource src) {
         super(reg, src);
         this.version = CURRENT_VERSION;
 
-        this.dimensions = new HashMap<>();
-        dimensions.put("minecraft:overworld", new Dimension("overworld", new NamespacedKey("minecraft", "overworld"), 24, 12 * 16, 90));
-        dimensions.put("minecraft:nether", new Dimension("nether", new NamespacedKey("minecraft", "nether"), 32, 24 * 16, 90));
-        dimensions.put("minecraft:end", new Dimension("end", new NamespacedKey("minecraft", "end"), 32, 24 * 16, 90));
+        this.dims = Dimensions.minecraft();
 
+        // island invites
         this.inviteInvalidateAfter = TimeUnit.MINUTES.toMillis(2);
 
+        // persistence
         this.dbType = Database.Type.SQL;
         this.sqlDialect = SQLDialect.H2;
         this.sqlUrl = "";
         this.sqlUsername = "root";
         this.sqlPassword = "";
 
+        // island purge management
         this.purgeIslandsOption = PurgeIslandsOption.QUEUED;
         this.timeUntilNextIslandPurgeSecs = 60 * 5;
         this.purgedIslandsThreshold = 5;
@@ -101,8 +109,8 @@ public class MainConfig extends Config<MainConfig> {
         return purgeIslandsOption;
     }
 
-    public Map<String, Dimension> getDimensions() {
-        return dimensions;
+    public Dimensions getDimensions() {
+        return dims;
     }
 
     public long getInviteInvalidateAfter() {
@@ -123,14 +131,6 @@ public class MainConfig extends Config<MainConfig> {
 
     public int getTimeUntilNextIslandPurgeSecs() {
         return timeUntilNextIslandPurgeSecs;
-    }
-
-    public Database.Type getDbType() {
-        return dbType;
-    }
-
-    public void setDbType(Database.Type dbType) {
-        this.dbType = dbType;
     }
 
     // Setters
@@ -178,9 +178,8 @@ public class MainConfig extends Config<MainConfig> {
         this.purgedIslandsThreshold = threshold;
     }
 
-    public void setDimensions(Map<String, Dimension> dimensions) {
-        this.dimensions = dimensions;
-
+    public void setDimensions(Dimensions dims) {
+        this.dims = dims;
     }
 
     @Override
@@ -188,7 +187,7 @@ public class MainConfig extends Config<MainConfig> {
         if(!o.equals(this)) {
             this.version = o.version;
 
-            this.dimensions = o.dimensions;
+            this.dims = o.dims;
 
             this.inviteInvalidateAfter = o.inviteInvalidateAfter;
 
@@ -206,32 +205,7 @@ public class MainConfig extends Config<MainConfig> {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof MainConfig that)) return false;
-        return version == that.version
-                && timeUntilNextIslandPurgeSecs == that.timeUntilNextIslandPurgeSecs
-                && purgedIslandsThreshold == that.purgedIslandsThreshold
-                && inviteInvalidateAfter == that.inviteInvalidateAfter
-                && purgeIslandsOption == that.purgeIslandsOption
-                && Objects.equals(dimensions, that.dimensions)
-                && dbType == that.dbType && sqlDialect == that.sqlDialect
-                && Objects.equals(sqlUrl, that.sqlUrl) &&
-                Objects.equals(sqlUsername, that.sqlUsername)
-                && Objects.equals(sqlPassword, that.sqlPassword)
-                && Objects.equals(defaultSchemType, that.defaultSchemType);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(version,
-                dimensions,
-                inviteInvalidateAfter,
-                purgeIslandsOption, timeUntilNextIslandPurgeSecs, purgedIslandsThreshold,
-                dbType,
-                sqlDialect, sqlUrl, sqlUsername, sqlPassword,
-                defaultSchemType);
-    }
 
     @Override
     public ConfigType<MainConfig, FileSource> getType() {

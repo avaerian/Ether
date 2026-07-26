@@ -4,7 +4,7 @@ import org.minerift.ether.database.*;
 import org.minerift.ether.database.Record;
 import org.minerift.ether.database.adapters.Adapters;
 import org.minerift.ether.island.Island;
-import org.minerift.ether.island.IslandWorth;
+import org.minerift.ether.island.IslandValue;
 import org.minerift.ether.island.PermissionSet;
 import org.minerift.ether.nms.world.block.BlockState;
 
@@ -33,9 +33,9 @@ public class IslandModel extends Model<Island, Integer> {
         OWNER       = ctx.createField("owner", DataType.UUID.notNull(), (is) -> is.getOwner().getUUID());
         MEMBERS     = ctx.createField("members", DataType.UUID.array().notNull(), Island::getTeamMembers, Adapters.ETHER_USERS_2_UUIDS);
         PERM_SET    = ctx.createField("perm_set", DataType.LONGS.notNull(), (is) -> is.getPermissions().getPermsMut());
-        /* WORTH */ POWER_BY_BLOCK = ctx.createField("power_by_block", DataType.INTS, (is) -> is.getWorth().getValues());
+        /* WORTH */ POWER_BY_BLOCK = ctx.createField("power_by_block", DataType.INTS, (is) -> is.getValue().getValues());
         /* WORTH */ BLOCK_NAMES = ctx.createField("block_names", DataType.VARCHAR.array(),
-                (is) -> Arrays.stream(is.getWorth().getBlockStates())
+                (is) -> Arrays.stream(is.getValue().getBlockStates())
                         .map(BlockState::getAsString).toArray(String[]::new));
     }
 
@@ -44,7 +44,7 @@ public class IslandModel extends Model<Island, Integer> {
         // get island worth
         final int[] powerByBlock = record.get(POWER_BY_BLOCK);
         final String[] blockNames = record.get(BLOCK_NAMES);
-        final IslandWorth.Mutable worth = new IslandWorth.Mutable();
+        final IslandValue.Mutable worth = new IslandValue.Mutable();
         for(int i = 0; i < blockNames.length; i++) {
             BlockState state = BlockState.of(blockNames[i], null);
             if(state != null) { // TODO: fixer-upper upgrader

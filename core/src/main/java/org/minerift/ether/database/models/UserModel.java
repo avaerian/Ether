@@ -5,8 +5,11 @@ import org.minerift.ether.database.Record;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.island.IslandRole;
 import org.minerift.ether.user.EtherUser;
+import org.minerift.ether.util.UnreachableException;
 
 import java.util.UUID;
+
+import static org.minerift.ether.island.Island.INVALID_ID;
 
 public class UserModel extends Model<EtherUser, UUID> {
 
@@ -35,9 +38,10 @@ public class UserModel extends Model<EtherUser, UUID> {
 
     @Override
     public EtherUser.Builder readAsBuilder(Record<EtherUser> record) {
+        Integer island = record.get(ISLAND_ID);
         EtherUser.Builder builder = EtherUser.builder()
                 .setUUID(record.get(ID))
-                .setIsland(record.get(ISLAND_ID))
+                .setIsland(island != null ? island : INVALID_ID)
                 .setIslandRole(record.get(ISLAND_ROLE));
 
         return builder;

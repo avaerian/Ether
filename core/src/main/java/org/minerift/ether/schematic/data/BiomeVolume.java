@@ -15,6 +15,21 @@ public class BiomeVolume extends Volume<Biome<?>> {
         super(order, data, palette, width, height, length);
     }
 
+    @Override
+    public ByteIterator byteIterator() {
+        return super.byteIterator();
+    }
+
+    @Override
+    public byte setData(byte b, int x, int y, int z) {
+        return super.setData(b, x, y, z);
+    }
+
+    @Override
+    public Biome<?> getDataAt(int idx) {
+        return super.getDataAt(idx);
+    }
+
     // TODO: review
     public boolean isEmpty() {
         if(palette.size() == 0) {

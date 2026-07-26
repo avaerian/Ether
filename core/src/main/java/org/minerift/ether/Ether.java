@@ -1,36 +1,36 @@
 package org.minerift.ether;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.minerift.ether.config.*;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.config.source.DirectorySource;
 import org.minerift.ether.config.source.FileSource;
 import org.minerift.ether.database.*;
 import org.minerift.ether.database.Record;
+import org.minerift.ether.database.models.IslandInvitesModel;
 import org.minerift.ether.database.models.IslandModel;
-import org.minerift.ether.database.models.ServerData;
-import org.minerift.ether.database.models.ServerDataModel;
 import org.minerift.ether.database.models.UserModel;
 import org.minerift.ether.database.sql.SQLDatabase;
 import org.minerift.ether.dimension.Dimension;
-import org.minerift.ether.island.DefaultIslandGrid;
-import org.minerift.ether.island.Island;
-import org.minerift.ether.island.IslandGrid;
-import org.minerift.ether.island.IslandManager;
+import org.minerift.ether.island.*;
+import org.minerift.ether.island.invites.IslandInvite;
 import org.minerift.ether.island.invites.IslandInviteManager;
 import org.minerift.ether.nms.NMS;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.schematic.data.SelectSessions;
 import org.minerift.ether.user.EtherUser;
 import org.minerift.ether.user.UserManager;
-import org.minerift.ether.work.WorkQueue;
 import org.minerift.ether.util.log.StageTimekeeper;
+import org.minerift.ether.work.WorkQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,8 +39,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.minerift.ether.Ether.Stage.*;
 
-// Provides static access to plugin components
-// TODO: support unloaded and loaded Ether instance for IDE & server usage
 public class Ether /*implements AutoCloseable*/ {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("Ether");
@@ -87,6 +85,18 @@ public class Ether /*implements AutoCloseable*/ {
         System.setProperty("org.jooq.no-logo", "true");
         System.setProperty("org.jooq.no-tips", "true");
 
+        { // programatically set debug level for Ether logger
+            // TODO: research creating txt cfg with logger level to define project-wide?
+            LoggerContext ctx = LoggerContext.getContext();
+            Configuration cfg = ctx.getConfiguration();
+            LoggerConfig lcfg = cfg.getLoggerConfig(Ether.LOGGER.getName());
+            lcfg.setLevel(Level.DEBUG);
+            ctx.updateLoggers();
+
+            Ether.LOGGER.debug("Hello, world!");
+            Ether.LOGGER.debug("Experimental debug logs incoming");
+        }
+
         final StageTimekeeper<Stage> times = new StageTimekeeper<>(Stage.class);
 
         // load configs
@@ -94,10 +104,9 @@ public class Ether /*implements AutoCloseable*/ {
         ConfigRegistry cfgs = new ConfigRegistry(dataDir, logger);
         try {
             cfgs.register(ConfigType.MAIN, FileSource.of(new File(dataDir, "config.yml")));
+            cfgs.register(ConfigType.BLOCKS, FileSource.of(new File(dataDir, "blocks.yml")));
             cfgs.register(ConfigType.ISLAND_SPECS_LIST, DirectorySource.of(new File(dataDir, "island_specs")));
         } catch (IOException e) {
-            // If failed, log error and abort plugin loading
-            // Failing will be delegated to EtherPlugin or other bootstrapper
             throw new EtherLoadException("Failed to register configs", e);
         }
 
@@ -110,16 +119,13 @@ public class Ether /*implements AutoCloseable*/ {
             }
         }
         long cfgMs = times.trackAndReset(STAGE_CFGS, MILLISECONDS);
-        logger.info(String.format("Configs registered in %d ms", cfgMs));
+        logger.info("Configs registered in {} ms", cfgMs);
 
         MainConfig cfg = cfgs.get(ConfigType.MAIN);
-        for(Dimension dim : cfg.getDimensions().values()) {
-            World world = Bukkit.getWorld("ether_" + dim.getNamespacedKey());
+        for(Dimension dim : cfg.getDimensions()) {
+            // TODO: create worlds from Dimension definitions
+            //Bukkit.createWorld(WorldCreator.)
         }
-
-        //logger.info("tileSize: " + cfg.getTileLengthChunks());
-        //logger.info("tileHeight: " + cfg.getTileHeight());
-        //logger.info("tileAccessibleArea: " + cfg.getTileAccessibleAreaBlocks());
 
         // Load work queue
         times.start();
@@ -150,7 +156,7 @@ public class Ether /*implements AutoCloseable*/ {
                 .setPassword(cfg.getSqlPassword())
                 .build();
 
-        Database db = new SQLDatabase(login, IslandModel::new, UserModel::new, ServerDataModel::new);
+        Database db = new SQLDatabase(login, IslandModel::new, UserModel::new, IslandInvitesModel::new);
         AtomicReference<IslandManager> islands = new AtomicReference<>();
         try {
             DatabaseException result = db.accessSync((access) -> {
@@ -158,8 +164,13 @@ public class Ether /*implements AutoCloseable*/ {
 
                 Result<EtherUser> usersResult = access.selectAll(UserModel.class);
                 Result<Island> islandsResult = access.selectAll(IslandModel.class);
-                Result<ServerData> serverDataResult = access.selectById(ServerDataModel.class, 0);
-                ServerData data = serverDataResult.isEmpty() ? new ServerData() : serverDataResult.getRecord(0).read();
+                Result<IslandInvite> invitesResult = access.selectAll(IslandInvitesModel.class);
+
+                // /*
+                invitesResult.getRecord(0).read().getIsland().get().getPermissions().set(IslandRole.MEMBER, EnumSet.of(
+                        IslandPermission.BLOCK_PLACE, IslandPermission.BLOCK_INTERACT,
+                        IslandPermission.ENTITY_DAMAGE, IslandPermission.ENTITY_INTERACT));
+                        //*/
 
                 IslandGrid grid = new DefaultIslandGrid();
                 for(Record<Island> island : islandsResult) {
@@ -178,13 +189,14 @@ public class Ether /*implements AutoCloseable*/ {
         }
 
         SelectSessions selections = new SelectSessions();
+        PersistServerState serverState = new PersistServerState(); // TODO
 
         // ** code for plugin command registration has been moved to EtherPlugin **
         //getLogger().info("Time elapsed: " + stopwatch.elapsed(
 
         Ether ether = new Ether(cfgs, logger, dataDir,
                 db, nms, workQueue, 
-                islands.get(), invites, users, selections);
+                islands.get(), invites, users, selections, serverState);
         return new InitResult(ether, times);
     }
 
@@ -233,6 +245,7 @@ public class Ether /*implements AutoCloseable*/ {
 
     protected Database db;
     protected ConfigRegistry cfgs;
+    protected PersistServerState serverState;
     protected Logger log;
     protected File dataDir;
 
@@ -247,7 +260,7 @@ public class Ether /*implements AutoCloseable*/ {
     public Ether(ConfigRegistry cfgs, Logger log, File dataDir,
                  Database db, NMSAccess nms, WorkQueue workQueue,
                  IslandManager islands, IslandInviteManager invites,
-                 UserManager users, SelectSessions selections) {
+                 UserManager users, SelectSessions selections, PersistServerState serverState) {
         this.cfgs = cfgs;
         this.log = log;
         this.dataDir = dataDir;
@@ -258,6 +271,7 @@ public class Ether /*implements AutoCloseable*/ {
         this.invites = invites;
         this.users = users;
         this.selections = selections;
+        this.serverState = serverState;
     }
 
     public File getDataDir() {
@@ -289,6 +303,10 @@ public class Ether /*implements AutoCloseable*/ {
         return nms;
     }
 
+    public PersistServerState getState() {
+        return serverState;
+    }
+
     public IslandManager getIslandManager() {
         return islands;
     }
@@ -314,7 +332,7 @@ public class Ether /*implements AutoCloseable*/ {
             try {
                 config.save();
             } catch (ConfigWriteException e) {
-                throw new RuntimeException(e);
+                log.error("Failed to save config {}", config.getTypeName(), e);
             }
         }
         cfgs = null;
@@ -343,16 +361,16 @@ public class Ether /*implements AutoCloseable*/ {
         public Debug(ConfigRegistry cfgs, Logger log, File dataDir,
                      Database db, NMSAccess nms, WorkQueue workQueue,
                      IslandManager islands, IslandInviteManager invites,
-                     UserManager users, SelectSessions sessions) {
+                     UserManager users, SelectSessions sessions, PersistServerState serverState) {
             super(cfgs, log, dataDir,
                     db, nms, workQueue,
-                    islands, invites, users, sessions);
+                    islands, invites, users, sessions, serverState);
         }
 
         public Debug() {
             super(null, null, null,
                     null, null, null,
-                    null, null, null, null);
+                    null, null, null, null, null);
         }
 
         public void setIslandManager(IslandManager islands) {
@@ -378,7 +396,7 @@ public class Ether /*implements AutoCloseable*/ {
         protected Uninit() {
             super(null, null, null,
                     null, null, null,
-                    null, null, null, null);
+                    null, null, null, null, null);
         }
 
         @Override

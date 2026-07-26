@@ -10,14 +10,17 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.*;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.Schematic;
+import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-import org.minerift.ether.work.deprecated.BatchedTask;
+import org.minerift.ether.oldwork.BatchedWork;
+import org.minerift.ether.oldwork.Operation;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.ChunkCoords;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.minerift.ether.nms.world.Section.*;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
@@ -25,7 +28,7 @@ import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 @SuppressWarnings("Duplicates")
 public class Pasters {
 
-    public static void pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
+    public static CompletableFuture<Void> pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
         //Vec3i end = loc.copy().copyMutable().add(bv.getDimensions());
         bv.getBlockEntities().forEach((be) -> be.getPos().add(loc));
 
@@ -50,7 +53,7 @@ public class Pasters {
 
         // Start at top right
         // TODO: experiment w/ CompletableFuture#allOf for pasting in each chunk (each chunk being locked)
-        BatchedTask batch = new BatchedTask(); // TODO: needs to be blocking
+        /*Operation op = Operation.of(
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             //Bukkit.getScheduler()
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
@@ -80,8 +83,9 @@ public class Pasters {
             //System.out.println(bv.getBlocks().getBlockEntities());
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
+        );
 
-        Ether.inst().getWorkQueue().enqueue(batch);
+        Ether.inst().getWorkQueue().enqueue(batch);*/
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
@@ -89,6 +93,7 @@ public class Pasters {
         //System.out.println(loc);
         //System.out.println(end);
 
+        throw new UnreachableException("todo: unimplemented"); // TODO
     }
 
     public static void pasteBlockVolume(BlockVolume bv, World world, Vec3i loc) {
@@ -236,7 +241,7 @@ public class Pasters {
                 new ArrayList<>( (br.getZ() - tr.getZ() + 1) * (tl.getX() - tr.getX() + 1) ));
 
         // Start at top right
-        BatchedTask operation = new BatchedTask();
+        BatchedWork operation = new BatchedWork();
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
@@ -258,7 +263,7 @@ public class Pasters {
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
 
-        Ether.inst().getWorkQueue().enqueue(operation);
+        //FIXME Ether.inst().getWorkQueue().enqueue(operation);
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
@@ -359,7 +364,7 @@ public class Pasters {
         List<Chunk> chunks = Collections.synchronizedList(
                 new ArrayList<>( (br.getZ() - tr.getZ() + 1) * (tl.getX() - tr.getX() + 1) ));
 
-        BatchedTask operation = new BatchedTask();
+        BatchedWork operation = new BatchedWork();
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
@@ -384,7 +389,7 @@ public class Pasters {
             Bukkit.broadcast(Component.text("finished -> status: " + status));
         });
 
-        Ether.inst().getWorkQueue().enqueue(operation);
+        //FIXME Ether.inst().getWorkQueue().enqueue(operation);
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
