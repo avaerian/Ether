@@ -59,8 +59,8 @@ public class BoundingBox {
         // iterate through region
         // if state doesn't exist, get nextId and increment
         // set data at flattened idx
-        Vec2i cmin = ChunkCoords.from(min.getX(), min.getZ());
-        Vec2i cmax = ChunkCoords.from(max.getX(), max.getZ());
+        Vec2i cmin = ChunkCoords.getChunkAt(min.getX(), min.getZ());
+        Vec2i cmax = ChunkCoords.getChunkAt(max.getX(), max.getZ());
 
         int ccount = ((cmax.getX() - cmin.getX()) + 1) * ((cmax.getZ() - cmin.getZ() + 1));
 
@@ -108,7 +108,6 @@ public class BoundingBox {
 
     }*/
 
-    @SuppressWarnings("Duplicates")
     private static void accessSection(Chunk chunk, int sy, BlockVolume.Builder bv, Vec3i min) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
@@ -119,7 +118,7 @@ public class BoundingBox {
         int normY = roundChunk(min.getY());
         int normZ = roundChunk(min.getZ());
 
-        Vec2i startChunk = ChunkCoords.from(min);
+        Vec2i startChunk = ChunkCoords.getChunkAt(min);
         Vec2i.Mutable normalizedChunk = new Vec2i.Mutable(cx, cz);
         normalizedChunk.subtract(startChunk);
 
@@ -155,6 +154,12 @@ public class BoundingBox {
 
                         int idx = YZX.flatten(bv.getWidth(), bv.getLength(), arrayBlockX, arrayBlockY, arrayBlockZ);
 
+                        // TODO: refactor this to use a context (can create one and update it each iteration
+                        //  rather than create a new one every iteration) for saving BlockVolume's, BiomeVolume's,
+                        //  entities, and Schematics. Entities may be different when saving; this may require
+                        //  NMS for an easier, faster time, but the Context<V> would allow for one function
+                        //  with many different lambdas. Will try and dedup other classes copying and pasting
+                        //  this same type of code.
                         BlockState<?> state = section.getBlockState(x, y, z);
                         //System.out.println("state -> " + state.asNative());
                         byte id;
@@ -194,8 +199,8 @@ public class BoundingBox {
     @Experimental
     @NeedsTesting
     public CompletableFuture<Chunk[]> getOverlappingChunks(World world, ChunkGetter cg) {
-        Vec2i min = ChunkCoords.from(this.min.getX(), this.min.getZ());
-        Vec2i max = ChunkCoords.from(this.max.getX(), this.max.getZ());
+        Vec2i min = ChunkCoords.getChunkAt(this.min.getX(), this.min.getZ());
+        Vec2i max = ChunkCoords.getChunkAt(this.max.getX(), this.max.getZ());
         int count = (max.getX() - min.getX()) * (max.getZ() - min.getZ());
         CompletableFuture<Void>[] futures = new CompletableFuture[count];
         AtomicInteger i_ = new AtomicInteger();

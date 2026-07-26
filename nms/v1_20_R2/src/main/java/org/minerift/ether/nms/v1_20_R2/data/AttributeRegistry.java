@@ -8,12 +8,16 @@ import org.minerift.ether.nms.world.block.Attribute;
 import org.minerift.ether.nms.world.block.Attributes;
 import org.minerift.ether.schematic.transform.Axis;
 import org.minerift.ether.schematic.transform.Direction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 import static net.minecraft.core.Direction.*;
 import static net.minecraft.core.Direction.Axis.*;
 
 public class AttributeRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AttributeRegistry.class);
 
     private static AttributeRegistry INST;
 
@@ -34,6 +38,8 @@ public class AttributeRegistry {
         register(Attributes.HORIZONTAL_FACING, BlockStateProperties.HORIZONTAL_FACING, DirectionAttrCodec.INST);
         register(Attributes.FACING, BlockStateProperties.FACING, DirectionAttrCodec.INST);
         register(Attributes.AXIS, BlockStateProperties.AXIS, AxisAttrCodec.INST);
+        register(Attributes.LIT, BlockStateProperties.LIT, BoolAttributeCodec.INST);
+        register(Attributes.FALLING, BlockStateProperties.FALLING, BoolAttributeCodec.INST);
     }
 
     private <A extends Attribute<T>, T, NT extends Comparable<NT>> void register(A attr,
@@ -81,7 +87,6 @@ public class AttributeRegistry {
         return ((AttributeCodec<T, NT>)entry.codec).fromNative(nVal);
     }
 
-    // TODO: review
     public <T, NT extends Comparable<NT>> T getValue(BlockState state, Attribute<T> attr) {
         Entry<T> entry = (Entry<T>) mappings[attr.getId()];
         NT val = state.getValue((Property<NT>) entry.mapping);
@@ -100,7 +105,7 @@ public class AttributeRegistry {
             Comparable compVal = entry.codec.toNative(val);
             return state.setValue((Property)entry.mapping, compVal);
         } catch (IllegalArgumentException ex) {
-            // TODO: logger
+            LOGGER.debug("Falling back to default state ({}); illegal attribute or value", state, ex);
             return state;
         }
     }
@@ -164,6 +169,21 @@ public class AttributeRegistry {
                 case Y -> Y;
                 case Z -> Z;
             };
+        }
+    }
+
+    static class BoolAttributeCodec implements AttributeCodec<Boolean, Boolean> {
+
+        public static final AttributeCodec<Boolean, Boolean> INST = new BoolAttributeCodec();
+
+        @Override
+        public Boolean fromNative(Boolean nType) {
+            return nType;
+        }
+
+        @Override
+        public Boolean toNative(Boolean type) {
+            return type;
         }
     }
 

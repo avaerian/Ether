@@ -1,6 +1,5 @@
 package org.minerift.ether.nms.world;
 
-import com.google.errorprone.annotations.InlineMe;
 import org.bukkit.entity.Player;
 import org.minerift.ether.math.Vec3;
 import org.minerift.ether.nms.BiomeNotFoundException;
@@ -26,16 +25,16 @@ public interface Section<NBS, NC, NCS, NB> {
         return getBlockState(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    NBS setBlockState(int x, int y, int z, NBS state);
+    NBS setNativeBlockState(int x, int y, int z, NBS state);
 
     default NBS setBlockState(int x, int y, int z, String id) throws BlockStateNotFoundException {
         NBS state = getConverter().asNativeBlockState(id);
-        NBS old = setBlockState(x, y, z, state);
+        NBS old = setNativeBlockState(x, y, z, state);
         return old;
     }
 
     default BlockState<?> setBlockState(int x, int y, int z, BlockState<?> state) {
-        NBS oldNative = setBlockState(x, y, z, (NBS)state.asNative());
+        NBS oldNative = setNativeBlockState(x, y, z, (NBS)state.asNative());
         BlockState<NBS> old = getConverter().asBlockState(oldNative);
         return old;
     }
@@ -50,10 +49,22 @@ public interface Section<NBS, NC, NCS, NB> {
         }
     }
 
-    void setBiome(int biomeX, int biomeY, int biomeZ, NB biome);
+    void setNativeBiome(int biomeX, int biomeY, int biomeZ, NB biome);
 
+    /**
+     * Set the biome for a location in this chunk section.
+     *
+     * <p>
+     * <b>NOTE:</b> the input position for biomes is a <u>QuartPos</u>, a.k.a. a quarter
+     * of a chunk. A biome can be set every 4 blocks.
+     *
+     * @param biomeX quart position relative to this section
+     * @param biomeY quart position relative to this section
+     * @param biomeZ quart position relative to this section
+     * @param biome the NMS biome
+     */
     default void setBiome(int biomeX, int biomeY, int biomeZ, Biome<?> biome) {
-        setBiome(biomeX, biomeY, biomeZ, (NB) biome.asNative());
+        setNativeBiome(biomeX, biomeY, biomeZ, (NB) biome.asNative());
     }
 
     void updateSectionChanges(int sectionIndex, ChunkSectionChanges changes);

@@ -14,14 +14,27 @@ public class PermissionSet {
         // to BitSets if ever needed); at this moment this doesn't occur with the
         // small number of island permissions
         if(IslandPermission.VALUES.length > 64) {
-            Ether.inst().getLogger().log(Level.WARNING, "Island permissions count exceeds 64");
+            Ether.inst().getLogger().warn("Island permissions count exceeds 64");
         }
     }
 
     private long[] perms; // longs as the permission sets, indexed by the island roles
 
+    public PermissionSet(long[] perms) {
+        assert perms.length == IslandRole.values().length;
+        this.perms = perms;
+    }
+
     public PermissionSet() {
         this.perms = new long[IslandRole.values().length];
+    }
+
+    public long[] getPerms() {
+        return Arrays.copyOf(perms, perms.length);
+    }
+
+    public long[] getPermsMut() {
+        return perms;
     }
 
     public PermissionSet set(IslandRole role, IslandPermission perm) {

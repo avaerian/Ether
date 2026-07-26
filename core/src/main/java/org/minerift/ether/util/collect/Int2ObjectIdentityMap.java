@@ -3,11 +3,14 @@ package org.minerift.ether.util.collect;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.util.Utils;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -27,18 +30,18 @@ import static java.lang.String.format;
  *
  * @param <V> value type
  */
-public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
+public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V>, Iterable<Int2ObjectIdentityMap.Entry<V>> {
 
-    private static final int DEFAULT_INIT_SIZE = 16;
-    private static final int DEFAULT_ENTRY_LIMIT = 1024;
-    private static final IntUnaryOperator DEFAULT_GROWER = (i) -> i == 0 ? 2 : i * 2;
-
-    public static <V> Int2ObjectIdentityMap<V> noLimit() {
-        return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE);
-    }
+    public static final int DEFAULT_INIT_SIZE = 16;
+    public static final int DEFAULT_ENTRY_LIMIT = 1024;
+    public static final IntUnaryOperator DEFAULT_GROWER = (i) -> i == 0 ? 2 : i * 2;
 
     public static <V> Int2ObjectIdentityMap<V> noLimit(IntUnaryOperator grower) {
         return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE, grower);
+    }
+
+    public static <V> Int2ObjectIdentityMap<V> noLimit() {
+        return new Int2ObjectIdentityMap<>(Integer.MAX_VALUE);
     }
 
     private BitSet keys;
@@ -67,14 +70,16 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
 
     @Override
     public V put(final int key, final V value) {
-        if(key < 0)
-            throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", key) );
+        if(key < 0) { // FIXME: review!!!
+            Ether.LOGGER.debug("Key {} is negative", key);
+            return defaultRet;
+        }
         if(key >= limit)
             throw new IllegalArgumentException(format("Key (%d) exceeds limit (%d)", key, limit));
         if(key >= map.length) {
             int newLen = grower.apply(map.length);
             if(newLen < key) {
-                newLen = key;
+                newLen = key + 1;
             }
             Object[] copy = new Object[newLen];
             System.arraycopy(map, 0, copy, 0, map.length);
@@ -117,10 +122,26 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
 
     @Override
     public V get(final int i) {
-        if(i < 0) throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", i));
+        if(i < 0) return defaultRet; /*throw new IllegalArgumentException(format("Key (%d) below 0 disallowed", i));*/
         if(i >= map.length) return defaultRet;
         V item = (V) map[i];
         return item != null ? item : defaultRet;
+    }
+
+    public int nextAvailableKey(final int fromKey) {
+        return keys.nextClearBit(fromKey);
+    }
+
+    public int nextAvailableKey() {
+        return nextAvailableKey(0);
+    }
+
+    public int nextUsedKey(final int fromKey) {
+        return keys.nextSetBit(fromKey);
+    }
+
+    public int nextUsedKey() {
+        return nextUsedKey(0);
     }
 
     @Override
@@ -209,7 +230,7 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
     }
 
     @Override
-    public ObjectSet<Entry<V>> int2ObjectEntrySet() {
+    public ObjectSet<Int2ObjectMap.Entry<V>> int2ObjectEntrySet() {
         return null;
     }
 
@@ -245,5 +266,57 @@ public class Int2ObjectIdentityMap<V> implements Int2ObjectMap<V> {
         public int size() {
             return size;
         }
+    }
+
+    // TODO
+    @Override
+    public @NotNull Iterator<Entry<V>> iterator() {
+        Int2ObjectIdentityMap<V> t = this;
+        return new Iterator<>() {
+            int i = -1;
+
+            @Override
+            public boolean hasNext() {
+                return i != Integer.MAX_VALUE && (i = keys.nextSetBit(i+1)) != -1;
+            }
+
+            @Override
+            public Entry<V> next() {
+                return new Entry<>(t, i, (V)map[i]); // I don't know if I like this, but whatever; I'll review later
+            }
+        };
+    }
+
+    public static final class Entry<V> {
+        private final Int2ObjectIdentityMap<V> holder;
+        private final int key;
+        private V value;
+        private Entry(Int2ObjectIdentityMap<V> holder, int key, V value) {
+            this.holder = holder;
+            this.key = key;
+            this.value = value;
+        }
+
+        public int getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public V setValue(V value) {
+            V old = (V) holder.map[key];
+            this.value = (V) (holder.map[key] = value);
+            return old;
+        }
+    }
+
+    public Stream<Entry<V>> stream() {
+        Stream.Builder<Entry<V>> stream = Stream.builder();
+        for(Entry<V> entry : this) {
+            stream.add(entry);
+        }
+        return stream.build();
     }
 }

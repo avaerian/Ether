@@ -1,6 +1,9 @@
 package org.minerift.ether.generation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.WorldType;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
@@ -28,6 +31,12 @@ public class VoidGenerator extends ChunkGenerator {
     // TODO: review method overrides and re-evaluate for organization (i.e. remove unnecessary deprecated methods)
     @Override
     public @NotNull ChunkData generateChunkData(@NotNull World world, @NotNull Random random, int x, int z, @NotNull BiomeGrid biome) {
+        ChunkData data = Bukkit.createChunkData(world);
+
+        World test = new WorldCreator("ether_overworld")
+                .type(WorldType.FLAT)
+                .createWorld();
+
         return createChunkData(world);
     }
 

@@ -7,6 +7,8 @@ public enum Compression {
 
     ;
 
+    // references https://isc.sans.edu/diary/25182.
+    // tentatively check for zlib/gzip compression.
     // big-endian magic
     static Compression fromMagic(short magic) {
         final Compression cmps;

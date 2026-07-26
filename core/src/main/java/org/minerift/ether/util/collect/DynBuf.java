@@ -15,6 +15,7 @@ import java.util.function.IntUnaryOperator;
 @SuppressWarnings("Duplicates")
 @Experimental
 @NeedsTesting // write unit tests for this class
+@Deprecated
 public class DynBuf {
     // Thread safety is also a desire
 

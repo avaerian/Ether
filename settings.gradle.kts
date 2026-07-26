@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 rootProject.name = "Ether"
@@ -18,6 +18,9 @@ logger.lifecycle("NMS modules to exclude: ${excludedNmsModules.contentToString()
 
 val nmsDir: Array<File> = file("nms").listFiles() ?: throw GradleException("No NMS module/directory was found!")
 for (dir in nmsDir) {
+    if(!dir.name.startsWith('v'))
+        continue
+
     if(!excludedNmsModules.contains(dir.name)) {
         include("nms:${dir.name}")
         logger.lifecycle("Included nms version: [name=${dir.name}, path=\'${dir.path}\']")

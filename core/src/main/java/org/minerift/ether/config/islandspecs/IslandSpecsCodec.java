@@ -1,15 +1,17 @@
 package org.minerift.ether.config.islandspecs;
 
-import com.google.common.base.Preconditions;
+import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigCodec;
 import org.minerift.ether.config.ConfigReadException;
 import org.minerift.ether.config.ConfigWriteException;
 import org.minerift.ether.config.source.DirectorySource;
-import org.minerift.ether.debug.Debug;
 import org.minerift.ether.util.nbt.*;
 import org.minerift.ether.util.nbt.tags.*;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.NoTagTypeFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactoryFriend;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,16 +26,14 @@ import static org.minerift.ether.util.nbt.tags.NbtOptions.USE_NUNBT_IO;
 
 public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySource> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IslandSpecsCodec.class);
+
     public static final IslandSpecsCodec INST = new IslandSpecsCodec();
 
     @Override
     protected void readIt(IslandSpecsConfig cfg, DirectorySource src) throws ConfigReadException {
-        /* START MOVE THIS OUT OF HERE */
-        final File dir = src.getDirectory();
-        Preconditions.checkArgument(dir.exists(), dir.getName() + " does not exist");
-        Preconditions.checkArgument(dir.isDirectory(), dir.getName() + " must be a directory");
-        /* END MOVE THIS OUT OF HERE */
 
+        File dir = src.getDirectory();
         List<IslandSpec> specs = new ArrayList<>(16);
         // parallelize by queuing tasks and waiting for all tasks to complete? (CompletableFuture/Scheduler)<- shits and giggles
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(dir.toPath(), "*.spec")) {
@@ -47,9 +47,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
                     IslandSpec spec = IslandSpec.of(root);
                     specs.add(spec);
                 } catch (IslandSpecLoadException | NbtReadException | NoTagTypeFoundException e) {
-                    // TODO: logger
-                    // skip this file and log
-                    System.out.printf("Failed to load %s (%s): %s\n", p.getFileName(), p, e.getMessage()); // consider e.getLocalizedMessage()
+                    LOGGER.warn("Failed to load {} ({}): {}\n", p.getFileName(), p, e.getMessage()); // consider e.getLocalizedMessage()
                 }
             }
         } catch (IOException ex) {
@@ -81,8 +79,7 @@ public class IslandSpecsCodec extends ConfigCodec<IslandSpecsConfig, DirectorySo
             try {
                 nbt.compress(Compression.GZIP);
             } catch (IOException e) {
-                // TODO: logger
-                System.out.println("Skipping IslandSpec " + spec.getIslandName() + ": failed to compress schematic");
+                LOGGER.warn("Skipping IslandSpec {}: failed to compress schematic", spec.getIslandName());
                 continue;
             }
 

@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.shorts.ShortArraySet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import net.minecraft.core.Holder;
 import net.minecraft.core.SectionPos;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundChunksBiomesPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.world.level.biome.Biome;
@@ -44,7 +46,7 @@ public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSe
     }
 
     @Override
-    public BlockState setBlockState(int x, int y, int z, BlockState state) {
+    public BlockState setNativeBlockState(int x, int y, int z, BlockState state) {
         return section.setBlockState(x, y, z, state);
     }
 
@@ -54,7 +56,8 @@ public class SectionImpl implements Section<BlockState, LevelChunk, LevelChunkSe
     }
 
     @Override
-    public void setBiome(int biomeX, int biomeY, int biomeZ, Holder<Biome> biome) {
+    public void setNativeBiome(int biomeX, int biomeY, int biomeZ, Holder<Biome> biome) {
+        //ClientboundChunksBiomesPacket
         section.setBiome(biomeX, biomeY, biomeZ, biome);
     }
 

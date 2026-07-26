@@ -2,7 +2,7 @@ package org.minerift.ether.database.sql;
 
 import org.minerift.ether.database.DataType;
 import org.minerift.ether.database.sql.connectors.*;
-import org.minerift.ether.database.sql.fallback.JsonFallback;
+import org.minerift.ether.database.fallback.JsonFallback;
 import org.minerift.ether.util.Utils;
 
 import java.util.function.Supplier;

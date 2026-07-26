@@ -3,9 +3,10 @@ package org.minerift.ether.util.nbt.tags;
 import org.minerift.ether.util.Note;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
+
+import java.util.Objects;
 
 public class ByteTag extends Tag implements ScalarTag {
 
@@ -18,11 +19,6 @@ public class ByteTag extends Tag implements ScalarTag {
     public ByteTag(String name, byte value) {
         this.name = name;
         this.value = value;
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitByte(this);
     }
 
     @Override
@@ -85,6 +81,17 @@ public class ByteTag extends Tag implements ScalarTag {
                 "value=" + value +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ByteTag byteTag)) return false;
+        return value == byteTag.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 
     public static class Codec implements TagCodec<ByteTag> {

@@ -6,9 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.minerift.ether.debug.*;
 import org.minerift.ether.listeners.BlockBreakListener;
 import org.minerift.ether.listeners.PlayerJoinQuitListener;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 // Represents the Minecraft plugin (handles plugin API stuff here)
 public class EtherPlugin extends JavaPlugin {
@@ -27,12 +25,12 @@ public class EtherPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        final Logger logger = getLogger();
+        final Logger logger = getSLF4JLogger();
         final Ether.InitResult init;
         try {
             init = Ether.from(getDataFolder(), logger);
         } catch (EtherLoadException e) {
-            logger.log(Level.SEVERE, "Something went wrong", e);
+            logger.error("Something went wrong", e);
             disable();
             return;
         }

@@ -9,7 +9,7 @@ public class DataType<T> {
     public static final DataType<Byte> BYTE = new DataType<>(PrimitiveType.BYTE, Byte.class);
     public static final DataType<Short> SHORT = new DataType<>(PrimitiveType.SHORT, Short.class);
     public static final DataType<Integer> INT = new DataType<>(PrimitiveType.INTEGER, Integer.class);
-    public static final DataType<Long> BIGINT = new DataType<>(PrimitiveType.BIGINT, Long.class);
+    public static final DataType<Long> LONG = new DataType<>(PrimitiveType.BIGINT, Long.class);
     public static final DataType<Float> FLOAT = new DataType<>(PrimitiveType.FLOAT, Float.class);
     public static final DataType<Double> DOUBLE = new DataType<>(PrimitiveType.DOUBLE, Double.class);
     public static final DataType<String> CHAR = new DataType<>(PrimitiveType.CHAR, String.class);
@@ -20,7 +20,7 @@ public class DataType<T> {
     // UNBOXED PRIMITIVE ARRAY TYPES
     public static final DataType<short[]> SHORTS = new DataType<>(PrimitiveType.SHORT, short[].class);
     public static final DataType<int[]> INTS = new DataType<>(PrimitiveType.INTEGER, int[].class);
-    public static final DataType<long[]> BIGINTS = new DataType<>(PrimitiveType.BIGINT, long[].class);
+    public static final DataType<long[]> LONGS = new DataType<>(PrimitiveType.BIGINT, long[].class);
     public static final DataType<float[]> FLOATS = new DataType<>(PrimitiveType.FLOAT, float[].class);
     public static final DataType<double[]> DOUBLES = new DataType<>(PrimitiveType.DOUBLE, double[].class);
 
@@ -34,7 +34,7 @@ public class DataType<T> {
     }
 
     public static DataType<long[]> BIGINTS(int arrayLength) {
-        return BIGINTS.arrayLength(arrayLength);
+        return LONGS.arrayLength(arrayLength);
     }
 
     public static DataType<float[]> FLOATS(int arrayLength) {

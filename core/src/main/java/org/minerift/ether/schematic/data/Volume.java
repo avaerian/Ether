@@ -6,19 +6,12 @@ import org.minerift.ether.util.fn.ByteIterator;
 
 import static java.lang.String.format;
 
-// T -> element type
-// A -> archetype
 public abstract class Volume<T> {
-
-    public ByteIterator byteIterator() {
-        return ByteIterator.of(data);
-    }
 
     protected final Array3DOrder order;
     protected final BytePalette<T> palette;
     protected final byte[] data;
     protected final int width, height, length;
-
 
     public Volume(Array3DOrder order, byte[] data, BytePalette<T> palette, int width, int height, int length) {
         this.order = order;
@@ -89,6 +82,10 @@ public abstract class Volume<T> {
 
     public Vec3i getDimensions() {
         return new Vec3i(getWidth(), getHeight(), getLength());
+    }
+
+    public ByteIterator byteIterator() {
+        return ByteIterator.of(data);
     }
 
     public static abstract class Builder<

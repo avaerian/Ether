@@ -10,11 +10,16 @@ import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
+import org.minerift.ether.schematic.data.BiomeVolume;
+import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.transform.Rotate;
 import org.minerift.ether.schematic.transform.Transform;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.world.EntityArchetype;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class WorldEditSchematic implements Schematic {
@@ -51,8 +56,8 @@ public class WorldEditSchematic implements Schematic {
     }
 
     @Override
-    public void paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
-        type().getPaster(WESchematicPaster.class).paste(this, pos, worldName, options);
+    public CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
+        return type().getPaster(WESchematicPaster.class).paste(this, pos, worldName, options);
     }
 
     @Override
@@ -79,6 +84,21 @@ public class WorldEditSchematic implements Schematic {
     public Vec3i getOffset() {
         final BlockVector3 offset = clipboard.getOrigin();
         return new Vec3i(offset.getX(), offset.getY(), offset.getZ());
+    }
+
+    @Override
+    public BlockVolume getBlocks() {
+        throw new UnreachableException("unimplemented");
+    }
+
+    @Override
+    public BiomeVolume getBiomes() {
+        throw new UnreachableException("unimplemented");
+    }
+
+    @Override
+    public List<EntityArchetype> getEntities() {
+        throw new UnreachableException("unimplemented");
     }
 
     // TODO: needs a lot of work
