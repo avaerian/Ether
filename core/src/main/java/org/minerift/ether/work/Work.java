@@ -4,11 +4,13 @@ import org.minerift.ether.util.Either;
 
 public abstract class Work<T> {
 
+    protected final String name;
     protected volatile ValueStatus status;
     protected volatile Either<T, String> result;
 
-    public Work() {
-        this.status = ValueStatus.UNSTARTED;
+    public Work(String name) {
+        this.name = name;
+        this.status = ValueStatus.NOT_PRESENT;
         this.result = null;
     }
 

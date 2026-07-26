@@ -3,6 +3,7 @@ package org.minerift.ether.work;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.EtherPlugin;
+import org.minerift.ether.util.Either;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -31,6 +32,14 @@ public class WorkQueue {
         }
     }
 
+    public void enqueue(Work<?> work) {
+        // TODO
+    }
 
+    public void start() {
 
+    }
+
+    public void close() {
+    }
 }
