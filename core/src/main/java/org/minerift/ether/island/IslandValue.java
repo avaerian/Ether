@@ -5,9 +5,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.minerift.ether.nms.world.block.BlockState;
 
-public class IslandWorth {
+public class IslandValue {
     protected Object2IntOpenHashMap<BlockState> statesToValues;
-    public IslandWorth(Object2IntOpenHashMap<BlockState> statesToValues) {
+    public IslandValue(Object2IntOpenHashMap<BlockState> statesToValues) {
         this.statesToValues = statesToValues;
     }
 
@@ -23,7 +23,7 @@ public class IslandWorth {
         return Object2IntMaps.unmodifiable(statesToValues);
     }
 
-    public static class Mutable extends IslandWorth {
+    public static class Mutable extends IslandValue {
 
         public Mutable(Object2IntOpenHashMap<BlockState> statesToValues) {
             super(statesToValues);

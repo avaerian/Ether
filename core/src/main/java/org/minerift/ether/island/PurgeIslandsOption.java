@@ -3,7 +3,7 @@ package org.minerift.ether.island;
 public enum PurgeIslandsOption {
     THRESHOLD,
     QUEUED,
-    INSTANT,
+    LAZY,
 
     ;
 
@@ -11,7 +11,7 @@ public enum PurgeIslandsOption {
         return switch (str.toUpperCase()) {
             case "THRESHOLD" -> THRESHOLD;
             case "QUEUED" -> QUEUED;
-            case "INSTANT" -> INSTANT;
+            case "LAZY" -> LAZY;
             default -> null;
         };
     }

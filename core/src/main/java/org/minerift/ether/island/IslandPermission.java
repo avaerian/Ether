@@ -10,6 +10,11 @@ public enum IslandPermission {
     ENTITY_INTERACT,
     ENTITY_DAMAGE,
 
+    // administrative permissions
+    MODIFY_PERMISSIONS,
+    CREATE_WARPS,
+    DELETE_WARPS,
+
     ;
 
     @NeedsReview
