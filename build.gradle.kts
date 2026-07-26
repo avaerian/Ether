@@ -1,10 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.kotlin.dsl.named
 
 plugins {
     //`kotlin-dsl`
     `java-library`
     id("java")
     id("com.gradleup.shadow") version("9.3.1")
+    id("buildlogic.common")
 }
 
 group = rootProject.group
@@ -16,21 +18,23 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-val shade by configurations.creating {
-    extendsFrom(configurations.implementation.get())
-}
+// TODO: move this to build-logic
 
 repositories {
+    mavenCentral()
     maven("https://repo.carm.cc/repository/maven-public/")
     gradlePluginPortal()
-    mavenCentral()
 }
 
 // TODO: create a SourceSet "shade" for shadowJar to clarify shading?
+val shade: Configuration = configurations.maybeCreate("shade")
+    //.extendsFrom(configurations.runtimeClasspath.get())
 
 dependencies {
-    compileOnly(libs.slf4j)
-    compileOnly(libs.log4j)
+    api(libs.slf4j)
+    api(libs.log4j) {
+        exclude(group = "jakarta.platform", module = "jakartaee-api-parent")
+    }
 
     shade(project(":core"))
     shade(project(":nms:v1_20_R2", "reobf"))
@@ -43,12 +47,27 @@ dependencies {
     shade(libs.sql.driver.sqlite)
     shade(libs.sql.driver.mysql)
     shade(libs.sql.driver.postgresql)
+
+    compileOnly(libs.lombok) // FIXME: compileOnly
+    annotationProcessor(libs.lombok)
+
+    //testCompileOnly(libs.lombok)
+    //testAnnotationProcessor(libs.lombok)
 }
 
 tasks.named<ShadowJar>("shadowJar") {
 
-    //configurations = project.configurations.compileClasspath.map { listOf(it) }
     configurations = listOf(shade)
+
+    logger.lifecycle("cfg dependencies:")
+    configurations.get().any { it == shade }.run {
+        val cfg = configurations.get().elementAt(0);
+        logger.lifecycle("dependencies:")
+        cfg.dependencies.forEach { logger.lifecycle(it.name) }
+
+        logger.lifecycle("all dependencies:")
+        cfg.allDependencies.forEach { logger.lifecycle(it.name) }
+    }
 
     exclude("*.properties") // TODO: review
     archiveFileName.set("${project.name}-${project.version}.jar")

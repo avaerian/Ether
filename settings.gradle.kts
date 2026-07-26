@@ -18,6 +18,9 @@ logger.lifecycle("NMS modules to exclude: ${excludedNmsModules.contentToString()
 
 val nmsDir: Array<File> = file("nms").listFiles() ?: throw GradleException("No NMS module/directory was found!")
 for (dir in nmsDir) {
+    if(!dir.name.startsWith('v'))
+        continue
+
     if(!excludedNmsModules.contains(dir.name)) {
         include("nms:${dir.name}")
         logger.lifecycle("Included nms version: [name=${dir.name}, path=\'${dir.path}\']")
