@@ -22,6 +22,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -30,6 +32,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.block.CraftBlockState;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
@@ -37,14 +40,18 @@ import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.dimension.Dimension;
+import org.minerift.ether.math.*;
 import org.minerift.ether.nms.NMSAccess;
 import org.minerift.ether.nms.v1_20_R2.data.AttributeRegistry;
+import org.minerift.ether.nms.v1_20_R2.data.BlockStateImpl;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.util.BukkitUtils;
+import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.reflect.Reflect;
 import org.minerift.ether.util.reflect.ReflectedObject;
+import org.minerift.ether.world.ChunkCoords;
 import org.minerift.ether.world.EntityArchetype;
 import org.minerift.ether.world.EntityLoadException;
 import org.slf4j.Logger;
@@ -53,6 +60,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public class NMSAccessImpl implements NMSAccess {
 
@@ -71,10 +81,11 @@ public class NMSAccessImpl implements NMSAccess {
         // iterate through cfg dims and check if they exist; err log if they are invalid
 
         // testing reflection mapping
+        // TODO: for logger in these modules, use build-logic to explore logging configuration?
         ReflectionMappings.class.getClass(); // load class and fields for reflection
-        System.out.println("frozen registry obfuscated field: " + ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME);
+        LOGGER.info("frozen registry obfuscated field: {}", ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME);
         ReflectedObject<Registry<Biome>> refBiomeRegistry = Reflect.of(MinecraftServer.getServer().registryAccess().registryOrThrow(Registries.BIOME));
-        System.out.println("Biome Registry Frozen? " + (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME));
+        LOGGER.info("Biome Registry Frozen? {}", (boolean) refBiomeRegistry.readField(ReflectionMappings.FROZEN_REGISTRY_FIELD_NAME));
     }
 
     @Override
@@ -111,12 +122,12 @@ public class NMSAccessImpl implements NMSAccess {
             entity1.moveTo(entity.getLocation().getXd(), entity.getLocation().getYd(), entity.getLocation().getZd());
             return entity1;
         });
-        if(worldEntity == null) {
+        if(worldEntity == null)
             throw new EntityLoadException("Entity archetype (" + entity.getId() + ") failed to load: invalid type");
-        }
-        if(!level.tryAddFreshEntityWithPassengers(worldEntity)) {
+
+        if(!level.tryAddFreshEntityWithPassengers(worldEntity))
             throw new EntityLoadException("Entity failed to add to world: duplicate UUID " + worldEntity.getStringUUID());
-        }
+
         world.getChunkAtAsync(BukkitUtils.asBukkitLocation(world, entity.getLocation())).thenAccept((_chunk) -> {
             LevelChunk chunk = getConverter().asChunk(_chunk).asNative();
             chunk.playerChunk.broadcast(new ClientboundAddEntityPacket(worldEntity), false);
@@ -131,7 +142,9 @@ public class NMSAccessImpl implements NMSAccess {
         ServerLevel lvl = ((CraftWorld)world).getHandle();
         String resLoc = lvl.dimension().location().toString();
         LOGGER.error(resLoc);
-        return cfg.getDimensions().get(resLoc);
+        //world.getUID()
+        
+        return cfg.getDimensions().getByResource(resLoc); // FIXME: persist server data in seperate binary file
     }
 
 
@@ -215,6 +228,8 @@ public class NMSAccessImpl implements NMSAccess {
             ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(nChunk, serverChunkCache.getLightEngine(), null, null, true);
             nChunk.getChunkHolder().vanillaChunkHolder.broadcast(packet, false);
             System.out.println("Cleared chunk at " + chunk.getX() + ", " + chunk.getZ());
+
+
         }
     }
 
@@ -229,6 +244,36 @@ public class NMSAccessImpl implements NMSAccess {
             });
         });
     }
+
+    @Override
+    public BlockStateImpl getBlockState(World world, Vec3 pos) {
+        ServerLevel level = ((CraftWorld)world).getHandle();
+        return BlockStateImpl.of(level.getBlockState(new BlockPos(pos.getX(), pos.getY(), pos.getZ())));
+    }
+
+    @Override
+    public BlockStateImpl setBlockState(World world, Vec3 pos, org.minerift.ether.nms.world.block.BlockState state) {
+        ServerLevel level = ((CraftWorld)world).getHandle();
+        BlockPos bpos = new BlockPos(pos.getX(), pos.getY(), pos.getZ());
+        BlockStateImpl old = BlockStateImpl.of(level.getBlockState(bpos));
+        if(!level.setBlockAndUpdate(bpos, (BlockState) state.asNative()))
+            LOGGER.warn("Setting and updating block returned false for some reason");
+        return old;
+    }
+
+    @Override
+    public boolean isSuffocating(World world, Vec3 eyePos) {
+        final ServerLevel level = ((CraftWorld)world).getHandle();
+        final BlockState state = ((CraftBlockState)world.getBlockState(eyePos.getX(), eyePos.getY(), eyePos.getZ())).getHandle();
+        return state.isSuffocating(level, new BlockPos(eyePos.getX(), eyePos.getY(), eyePos.getZ()));
+    }
+
+    /*@Override
+    public boolean isValidSpawn(World world, Vec3 eyePos) {
+        final ServerLevel level = ((CraftWorld)world).getHandle();
+        final BlockState state = ((CraftBlockState)world.getBlockState(eyePos.getX(), eyePos.getY(), eyePos.getZ())).getHandle();
+        return state.isValidSpawn(level, new BlockPos(eyePos.getX(), eyePos.getY(), eyePos.getZ()));
+    }*/
 
     @Experimental
     @Override
@@ -254,7 +299,7 @@ public class NMSAccessImpl implements NMSAccess {
         //Bukkit.broadcast(Component.text("Relighting..."));
         //serverChunkCache.getLightEngine().relight(getNeighboringChunks(e1, e2), a -> {}, b -> {});
 
-        Bukkit.broadcast(Component.text(String.format("Cleared %d chunk(s)",
+        Bukkit.broadcast(Component.text(format("Cleared %d chunk(s)",
                 ChunkPos.rangeClosed(nChunk1.getPos(), nChunk2.getPos()).count())));
         return res;
     }
@@ -287,6 +332,59 @@ public class NMSAccessImpl implements NMSAccess {
     @Override
     public Experiments experiments() {
         return exp;
+    }
+
+    // TODO: FINISH
+    @Override
+    public void relightChunks(Vec2i from, Vec2i to) {
+        Vec2i min = Vec2i.min(from, to);
+        Vec2i max = Vec2i.max(from, to);
+        for(int z = min.getZ(); z < max.getZ(); z++) {
+            for(int x = min.getX(); x < max.getX(); x++) {
+                throw new UnreachableException("TODO");
+            }
+        }
+    }
+
+    // TODO: FINISH
+    // TODO: refactor by moving logic out of NMS into common core
+    @Override
+    public void relightChunksCircular(World world, Vec2i from, Vec2i to, Vec3 pos) {
+        final ServerLevel level = ((CraftWorld)world).getHandle();
+
+        Vec2i min = Vec2i.min(from, to);
+        Vec2i max = Vec2i.max(from, to);
+        Vec2i minBlock = new Vec2i(min.getX() * 16, min.getZ() * 16);
+        Vec2i maxBlock = new Vec2i(max.getX() * 16 + 15, max.getZ() * 16 + 15);
+        Vec2i block = new Vec2i(pos.getX(), pos.getZ());
+
+        if(!Vec2i.isInside(minBlock, maxBlock, block))
+            throw new IllegalArgumentException(
+                    format("pos is outside of chunk bounds from (%s) and to (%s) (minBlock=%s, maxBlock=%s, block=%s)",
+                            from, to, minBlock, maxBlock, block));
+
+        int lenXBlks = Math.min(maxBlock.getX() - pos.getX(), pos.getX() - minBlock.getX());
+        int lenZBlks = Math.min(maxBlock.getZ() - pos.getZ(), pos.getZ() - minBlock.getZ());
+        int lenXChks = lenXBlks / 16 + 1;
+        int lenZChks = lenZBlks / 16 + 1;
+        //int rings = Math.min(lenXChks, lenZChks);
+
+        Set<Vec2i> chunks = ChunkCoords.rangeClosed(min, max).collect(Collectors.toSet());
+
+        Vec2i centerChunk = ChunkCoords.getChunkAt(pos);
+        Vec2i.Mutable chunk = centerChunk.copyMutable();
+        for(int z = 0; z < lenZChks; z++) {
+            for(int x = 0; x < lenXChks; x++) {
+                Vec2i offset = GridAlgorithm.computeTile(z * lenXChks + x);
+                chunk.set(centerChunk);
+                chunk.add(offset);
+
+                // TODO: relight chunk
+                //((ThreadedLevelLightEngine)level.getLightEngine()).theLightEngine.getBlockLightEngine().blocksChangedInChunk();
+
+                chunks.remove(chunk);
+            }
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.minerift.ether.nms.world;
 
 import org.bukkit.NamespacedKey;
 import org.minerift.ether.Ether;
+import org.minerift.ether.debug.NeedsReview;
 import org.minerift.ether.nms.NativeTypeConversions;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 
@@ -25,6 +26,7 @@ public interface ItemStack<NIS> {
     String getResourceLocation();
     NamespacedKey getNamespacedKey();
 
+    @NeedsReview org.bukkit.inventory.ItemStack asBukkitItem();
     NIS asNative();
 
     NativeTypeConversions<?,?,?,?,NIS> getConverter();
