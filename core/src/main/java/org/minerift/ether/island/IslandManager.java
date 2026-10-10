@@ -14,7 +14,7 @@ import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3;
 import org.minerift.ether.math.Vec3i;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.NmsAccess;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.nms.world.ItemStack;
 import org.minerift.ether.panel.Panel;
@@ -112,7 +112,7 @@ public class IslandManager {
         final IslandGrid syncGrid = IslandGrid.synchronize(grid, grid);
 
         CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
-            final NMSAccess nms = Ether.inst().getNms();
+            final NmsAccess nms = Ether.inst().getNms();
             DeletedTile deleted = syncGrid.getTileForClearing(tile);
             if(deleted != null && deleted.dimsToClear().contains(dim.getResourceLocation())) {
                 CompletableFuture<Void>[] chunkTasks =

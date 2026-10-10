@@ -4,12 +4,10 @@ import org.bukkit.World;
 import org.minerift.ether.Ether;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.Experiments;
-import org.minerift.ether.debug.NeedsReview;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.math.Vec2i;
 import org.minerift.ether.math.Vec3;
-import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.Chunk;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.nms.world.block.BlockState;
@@ -20,7 +18,7 @@ import org.minerift.ether.world.EntityLoadException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface NMSAccess {
+public interface NmsAccess {
 
     // TODO: review; looking into local FixerUpper that emulates native MC FixerUpper
     <T extends Tag> T fixUpItemName(T nbt, int dataVersion);

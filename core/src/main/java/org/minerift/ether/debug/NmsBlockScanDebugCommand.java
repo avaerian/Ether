@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
 import org.minerift.ether.nms.world.ChunkGetter;
 
-public class NMSBlockScanDebugCommand implements CommandExecutor {
+public class NmsBlockScanDebugCommand implements CommandExecutor {
 
     // Command format: /blockscan <mode> <diameter>
     @Override

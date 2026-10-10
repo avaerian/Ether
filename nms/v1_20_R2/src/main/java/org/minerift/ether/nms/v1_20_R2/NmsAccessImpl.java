@@ -23,7 +23,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -41,7 +40,7 @@ import org.minerift.ether.debug.Experiments;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.dimension.Dimension;
 import org.minerift.ether.math.*;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.NmsAccess;
 import org.minerift.ether.nms.v1_20_R2.data.AttributeRegistry;
 import org.minerift.ether.nms.v1_20_R2.data.BlockStateImpl;
 import org.minerift.ether.nms.world.Chunk;
@@ -64,16 +63,16 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-public class NMSAccessImpl implements NMSAccess {
+public class NmsAccessImpl implements NmsAccess {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NMSAccessImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NmsAccessImpl.class);
 
     private final RegistryAccessImpl registryAccess;
     private final AttributeRegistry attrRegistry;
     private final ExperimentsImpl exp;
     private Map<ResourceLocation, Dimension> dimLookup;
 
-    public NMSAccessImpl() {
+    public NmsAccessImpl() {
         this.registryAccess = new RegistryAccessImpl();
         this.attrRegistry = AttributeRegistry.access();
         this.exp = new ExperimentsImpl();

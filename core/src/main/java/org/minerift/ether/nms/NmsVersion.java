@@ -1,6 +1,6 @@
 package org.minerift.ether.nms;
 
-public enum NMSVersion {
+public enum NmsVersion {
 
     // 1.8.4 -> 1.8.8
     V1_8_R3,
@@ -71,7 +71,7 @@ public enum NMSVersion {
                 .replace('_', '.');
     }
 
-    public static NMSVersion from(String version) throws IllegalArgumentException {
+    public static NmsVersion from(String version) throws IllegalArgumentException {
         version = version.toUpperCase()
                 .replace('.', '_')
                 .replaceAll("V", "");

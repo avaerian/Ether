@@ -39,13 +39,13 @@ public class EtherPlugin extends JavaPlugin {
         // Register debug commands
         getCommand("island").setExecutor(new IslandDebugCommand());
 
-        getCommand("nmschunk").setExecutor(new NMSChunkDebugCommand());
-        getCommand("nmsblock").setExecutor(new NMSSetBlocksDebugCommand());
-        getCommand("blockscan").setExecutor(new NMSBlockScanDebugCommand());
+        getCommand("nmschunk").setExecutor(new NmsChunkDebugCommand());
+        getCommand("nmsblock").setExecutor(new NmsSetBlocksDebugCommand());
+        getCommand("blockscan").setExecutor(new NmsBlockScanDebugCommand());
         getCommand("pasteschem").setExecutor(new SchematicDebugCommand());
         getCommand("cfgreload").setExecutor(new ConfigReloadDebugCommand());
 
-        getCommand("testreg").setExecutor(new NMSRegistryDebugCommand());
+        getCommand("testreg").setExecutor(new NmsRegistryDebugCommand());
         getCommand("dbgnbt").setExecutor(new NbtDebugCommand());
         getCommand("dbgbvt").setExecutor(new TransformDebugCommand());
         getCommand("dbgbb").setExecutor(new BoundingBoxDebugCommand());

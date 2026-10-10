@@ -11,14 +11,14 @@ import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.data.BytePalette;
-import org.minerift.ether.schematic.data.Pasters;
+import org.minerift.ether.schematic.sponge.Pasters;
 import org.minerift.ether.util.BukkitUtils;
 
 import java.util.*;
 
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 
-public class NMSSetBlocksDebugCommand implements CommandExecutor {
+public class NmsSetBlocksDebugCommand implements CommandExecutor {
 
     // /nmsblock <mode> <width> <height> <length>
 

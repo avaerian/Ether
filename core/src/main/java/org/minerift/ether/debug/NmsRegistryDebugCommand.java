@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
 
-public class NMSRegistryDebugCommand implements CommandExecutor {
+public class NmsRegistryDebugCommand implements CommandExecutor {
 
     // Item is current item in hand
     // Biome is at player foot location

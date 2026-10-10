@@ -9,12 +9,12 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.Ether;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.nms.NMSAccess;
+import org.minerift.ether.nms.NmsAccess;
 import org.minerift.ether.nms.world.ChunkGetter;
 
 import java.util.concurrent.CompletableFuture;
 
-public class NMSChunkDebugCommand implements CommandExecutor {
+public class NmsChunkDebugCommand implements CommandExecutor {
 
 
     // /nmschunk <diameter> <mode>
@@ -39,7 +39,7 @@ public class NMSChunkDebugCommand implements CommandExecutor {
 
         Player plr = (Player) sender;
         World world = plr.getWorld();
-        final NMSAccess nms = Ether.inst().getNms();
+        final NmsAccess nms = Ether.inst().getNms();
 
         int centerX = plr.getChunk().getX();
         int centerZ = plr.getChunk().getZ();
