@@ -1,4 +1,4 @@
-package org.minerift.ether.schematic.data;
+package org.minerift.ether.schematic.sponge;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -10,25 +10,33 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.*;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.Schematic;
-import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.schematic.data.BiomeVolume;
+import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
-import org.minerift.ether.oldwork.BatchedWork;
-import org.minerift.ether.oldwork.Operation;
+import org.minerift.ether.work.Work;
 import org.minerift.ether.world.BlockEntityArchetype;
 import org.minerift.ether.world.ChunkCoords;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
+import static java.lang.String.format;
 import static org.minerift.ether.nms.world.Section.*;
 import static org.minerift.ether.schematic.data.Array3DOrder.YZX;
 
 @SuppressWarnings("Duplicates")
 public class Pasters {
 
-    public static CompletableFuture<Void> pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
+    /**
+     * Get the work operation to paste the BlockVolume at the desired location, synchronously or asynchronously.
+     * @param bv block volume.
+     * @param world world to paste the block volume in.
+     * @param loc location.
+     * @param cg chunk getter; how to retrieve the chunks.
+     * @return work operation, to be enqueued in the WorkQueue.
+     */
+    public static Work<Void> pasteBlockVolume(BlockVolume bv, World world, Vec3i loc, ChunkGetter cg) {
         //Vec3i end = loc.copy().copyMutable().add(bv.getDimensions());
         bv.getBlockEntities().forEach((be) -> be.getPos().add(loc));
 
@@ -53,13 +61,13 @@ public class Pasters {
 
         // Start at top right
         // TODO: experiment w/ CompletableFuture#allOf for pasting in each chunk (each chunk being locked)
-        /*Operation op = Operation.of(
+
+        Work<Void> work = new Work<>("Block paster");
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
-            //Bukkit.getScheduler()
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
                 int finalCz = cz;
-                batch.addTask(() -> {
+                work.addTask((task) -> { //FIXME: task will allow for controlling work state async/across threads
                     cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> { // returns CompletableFuture
                         // TODO:
                         //  - remove synchronized from NMSAccess#clearChunk ?
@@ -69,35 +77,38 @@ public class Pasters {
                         //    task entirely and rollback ?? (this could be an option because even if for
                         //    a tile being cleaned before pasting island, we could check the tile chunks
                         //    to test if it's empty
-                        for(int sy = startSecY; sy <= endSecY; sy++) {
-                            pasteBlockSection(chunk, sy, bv, loc);
+
+                        try {
+                            for(int sy = startSecY; sy <= endSecY; sy++) {
+                                pasteBlockSection(chunk, sy, bv, loc);
+                            }
+                            chunk.setUnsaved(true);
+                            task.complete();
+                            return chunk;
+                        } catch (Exception e) {
+                            task.fail(e); //use to rollback
+                            return null;
                         }
-                        chunk.setUnsaved(true);
-                        return chunk;
-                    });
+                    }).exceptionally((ex) -> { task.fail(ex); return null; });
                 });
             }
         }
-        batch.whenComplete((status) -> {
+        //TODO: once all tasks have completed, run finalize function
+        // to complete final
+        work.whenComplete((w) -> {
+            //work.result();
             System.out.println(bv.blockEntities);
             //System.out.println(bv.getBlocks().getBlockEntities());
-            Bukkit.broadcast(Component.text("finished -> status: " + status));
+            Bukkit.broadcast(Component.text(
+                    format("Failed? %b Value? %b Closed? %b Queued? %b", w.hasFailed(), w.hasValue(), w.isClosed(), w.isQueued())
+                    ));
         });
-        );
 
-        Ether.inst().getWorkQueue().enqueue(batch);*/
-
-        //System.out.println(bv.getBlocks().getData().length);
-        //System.out.println("idxs: " + idxs.size());
-
-        //System.out.println(loc);
-        //System.out.println(end);
-
-        throw new UnreachableException("todo: unimplemented"); // TODO
+        return work;
     }
 
-    public static void pasteBlockVolume(BlockVolume bv, World world, Vec3i loc) {
-        pasteBlockVolume(bv, world, loc, ChunkGetter.SYNC);
+    public static Work<Void> pasteBlockVolume(BlockVolume bv, World world, Vec3i loc) {
+        return pasteBlockVolume(bv, world, loc, ChunkGetter.SYNC);
     }
 
     // add flag for acquiring/releasing chunk sections?
@@ -215,7 +226,7 @@ public class Pasters {
         return i & 15;
     }
 
-    public static void pasteBiomeVolume(BiomeVolume bv, World world, Vec3i loc, ChunkGetter cg) {
+    public static Work<Void> pasteBiomeVolume(BiomeVolume bv, World world, Vec3i loc, ChunkGetter cg) {
         //Vec3i end = loc.copy().copyMutable().add(bv.getDimensions());
 
         Vec2i tr = ChunkCoords.getChunkAt(loc);
@@ -241,29 +252,30 @@ public class Pasters {
                 new ArrayList<>( (br.getZ() - tr.getZ() + 1) * (tl.getX() - tr.getX() + 1) ));
 
         // Start at top right
-        BatchedWork operation = new BatchedWork();
+        Work<Void> work = new Work<>("Biome paster");
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
                 int finalCz = cz;
-                operation.addTask(() -> {
+                work.addTask((task) -> {
                     cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> { // returns CompletableFuture
                         for(int sy = startSecY; sy <= endSecY; sy++) {
                             pasteBiomeSection(chunk, sy, bv, loc);
                         }
                         chunk.setUnsaved(true);
                         chunks.add(chunk);
+                        task.complete();
                         return chunk;
-                    });
+                    }).exceptionally((ex) -> { task.fail(ex); return null; });
                 });
             }
         }
-        operation.whenComplete((status) -> {
+        work.whenComplete((w) -> {
             Ether.inst().getNms().broadcastChunkBiomeUpdates(world, chunks);
-            Bukkit.broadcast(Component.text("finished -> status: " + status));
+            Bukkit.broadcast(Component.text(
+                    format("Failed? %b Value? %b Closed? %b Queued? %b", w.hasFailed(), w.hasValue(), w.isClosed(), w.isQueued())
+            ));
         });
-
-        //FIXME Ether.inst().getWorkQueue().enqueue(operation);
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
@@ -271,10 +283,11 @@ public class Pasters {
         //System.out.println(loc);
         //System.out.println(end);
 
+        return work;
     }
 
-    public static void pasteBiomeVolume(BiomeVolume bv, World world, Vec3i loc) {
-        pasteBiomeVolume(bv, world, loc, ChunkGetter.SYNC);
+    public static Work<Void> pasteBiomeVolume(BiomeVolume bv, World world, Vec3i loc) {
+        return pasteBiomeVolume(bv, world, loc, ChunkGetter.SYNC);
     }
 
     // add flag for acquiring/releasing chunk sections?
@@ -341,7 +354,7 @@ public class Pasters {
         }
     }
 
-    public static void pasteSchematic(Schematic schem, World world, Vec3i loc, ChunkGetter cg) {
+    public static Work<Void> pasteSchematic(Schematic schem, World world, Vec3i loc, ChunkGetter cg) {
         //Vec3i end = loc.copy().copyMutable().add(bv.getDimensions());
         schem.getBlocks().getBlockEntities().forEach((be) -> be.getPos().add(loc));
 
@@ -364,32 +377,33 @@ public class Pasters {
         List<Chunk> chunks = Collections.synchronizedList(
                 new ArrayList<>( (br.getZ() - tr.getZ() + 1) * (tl.getX() - tr.getX() + 1) ));
 
-        BatchedWork operation = new BatchedWork();
+        Work<Void> work = new Work<>("Schematic paster");
         for(int cz = tr.getZ(); cz <= br.getZ(); cz++) {
             for(int cx = tr.getX(); cx <= tl.getX(); cx++) {
                 int finalCx = cx;
                 int finalCz = cz;
-                operation.addTask(() -> {
+                work.addTask((task) -> {
                     cg.getChunkWCallback(world, finalCx, finalCz, (chunk) -> { // returns CompletableFuture
                         for(int sy = startSecY; sy <= endSecY; sy++) {
                             pasteSchematicSection(chunk, sy, schem, loc);
                         }
                         chunks.add(chunk);
                         chunk.setUnsaved(true);
+                        task.complete();
                         return chunk;
-                    });
+                    }).exceptionally((ex) -> { task.fail(ex); return null; });
                 });
             }
         }
-        operation.whenComplete((status) -> {
+        work.whenComplete((w) -> {
             Ether.inst().getNms().broadcastChunkBiomeUpdates(world, chunks);
 
             System.out.println(schem.getBlocks().blockEntities);
 
-            Bukkit.broadcast(Component.text("finished -> status: " + status));
+            Bukkit.broadcast(Component.text(
+                    format("Failed? %b Value? %b Closed? %b Queued? %b", w.hasFailed(), w.hasValue(), w.isClosed(), w.isQueued())
+            ));
         });
-
-        //FIXME Ether.inst().getWorkQueue().enqueue(operation);
 
         //System.out.println(bv.getBlocks().getData().length);
         //System.out.println("idxs: " + idxs.size());
@@ -397,10 +411,11 @@ public class Pasters {
         //System.out.println(loc);
         //System.out.println(end);
 
+        return work;
     }
 
-    public static void pasteSchematic(Schematic schem, World world, Vec3i loc) {
-        pasteSchematic(schem, world, loc, ChunkGetter.SYNC);
+    public static Work<Void> pasteSchematic(Schematic schem, World world, Vec3i loc) {
+        return pasteSchematic(schem, world, loc, ChunkGetter.SYNC);
     }
 
     // add flag for acquiring/releasing chunk sections?

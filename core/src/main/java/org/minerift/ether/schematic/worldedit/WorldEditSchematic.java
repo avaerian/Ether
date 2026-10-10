@@ -16,10 +16,10 @@ import org.minerift.ether.schematic.transform.Rotate;
 import org.minerift.ether.schematic.transform.Transform;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.UnreachableException;
+import org.minerift.ether.work.Work;
 import org.minerift.ether.world.EntityArchetype;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class WorldEditSchematic implements Schematic {
@@ -56,7 +56,7 @@ public class WorldEditSchematic implements Schematic {
     }
 
     @Override
-    public CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
+    public Work<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
         return type().getPaster(WESchematicPaster.class).paste(this, pos, worldName, options);
     }
 

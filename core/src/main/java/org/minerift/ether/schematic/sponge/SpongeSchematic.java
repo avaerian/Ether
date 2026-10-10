@@ -8,17 +8,16 @@ import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.schematic.SchematicType;
-import org.minerift.ether.schematic.data.Pasters;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.Either;
 import org.minerift.ether.util.UnreachableException;
 import org.minerift.ether.util.fn.IBuilder;
+import org.minerift.ether.work.Work;
 import org.minerift.ether.world.EntityArchetype;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class SpongeSchematic implements Schematic {
 
@@ -56,7 +55,7 @@ public class SpongeSchematic implements Schematic {
      * <b>NOTE:</b> pasting is propagated to {@link SpongeSchematicPaster} and, more importantly, {@link Pasters}.
      */
     @Override
-    public CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
+    public Work<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options) {
         return type().getPaster(SpongeSchematicPaster.class).paste(this, pos, worldName, options);
     }
 

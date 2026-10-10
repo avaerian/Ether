@@ -6,14 +6,12 @@ import org.minerift.ether.math.Vec3i;
 import org.minerift.ether.nms.world.*;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
-import org.minerift.ether.schematic.data.Pasters;
-
-import java.util.concurrent.CompletableFuture;
+import org.minerift.ether.work.Work;
 
 public class SpongeSchematicPaster implements SchematicPaster<SpongeSchematic> {
 
     @Override
-    public CompletableFuture<Void> paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
+    public Work<Void> paste(SpongeSchematic schem, Vec3i pasteLoc, String worldName, SchematicPasteOptions options) {
         World world = Bukkit.getWorld(worldName);
         ChunkGetter cg = ChunkGetter.ASYNC; // TODO: make this an option
 

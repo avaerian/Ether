@@ -10,12 +10,12 @@ import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.transform.Transforms;
 import org.minerift.ether.util.nbt.NbtSerializable;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
+import org.minerift.ether.work.Work;
 import org.minerift.ether.world.EntityArchetype;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public interface Schematic extends NbtSerializable {
 
@@ -83,12 +83,12 @@ public interface Schematic extends NbtSerializable {
      * already exist with some prefilled defaults, or can also be created and customized using
      * {@link SchematicPasteOptions#builder()}.
      *
-     * @param pos the position in the world to paste this schematic at.
+     * @param pos       the position in the world to paste this schematic at.
      * @param worldName the name of the world to paste in.
-     * @param options additional options specifying how the schematic should be pasted.
+     * @param options   additional options specifying how the schematic should be pasted.
      * @return future indicating when the operation completes.
      */
-    CompletableFuture<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options);
+    Work<Void> paste(Vec3i pos, String worldName, SchematicPasteOptions options);
 
     /**
      * Get the width.

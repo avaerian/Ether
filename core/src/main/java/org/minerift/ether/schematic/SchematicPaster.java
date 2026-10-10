@@ -1,6 +1,7 @@
 package org.minerift.ether.schematic;
 
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.work.Work;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -16,5 +17,5 @@ public interface SchematicPaster<S extends Schematic> {
      * @param options additional options specifying how the schematic should be pasted.
      * @return future indicating when the operation has completed.
      */
-    CompletableFuture<Void> paste(S schem, Vec3i pos, String worldName, SchematicPasteOptions options);
+    Work<Void> paste(S schem, Vec3i pos, String worldName, SchematicPasteOptions options);
 }
