@@ -7,12 +7,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.nms.world.block.BlockState;
 import org.minerift.ether.schematic.data.BlockVolume;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.Pasters;
 import org.minerift.ether.util.BukkitUtils;
+import org.minerift.ether.work.Work;
 
 import java.util.*;
 
@@ -67,21 +69,18 @@ public class NmsSetBlocksDebugCommand implements CommandExecutor {
             case "ASYNC"    -> ChunkGetter.ASYNC;
             default -> throw new IllegalStateException("Unexpected value: " + mode);
         };
-        Pasters.pasteBlockVolume(bv, plr.getWorld(), BukkitUtils.asVec3i(plr.getLocation()), cg);
+        Work<Void> pasteTask = Pasters.pasteBlockVolume(bv, plr.getWorld(), BukkitUtils.asVec3i(plr.getLocation()), cg)
+                .whenComplete((w) -> plr.sendMessage("Blocks updated"));
 
-        plr.sendMessage("Blocks updated");
+        Ether.inst().getWorkQueue().enqueue(pasteTask);
         return true;
     }
 
     private static byte[] genJunkData(int width, int height, int length, BytePalette<BlockState<?>> palette) {
         final Random random = new Random();
         byte[] data = new byte[width * height * length];
-        for(int x = 0; x < width; x++) {
-            for(int y = 0; y < height; y++) {
-                for(int z = 0; z < length; z++) {
-                    data[YZX.flatten(width, length, x, y, z)] = (byte) random.nextInt(palette.size());
-                }
-            }
+        for(int i = 0; i < data.length; i++) {
+            data[i] = (byte) random.nextInt(palette.size());
         }
         return data;
     }
