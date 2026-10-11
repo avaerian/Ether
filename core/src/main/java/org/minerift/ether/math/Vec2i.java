@@ -6,13 +6,33 @@ import java.util.Objects;
 // Immutable by default (use Vec2i.Mutable for mutable operations)
 public class Vec2i implements Vec2, Serializable {
 
-    public final static Vec2i ZERO = new Vec2i(0, 0);
-
-    protected int x, z;
-
     public static Vec2i fromString(String str) {
         return Maths.strToVec2i(str);
     }
+
+    public static Vec2i min(Vec2i v1, Vec2i v2) {
+        return new Vec2i(Math.min(v1.x, v2.x), Math.min(v1.z, v2.z));
+    }
+
+    public static Vec2i max(Vec2i v1, Vec2i v2) {
+        return new Vec2i(Math.max(v1.x, v2.x), Math.max(v1.z, v2.z));
+    }
+
+    public static boolean isInside(Vec2 from, Vec2 to, Vec2 test) {
+        Vec2i _from = from.asVec2i();
+        Vec2i _to = to.asVec2i();
+
+        Vec2i min = Vec2i.min(_from, _to);
+        Vec2i max = Vec2i.max(_from, _to);
+        return min.getX() <= test.getX() &&
+                min.getZ() <= test.getZ() &&
+                max.getX() >= test.getX() &&
+                max.getZ() >= test.getZ();
+    }
+
+    public final static Vec2i ZERO = new Vec2i(0, 0);
+
+    protected int x, z;
 
     public Vec2i(int x, int z) {
         this.x = x;
@@ -40,6 +60,16 @@ public class Vec2i implements Vec2, Serializable {
     }
 
     @Override
+    public long getXl() {
+        return x;
+    }
+
+    @Override
+    public long getZl() {
+        return z;
+    }
+
+    @Override
     public int[] getXZ() {
         return new int[]{ x, z };
     }
@@ -47,6 +77,26 @@ public class Vec2i implements Vec2, Serializable {
     @Override
     public double[] getXZd() {
         return new double[]{ x, z };
+    }
+
+    @Override
+    public long[] getXZl() {
+        return new long[]{ x, z };
+    }
+
+    @Override
+    public Vec2i asVec2i() {
+        return this;
+    }
+
+    @Override
+    public Vec2d asVec2d() {
+        return new Vec2d(x, z);
+    }
+
+    @Override
+    public Vec2l asVec2l() {
+        return new Vec2l(x, z);
     }
 
     public int getTileId() {
@@ -114,8 +164,8 @@ public class Vec2i implements Vec2, Serializable {
             this.z = z;
         }
 
-        public void set(Vec2i vec) {
-            set(vec.x, vec.z);
+        public void set(Vec2 vec) {
+            set(vec.getX(), vec.getZ());
         }
 
         public void set(int x, int z) {

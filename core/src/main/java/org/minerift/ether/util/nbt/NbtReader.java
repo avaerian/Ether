@@ -21,9 +21,7 @@ import static org.minerift.ether.util.nbt.tags.TagTypes.lookup;
 
 public class NbtReader extends NbtTraverser {
 
-    // references https://isc.sans.edu/diary/25182
-    // tentatively check for zlib/gzip compression
-    public static NbtReader from(File f, NbtOption ... options) throws IOException {
+    public static NbtReader from(File f, NbtOption... options) throws IOException {
         try(RandomAccessFile raf = new RandomAccessFile(f, "r")) {
             short magic = raf.readShort(); // big-endian; possible magic
             raf.seek(raf.getFilePointer() - Short.BYTES);
@@ -31,7 +29,7 @@ public class NbtReader extends NbtTraverser {
         }
     }
 
-    public static NbtReader from(File f, Compression compress, NbtOption ... options) throws IOException {
+    public static NbtReader from(File f, Compression compress, NbtOption... options) throws IOException {
         try(RandomAccessFile raf = new RandomAccessFile(f, "r")) {
             return from(raf, compress, Predicates.always(), options);
         }
@@ -45,7 +43,7 @@ public class NbtReader extends NbtTraverser {
         return withOptions(raf, NO_OPTIONS);
     }
 
-    public static NbtReader.Builder withOptions(File f, NbtOption ... options) throws IOException {
+    public static NbtReader.Builder withOptions(File f, NbtOption... options) throws IOException {
         RandomAccessFile raf = new RandomAccessFile(f, "r");
         return withOptions(raf, options);
     }
@@ -57,10 +55,10 @@ public class NbtReader extends NbtTraverser {
         return new Builder(input, raf, compress, len, NO_OPTIONS);
     }
 
-    public static NbtReader.Builder withOptions(File f, @NotNull Compression compress, NbtOption ... options) throws IOException {
+    public static NbtReader.Builder withOptions(File f, @NotNull Compression compress, NbtOption... options) throws IOException {
         RandomAccessFile raf = new RandomAccessFile(f, "r");
         InputStream input = Channels.newInputStream(raf.getChannel());
-        int len = Math.toIntExact(raf.length()); // FIXME: fix rare edge case (would need to do a buffered read)
+        int len = Math.toIntExact(raf.length());
         return new Builder(input, raf, compress, len, options);
     }
 
@@ -70,24 +68,24 @@ public class NbtReader extends NbtTraverser {
         raf.seek(raf.getFilePointer() - Short.BYTES);
         Compression compress = Compression.fromMagic(magic);
         InputStream input = Channels.newInputStream(raf.getChannel());
-        int len = Math.toIntExact(raf.length()); // FIXME: fix rare edge case (would need to do a buffered read)
+        int len = Math.toIntExact(raf.length());
         return new Builder(input, null, compress, len, NO_OPTIONS);
     }
 
     // don't close RandomAccessFile
-    public static NbtReader.Builder withOptions(RandomAccessFile raf, NbtOption ... options) throws IOException {
+    public static NbtReader.Builder withOptions(RandomAccessFile raf, NbtOption... options) throws IOException {
         short magic = raf.readShort();
         raf.seek(raf.getFilePointer() - Short.BYTES);
         Compression compress = Compression.fromMagic(magic);
         InputStream input = Channels.newInputStream(raf.getChannel());
-        int len = Math.toIntExact(raf.length()); // FIXME: fix rare edge case (would need to do a buffered read)
+        int len = Math.toIntExact(raf.length());
         return new Builder(input, null, compress, len, options);
     }
 
     // don't close RandomAccessFile
-    public static NbtReader.Builder withOptions(RandomAccessFile raf, @NotNull Compression compress, NbtOption ... options) throws IOException {
+    public static NbtReader.Builder withOptions(RandomAccessFile raf, @NotNull Compression compress, NbtOption... options) throws IOException {
         InputStream input = Channels.newInputStream(raf.getChannel());
-        int len = Math.toIntExact(raf.length()); // FIXME: fix rare edge case (would need to do a buffered read)
+        int len = Math.toIntExact(raf.length());
         return new Builder(input, null, compress, len, options);
     }
 
@@ -95,7 +93,7 @@ public class NbtReader extends NbtTraverser {
     // NOTE: it seems GZipInputStream (GZIPInputStream.GZIP_MAGIC specifically)
     // uses little-endian (Intel) byte ordering, so keep that in-mind.
     @NeedsTesting
-    public static NbtReader from(@NotNull RandomAccessFile raf, @NotNull Compression compress, @NotNull Predicate<TagHeader> tagSelector, NbtOption ... options) throws IOException {
+    public static NbtReader from(@NotNull RandomAccessFile raf, @NotNull Compression compress, @NotNull Predicate<TagHeader> tagSelector, NbtOption... options) throws IOException {
         InputStream input = Channels.newInputStream(raf.getChannel());
         int len = Math.toIntExact(raf.length());
         ByteBuf buf = decompress(input, compress, null, len);

@@ -2,12 +2,14 @@ package org.minerift.ether.schematic.data;
 
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.debug.Debug;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.debug.NeedsTesting;
 import org.minerift.ether.math.Maths;
 import org.minerift.ether.util.fn.Copy;
 import org.minerift.ether.util.fn.ByteIterator;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -17,6 +19,8 @@ import java.util.function.UnaryOperator;
 import static java.lang.String.format;
 
 public interface BytePalette<V> extends Iterable<BytePalette.Entry<V>>, Copy<BytePalette<V>> /* implements Map<Byte, V> */ {
+
+    Logger LOGGER = Ether.inst().getLogger();
 
     IntUnaryOperator DEFAULT_GROWER = (i) -> i == 0 ? 2 : i * 2;
     int INIT_CAPACITY = 16;
@@ -188,7 +192,7 @@ public interface BytePalette<V> extends Iterable<BytePalette.Entry<V>>, Copy<Byt
                         throw new IllegalArgumentException(
                                 format("%b (%s) is already registered as %s and cannot be replaced", key, val, existing));
                     }
-                    // TODO: logger
+                    LOGGER.debug("Replacing key {} with value {}", key, val);
                 }
             }
 

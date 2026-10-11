@@ -11,6 +11,7 @@ import org.minerift.ether.util.nbt.tags.StringTag;
 import org.minerift.ether.util.nbt.tags.TagTypes;
 import org.minerift.ether.util.nbt.tags.container.*;
 import org.minerift.ether.world.BlockEntityArchetype;
+import org.slf4j.Logger;
 
 import java.util.List;
 
@@ -18,6 +19,9 @@ import static org.minerift.ether.schematic.sponge.SpongeVersion.V1;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
 
 public class ReadBlockEntitiesStep implements IReaderStep {
+
+    private static final Logger LOGGER = Ether.inst().getLogger();
+
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicReadException {
 
@@ -29,12 +33,10 @@ public class ReadBlockEntitiesStep implements IReaderStep {
             bEntities = ctx.root.getList(blockEntitiesKey, TagTypes.COMPOUND);
         } catch (NoTagFoundException e) {
             // pass; no block entities
-            System.out.println("Read block entities: " + ctx.builder.getBlocks().getRight().blockEntities);
+            LOGGER.debug("Read block entities: {}", ctx.builder.getBlocks().getRight().blockEntities);
             return;
         } catch (MismatchedTypeException | MismatchedChildTypeException e) {
-            // TODO: logger
-            System.out.println("Read block entities: " + ctx.builder.getBlocks().getRight().blockEntities);
-            e.printStackTrace();
+            LOGGER.debug("Read block entities: {}", ctx.builder.getBlocks().getRight().blockEntities);
             return;
         }
 
@@ -47,8 +49,7 @@ public class ReadBlockEntitiesStep implements IReaderStep {
                 rawPos = bEntityTag.getIntArray(NBT_BLOCK_ENTITIES_POS,
                         (e) -> new NbtException("position", e));
             } catch (NbtException e) {
-                // TODO: proper logger
-                System.out.println("Failed to read block entity: " + e);
+                LOGGER.warn("Failed to read block entity", e);
                 continue;
             }
             final Vec3i pos = new Vec3i.Mutable(rawPos);
@@ -69,7 +70,7 @@ public class ReadBlockEntitiesStep implements IReaderStep {
                 bEntity = new BlockEntityArchetype(id, pos, nbt);
                 ctx.builder.getBlocks().getRight().addBlockEntity(bEntity);
             } catch (BlockStateNotFoundException ex1) {
-                // TODO: logger
+                LOGGER.warn("BlockState for block entity not found, attempting fixup", ex1);
                 // Fix up any outdated nbt data to try again
                 try {
                     StringTag idTag = nbt.getTag("id", TagTypes.STRING);
@@ -81,8 +82,7 @@ public class ReadBlockEntitiesStep implements IReaderStep {
                     ctx.builder.getBlocks().getRight().addBlockEntity(bEntity);
                 } catch (BlockStateNotFoundException | NoTagFoundException | MismatchedTypeException ex2) {
                     // skip for now
-                    System.out.println("Failed to read block entity: ");
-                    ex1.printStackTrace();
+                    LOGGER.error("Failed to read block entity", ex2);
                 }
             }
 

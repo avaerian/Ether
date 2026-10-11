@@ -10,19 +10,19 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public enum ChunkGetter {
 
-    // NOTE: ChunkGetter shouldn't need to store any data; it only provides static methods
+    // NOTE: ChunkGetter shouldn't need to store any data; it only provides abstract methods
 
     SYNC {
         public CompletableFuture<Chunk> getChunkWCallback(World world, int cx, int cz, @NotNull UnaryOperator<Chunk> callback) {
             org.bukkit.Chunk bukkitChunk = world.getChunkAt(cx, cz, true);
             Chunk chunk = Chunk.of(bukkitChunk);
             callback.apply(chunk);
-            return completedFuture(chunk); // TODO: review completed future
+            return completedFuture(chunk);
         }
 
         @Override
         public CompletableFuture<Chunk> getChunk(World world, int cx, int cz) {
-            return completedFuture(Chunk.of(world.getChunkAt(cx, cz))); // TODO: review completed future
+            return completedFuture(Chunk.of(world.getChunkAt(cx, cz)));
         }
     },
 

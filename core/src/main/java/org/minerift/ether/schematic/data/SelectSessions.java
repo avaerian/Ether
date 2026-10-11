@@ -24,7 +24,6 @@ import java.util.function.Supplier;
  */
 public class SelectSessions {
 
-    // TODO: review spec for sessions + management
     // sessions will persist across different worlds
     // sessions can either be popped by:
     // - user logs off server
@@ -93,9 +92,7 @@ public class SelectSessions {
         return store.remove(uuid);
     }
 
-    @Deprecated
     public void push(EtherUser user, Selection sess) {
-        // review this
         store.put(user.getUUID(), sess);
     }
 
@@ -112,7 +109,10 @@ public class SelectSessions {
         }
 
         public /*synchronized*/ BoundingBox box() {
-            // TODO: throw exception(?) if both points haven't been selected
+            if(pos1 == null)
+                throw new IllegalStateException("pos1 is null");
+            if(pos2 == null)
+                throw new IllegalStateException("pos2 is null");
             return new BoundingBox(pos1, pos2);
         }
     }

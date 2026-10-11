@@ -12,12 +12,20 @@ public interface Vec2 {
     double getXd();
     double getZd();
 
+    long getXl();
+    long getZl();
+
     int[] getXZ();
     double[] getXZd();
+    long[] getXZl();
 
     default boolean isMutable() {
         return false;
     }
+
+    Vec2i asVec2i();
+    Vec2d asVec2d();
+    Vec2l asVec2l();
 
     @Deprecated // not necessarily deprecated, more so asking to avoid using this
     @Experimental

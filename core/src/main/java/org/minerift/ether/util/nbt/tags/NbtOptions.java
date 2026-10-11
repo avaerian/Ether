@@ -29,9 +29,6 @@ public enum NbtOptions implements NbtOption {
         }
     },
 
-    TEST,
-    TEST2,
-
     ;
 
     NbtOptions() {
@@ -41,15 +38,6 @@ public enum NbtOptions implements NbtOption {
     // for if initial loading is needed
     protected void load() {
         // no-op
-    }
-
-    @Debug
-    public static void main(String[] args) throws IOException {
-        var test = USE_NUNBT_IO;
-        NbtOption[] os = new NbtOption[]{ TEST2, USE_NUNBT_IO, new NbtOption3(5) };
-        System.out.println(test(USE_NUNBT_IO, os));
-        System.out.println(test(TEST2, os));
-        System.out.println(test(TEST, os));
     }
 
     @Debug

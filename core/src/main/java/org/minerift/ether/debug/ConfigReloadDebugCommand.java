@@ -8,6 +8,7 @@ import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigReadException;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.dimension.Dimension;
 
 public class ConfigReloadDebugCommand implements CommandExecutor {
     @Override
@@ -23,9 +24,13 @@ public class ConfigReloadDebugCommand implements CommandExecutor {
         if(reload) {
             sender.sendMessage("Config reloaded successfully!");
 
-            Ether.inst().getLogger().info("tileSize: " + config.getTileLengthChunks());
-            Ether.inst().getLogger().info("tileHeight: " + config.getTileHeight());
-            Ether.inst().getLogger().info("tileAccessibleArea: " + config.getTileAccessibleAreaBlocks());
+            MainConfig cfg = Ether.inst().getConfig(ConfigType.MAIN);
+            for(Dimension dim : cfg.getDimensions()) {
+                Ether.LOGGER.warn(dim.getName());
+                Ether.LOGGER.warn("tileLenChunks: {}", dim.getTileLenChunks());
+                Ether.LOGGER.warn("islandSpawnY: {}", dim.getIslandSpawnY());
+                Ether.LOGGER.warn("tileAccessibleLenBlocks: {}", dim.getTileAccessibleLenBlocks());
+            }
         }
         return reload;
     }

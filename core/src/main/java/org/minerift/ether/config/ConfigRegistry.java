@@ -3,11 +3,10 @@ package org.minerift.ether.config;
 import org.jetbrains.annotations.NotNull;
 import org.minerift.ether.config.source.Source;
 import org.minerift.ether.util.collect.Int2ObjectIdentityMap;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 // ConfigRegistry should only handle registry operations (registering + loading/reading, unloading/writing, unregistering)
 public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
@@ -39,7 +38,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
         try {
             type.codec().read(cfg, src);
         } catch (ConfigNotFoundException ex) {
-            logger.log(Level.WARNING, "Using default config", ex);
+            logger.warn("Using default config", ex);
             cfg = type.getDefaultConfig(this, src);
         }
         types.put(type.id, type);
@@ -65,7 +64,7 @@ public class ConfigRegistry implements Iterable<ConfigRegistry.Entry> {
         try {
             return register(type, src);
         } catch (ConfigReadException ex) {
-            logger.log(Level.WARNING, type.getName() + " was unable to load", ex);
+            logger.warn(type.getName() + " was unable to load", ex);
             return null;
         }
     }

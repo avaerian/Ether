@@ -15,6 +15,7 @@ import org.openjdk.jmh.runner.options.TimeValue;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+// TODO: review
 public class IslandGridSearchBenchmarks {
 
     private static final int TILE_COUNT = 365875;
@@ -51,7 +52,6 @@ public class IslandGridSearchBenchmarks {
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(GridAlgorithm.computeTile(i), true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 islands.add(island);
@@ -59,7 +59,6 @@ public class IslandGridSearchBenchmarks {
 
             this.islandToFind = Island.builder()
                     .setTile(TILE_TO_FIND, true)
-                    .setDeleted(false)
                     .build();
         }
     }
@@ -76,7 +75,6 @@ public class IslandGridSearchBenchmarks {
                 Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 islands.put(tile, island);
@@ -87,25 +85,7 @@ public class IslandGridSearchBenchmarks {
 
     @State(Scope.Benchmark)
     public static class IslandGridState {
-        DeprecatedIslandGrid grid;
-
-        @Setup
-        public void setup() {
-            this.grid = new DeprecatedIslandGrid();
-            for(int i = 0; i < TILE_COUNT; i++) {
-                Island island = Island.builder()
-                        .setTile(grid.getNextTile(), true)
-                        .setDeleted(false)
-                        .definePermissions(IslandRole.VISITOR)
-                        .build();
-                grid.registerIsland(island);
-            }
-        }
-    }
-
-    @State(Scope.Benchmark)
-    public static class IslandGridV2State {
-        DefaultIslandGrid grid;
+        IslandGrid grid;
 
         @Setup
         public void setup() {
@@ -113,7 +93,6 @@ public class IslandGridSearchBenchmarks {
             for(int i = 0; i < TILE_COUNT; i++) {
                 Island island = Island.builder()
                         .setTile(grid.getNextTile(), true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 grid.registerIsland(island);
@@ -133,7 +112,6 @@ public class IslandGridSearchBenchmarks {
                 Vec2i tile = GridAlgorithm.computeTile(i);
                 Island island = Island.builder()
                         .setTile(tile, true)
-                        .setDeleted(false)
                         .definePermissions(IslandRole.VISITOR)
                         .build();
                 grid.put(i, island);
@@ -160,11 +138,6 @@ public class IslandGridSearchBenchmarks {
 
     @Benchmark
     public Optional<Island> islandGrid_findIslandBenchmark(IslandGridState state) {
-        return state.grid.getIslandAt(TILE_TO_FIND);
-    }
-
-    @Benchmark
-    public Optional<Island> islandGridV2_findIslandBenchmark(IslandGridV2State state) {
         return state.grid.getIslandAt(TILE_TO_FIND);
     }
 

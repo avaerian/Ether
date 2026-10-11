@@ -105,12 +105,11 @@ public class Stack<T> /* implements Collection<T>; for later */ {
         size += elements.length;
     }
 
+    // FIXME
     public void pushAll(Collection<T> elements) {
         growIfNeeded(elements.size());
-
-        int i = 0;
-        for(Iterator<T> it = elements.iterator(); it.hasNext(); i++) {
-            stack[size++] = it.next();
+        for (T element : elements) {
+            stack[size++] = element;
         }
     }
 
@@ -123,7 +122,8 @@ public class Stack<T> /* implements Collection<T>; for later */ {
         size++;
     }
 
-    public void insert(int idx, T... elements) {
+    @SafeVarargs
+    public final void insert(int idx, T... elements) {
         Preconditions.checkElementIndex(idx, size);
         growIfNeeded(elements.length);
 

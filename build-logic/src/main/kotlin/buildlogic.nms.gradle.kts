@@ -1,7 +1,6 @@
 import buildlogic.getLibrary
 import buildlogic.getVersion
 import buildlogic.libsCatalog
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
@@ -52,4 +51,5 @@ dependencies {
 /*tasks.named("assemble") {
     dependsOn("reobfJar")
 }*/
+
 

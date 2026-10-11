@@ -44,7 +44,7 @@ public class ReadBlockStatesStep implements IReaderStep {
 
         // Map raw palette to actual palette
         paletteRaw.forEach((e) -> {
-            // FIXME: review this item/block name upgrader
+            // TODO: review this item/block name upgrader
             // TODO: create fixer-upper ops class for nunbt/other needs
             String data = e.getKey();
             data = Ether.inst().getNms().fixUpItemName(StringTag.valueOf(data), -1).getStrVal();
@@ -58,9 +58,10 @@ public class ReadBlockStatesStep implements IReaderStep {
                 System.out.println("Block state " + data + " failed to create, defaulting to air");
                 state = BlockState.of("minecraft:air", null);
             }
-            // should check if int has larger value than byte to handle wrapping; we'll worry about that later
+            // should check if int has larger value than byte to handle wrapping; we'll worry about that later;
             // even if value is larger, the palette may already have an entry for that id; unreplaceable here
-            System.out.println(idx.getAsByte() + " " + state);
+
+            //debug: System.out.println(idx.getAsByte() + " " + state);
             palette.add(idx.getAsByte(), state);
         });
 

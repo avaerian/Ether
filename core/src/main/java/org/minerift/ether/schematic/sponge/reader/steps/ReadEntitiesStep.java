@@ -1,18 +1,27 @@
 package org.minerift.ether.schematic.sponge.reader.steps;
 
+import org.minerift.ether.Ether;
+import org.minerift.ether.math.Vec2d;
 import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.math.Vec3d;
 import org.minerift.ether.util.nbt.NbtException;
+import org.minerift.ether.util.nbt.nunbt.DoubleArrayNuTag;
+import org.minerift.ether.util.nbt.tags.DoubleTag;
 import org.minerift.ether.util.nbt.tags.container.*;
 import org.minerift.ether.world.EntityArchetype;
+import org.minerift.ether.world.Location;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
 import static org.minerift.ether.util.nbt.tags.TagTypes.COMPOUND;
+import static org.minerift.ether.util.nbt.tags.TagTypes.DOUBLE;
 
 public class ReadEntitiesStep implements IReaderStep {
+
+    public static final Logger LOGGER = Ether.inst().getLogger();
 
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicReadException {
@@ -24,8 +33,7 @@ public class ReadEntitiesStep implements IReaderStep {
             // pass
             return;
         } catch (MismatchedTypeException | MismatchedChildTypeException e) {
-            //final ListTag<?> tag = ctx.root.tryGetTag(NBT_ENTITIES, LIST);
-            // TODO: log
+            LOGGER.error("Mismatched type or child type", e);
             return;
         }
 
@@ -40,8 +48,7 @@ public class ReadEntitiesStep implements IReaderStep {
                 id = entity.getString(NBT_ENTITIES_ID, (e) -> new NbtException("id", e));
                 posRaw = entity.getDoubleArray(NBT_ENTITIES_POS, (e) -> new NbtException("position", e));
             } catch (NbtException e) {
-                // TODO: logger
-                System.out.println("Failed to read entity: " + e);
+                LOGGER.error("Failed to read entity", e);
                 continue;
             }
 
@@ -52,7 +59,14 @@ public class ReadEntitiesStep implements IReaderStep {
             fixedNbt.removeTag("Id");
             fixedNbt.removeTag("Pos");
 
-            ctx.builder.getEntities().add(new EntityArchetype(id, pos, fixedNbt));
+            ListTag<DoubleTag> lookTag = null;
+            CompoundTag data = entity.tryGetTag("Data", COMPOUND);
+            if(data == null) {
+                lookTag = data.tryGetList("Rotation", DOUBLE);
+            }
+            Vec2d look = lookTag == null ? Vec2d.ZERO : new Vec2d(DoubleArrayNuTag.Codec.tagsToDoubles(lookTag.getValue()));
+
+            ctx.builder.getEntities().add(new EntityArchetype(id, new Location.Mutable(pos, look), fixedNbt));
         }
     }
 

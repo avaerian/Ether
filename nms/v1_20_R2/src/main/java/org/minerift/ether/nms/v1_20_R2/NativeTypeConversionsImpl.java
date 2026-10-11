@@ -26,10 +26,12 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R2.CraftChunk;
 import org.bukkit.craftbukkit.v1_20_R2.CraftRegistry;
 import org.bukkit.craftbukkit.v1_20_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R2.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_20_R2.block.CraftBlockState;
 import org.bukkit.craftbukkit.v1_20_R2.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftEntity;
@@ -136,6 +138,7 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         return data == null ? null : ((CraftBlockData)data).getState();
     }
 
+    @Override
     public net.minecraft.world.level.block.state.BlockState asNativeBlockState(org.bukkit.block.BlockState data) {
         return ((CraftBlockState)data).getHandle();
     }
@@ -179,6 +182,11 @@ public class NativeTypeConversionsImpl implements NativeTypeConversions
         } catch (CommandSyntaxException ex) {
             throw new BlockStateNotFoundException("Failed to read string data as block state: ", ex);
         }
+    }
+
+    @Override
+    public net.minecraft.world.level.block.state.BlockState asNativeBlockState(Block block) {
+        return ((CraftBlock)block).getNMS();
     }
 
     /*@Override

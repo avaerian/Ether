@@ -16,11 +16,14 @@ import org.bukkit.World;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.SchematicPaster;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.work.Work;
+
+import java.util.concurrent.CompletableFuture;
 
 public class WESchematicPaster implements SchematicPaster<WorldEditSchematic> {
 
     @Override
-    public void paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
+    public Work<Void> paste(WorldEditSchematic schem, Vec3i pos, String worldName, SchematicPasteOptions options) {
 
         final World world = Bukkit.getWorld(worldName);
         Preconditions.checkNotNull(world, String.format("World %s could not be found!", worldName));
@@ -42,11 +45,9 @@ public class WESchematicPaster implements SchematicPaster<WorldEditSchematic> {
                     .ignoreAirBlocks(options.ignoreAirBlocks)
                     .build();
 
-            Operations.completeLegacy(operation);
-
-        } catch (MaxChangedBlocksException e) {
-            throw new RuntimeException(e);
+            Operations.completeBlindly(operation);
         }
 
+        return Work.completed("Paste WE schematic", null);
     }
 }

@@ -27,7 +27,6 @@ import static org.minerift.ether.util.nbt.tags.TagTypes.STRING;
 // Immutable, with builder that can copy spec to mutate before finalizing.
 // If two threads try to read IslandSpec and spec is updated between reading in threads,
 // the old spec will be read in the first thread and second thread will see copied, updated spec
-// TODO: allow serializing as bytebuf and/or json?
 public class IslandSpec implements NbtSerializable {
 
     public static final String ISLAND_NAME = "IslandName";
@@ -110,7 +109,6 @@ public class IslandSpec implements NbtSerializable {
     private final SpawnStrategy spawns;
     @Deprecated private final Path fpath;
 
-    @Deprecated // TODO: protected/private access ??
     public IslandSpec(String islandName, List<String> desc, ItemStack<?> icon, Schematic schem, SpawnStrategy spawns, Path fpath) {
         this.islandName = islandName;
         this.desc = desc;
@@ -190,7 +188,8 @@ public class IslandSpec implements NbtSerializable {
         public Builder() {
             this.islandName = "";
             this.desc = Collections.emptyList();
-            this.icon = ItemStack.of("minecraft:grass_block");
+            //this.icon = ItemStack.of("minecraft:grass_block"); // FIXME: this isn't working <-----------
+            this.icon = ItemStack.of("{id:\"minecraft:grass_block\"}"); // temp until resolved for above format
             this.schem = null; // FIXME: review default
             this.spawns = null; // FIXME: create proper default (single spawn)
             this.fpath = null;

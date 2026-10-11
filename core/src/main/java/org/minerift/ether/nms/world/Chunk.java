@@ -72,7 +72,7 @@ public interface Chunk<NBS, NC, NCS, NB> {
         return getConverter().asBlockState(nativeOld);
     }
 
-    default BlockState<NBS> setBlockState(Vec3i blockPos, BlockState<NBS> state) {
+    default BlockState<NBS> setBlockState(Vec3 blockPos, BlockState<NBS> state) {
         return setBlockState(blockPos.getX(), blockPos.getY(), blockPos.getZ(), state);
     }
 

@@ -26,7 +26,7 @@ import java.util.WeakHashMap;
 
 public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSection, Holder<Biome>> {
 
-    // TODO: cache ??
+    // TODO: review cache ??
     private static final Map<ChunkAccess, ChunkImpl> CACHE = new WeakHashMap<>();
 
     private final LevelChunk chunk;
@@ -79,7 +79,7 @@ public class ChunkImpl implements Chunk<BlockState, LevelChunk, LevelChunkSectio
 
     @Override
     public boolean updateNativeHeightmap(HeightMap heightmap, int x, int y, int z, BlockState state) {
-        // move to NativeTypeConversionsImpl?
+        // TODO: eventually create own heightmap enum decoupled from Bukkit/Paper
         Heightmap.Types nativeHeightmap = switch(heightmap) {
             case MOTION_BLOCKING -> Heightmap.Types.MOTION_BLOCKING;
             case MOTION_BLOCKING_NO_LEAVES -> Heightmap.Types.MOTION_BLOCKING_NO_LEAVES;

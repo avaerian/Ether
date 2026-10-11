@@ -3,7 +3,6 @@ package org.minerift.ether.util.nbt.nunbt;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.FloatTag;
@@ -23,11 +22,6 @@ public class FloatArrayNuTag extends ArrayTag<float[]> {
 
     public FloatArrayNuTag(String name, float[] value) {
         super(name, value);
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        // FIXME
     }
 
     @Override

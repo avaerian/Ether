@@ -29,11 +29,11 @@ public class SchematicPasteOptions {
     public final boolean ignoreAirBlocks;
     public final Vec3i offset;
 
-    private SchematicPasteOptions(SchematicPasteOptions.Builder builder) {
-        this.copyBiomes = builder.copyBiomes;
-        this.copyEntities = builder.copyEntities;
-        this.ignoreAirBlocks = builder.ignoreAirBlocks;
-        this.offset = builder.offset;
+    public SchematicPasteOptions(boolean copyBiomes, boolean copyEntities, boolean ignoreAirBlocks, Vec3i offset) {
+        this.copyBiomes = copyBiomes;
+        this.copyEntities = copyEntities;
+        this.ignoreAirBlocks = ignoreAirBlocks;
+        this.offset = offset;
     }
 
     public static SchematicPasteOptions.Builder builder() {
@@ -74,7 +74,7 @@ public class SchematicPasteOptions {
         }
 
         public SchematicPasteOptions build() {
-            return new SchematicPasteOptions(this);
+            return new SchematicPasteOptions(copyBiomes, copyEntities, ignoreAirBlocks, offset);
         }
     }
 

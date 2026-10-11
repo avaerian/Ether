@@ -1,12 +1,14 @@
 package org.minerift.ether.island.invites;
 
 import com.google.common.base.Objects;
+import lombok.Getter;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
 import org.minerift.ether.island.Island;
 import org.minerift.ether.util.pair.UUIDPair;
 
+import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.UUID;
 
@@ -18,9 +20,11 @@ public final class IslandInvite {
     public static final SecureRandom INVITE_ID_GENERATOR = new SecureRandom();
 
     private final int uniqueId;
+    @Getter
     private final UUID sender;
+    @Getter
     private final UUID receiver;
-    private final Island island;
+    private final WeakReference<Island> island;
     private long expire;
 
 
@@ -53,7 +57,7 @@ public final class IslandInvite {
         this.uniqueId = uniqueId;
         this.sender = sender;
         this.receiver = receiver;
-        this.island = island;
+        this.island = new WeakReference<>(island);
         this.expire = expireTimestamp;
     }
 
@@ -61,19 +65,11 @@ public final class IslandInvite {
         return uniqueId;
     }
 
-    public UUID getSender() {
-        return sender;
-    }
-
-    public UUID getReceiver() {
-        return receiver;
-    }
-
     public UUIDPair getSenderReceiver() {
         return new UUIDPair(sender, receiver);
     }
 
-    public Island getIsland() {
+    public WeakReference<Island> getIsland() {
         return island;
     }
 

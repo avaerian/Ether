@@ -45,8 +45,8 @@ public class IslandInvitesModel extends Model<IslandInvite, Integer> {
         INVITE_ID = ctx.createField("invite_id", DataType.INT, IslandInvite::getInviteId); // TODO: temporary until refactor to UUIDv7
         SENDER = ctx.createField("sender", DataType.UUID, IslandInvite::getSender);
         RECEIVER = ctx.createField("receiver", DataType.UUID, IslandInvite::getReceiver);
-        EXPIRE_TIMESTAMP = ctx.createField("expire", DataType.BIGINT.notNull(), IslandInvite::getExpireTimestamp);
-        ISLAND_ID = ctx.createForeignField(islandModel.ISLAND_ID, (invite) -> invite.getIsland().getId());
+        EXPIRE_TIMESTAMP = ctx.createField("expire", DataType.LONG.notNull(), IslandInvite::getExpireTimestamp);
+        ISLAND_ID = ctx.createForeignField(islandModel.ISLAND_ID, (invite) -> invite.getIsland().get().getId());
     }
 
     @Override

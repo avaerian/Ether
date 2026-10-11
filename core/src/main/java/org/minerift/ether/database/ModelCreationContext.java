@@ -1,8 +1,8 @@
 package org.minerift.ether.database;
 
 import com.google.common.collect.ImmutableMap;
-import org.minerift.ether.database.sql.fallback.Fallback;
-import org.minerift.ether.database.sql.adapters.Adapter;
+import org.minerift.ether.database.fallback.Fallback;
+import org.minerift.ether.database.adapters.Adapter;
 
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
