@@ -36,7 +36,7 @@ public abstract class Result<MO> implements Iterable<Record<MO>> {
         return stream().map(Record::readAsBuilder);
     }
 
-    public <T> Stream<T> streamField(Field<MO, T, ?> field) {
+    public <T> Stream<T> streamField(Field<MO, T> field) {
         return stream().map(record -> record.get(field));
     }
 

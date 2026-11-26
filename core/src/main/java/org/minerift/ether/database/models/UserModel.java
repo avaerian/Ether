@@ -13,9 +13,9 @@ import static org.minerift.ether.island.Island.INVALID_ID;
 
 public class UserModel extends Model<EtherUser, UUID> {
 
-    public Field<EtherUser, UUID, ?> ID;
-    public Field<EtherUser, Integer, ?> ISLAND_ID;
-    public Field<EtherUser, IslandRole, ?> ISLAND_ROLE;
+    public Field<EtherUser, UUID> ID;
+    public Field<EtherUser, Integer> ISLAND_ID;
+    public Field<EtherUser, IslandRole> ISLAND_ROLE;
 
     public UserModel(DatabaseCreationContext ctx) {
         super(ctx);
@@ -53,7 +53,7 @@ public class UserModel extends Model<EtherUser, UUID> {
     }
 
     @Override
-    public Field<EtherUser, UUID, ?> getPrimaryKey() {
+    public Field<EtherUser, UUID> getPrimaryKey() {
         return ID;
     }
 }

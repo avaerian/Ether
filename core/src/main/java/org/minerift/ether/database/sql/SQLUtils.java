@@ -72,7 +72,7 @@ public class SQLUtils {
         return asJooqDataType(type, org.jooq.SQLDialect.DEFAULT);
     }
 
-    public static org.jooq.Field<?> asJooqField(Field<?, ?, ?> field) {
+    public static org.jooq.Field<?> asJooqField(Field<?, ?> field) {
         return field(field.getName(), asJooqDataType(field.getDataType()));
     }
 
@@ -90,7 +90,7 @@ public class SQLUtils {
         return table(tableName);
     }
 
-    public static Map<org.jooq.Field<?>, ?> getNullBindValue(Field<?, ?, ?> field) {
+    public static Map<org.jooq.Field<?>, ?> getNullBindValue(Field<?, ?> field) {
         return getNullBindValue(asJooqField(field));
     }
 

@@ -13,12 +13,12 @@ import static org.minerift.ether.database.sql.SQLUtils.asJooqTable;
 public class DDLDropColumn {
 
     // TODO: review whether ALTER statement committing needs to be handled
-    public static void dropColumnFromField(SQLAccess access, Field<?, ?, ?> field, boolean dropChildren) { // TODO: refactor "dropChildren" to "cascade" ?
+    public static void dropColumnFromField(SQLAccess access, Field<?, ?> field, boolean dropChildren) { // TODO: refactor "dropChildren" to "cascade" ?
         // - Check field for any fields that depend on this as a foreign key
         // IGNORE: Check if field is enum and needs enum constraint removed
 
         Model<?, ?> model = field.getOwner();
-        List<Field<?,?,?>> children = ((Model)model).getForeignFields().getChildrenFields(field);
+        List<Field<?,?>> children = ((Model)model).getForeignFields().getChildrenFields(field);
 
         if(!children.isEmpty()) {
             if(dropChildren) {

@@ -9,11 +9,11 @@ import java.util.UUID;
 
 public class IslandInvitesModel extends Model<IslandInvite, Integer> {
 
-    public Field<IslandInvite, Integer, ?> INVITE_ID;
-    public Field<IslandInvite, UUID, ?> SENDER;
-    public Field<IslandInvite, UUID, ?> RECEIVER;
-    public Field<IslandInvite, Long, ?> EXPIRE_TIMESTAMP;
-    public Field<IslandInvite, Integer, ?> ISLAND_ID;
+    public Field<IslandInvite, Integer> INVITE_ID;
+    public Field<IslandInvite, UUID>    SENDER;
+    public Field<IslandInvite, UUID>    RECEIVER;
+    public Field<IslandInvite, Long>    EXPIRE_TIMESTAMP;
+    public Field<IslandInvite, Integer> ISLAND_ID;
 
     public IslandInvitesModel(DatabaseCreationContext dbCtx) {
         super(dbCtx);
@@ -60,7 +60,7 @@ public class IslandInvitesModel extends Model<IslandInvite, Integer> {
     }
 
     @Override
-    public Field<IslandInvite, Integer, ?> getPrimaryKey() {
+    public Field<IslandInvite, Integer> getPrimaryKey() {
         return INVITE_ID;
     }
 }

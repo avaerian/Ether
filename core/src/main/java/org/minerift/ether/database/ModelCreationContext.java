@@ -13,7 +13,7 @@ public class ModelCreationContext<MO> implements AutoCloseable {
 
     private DatabaseCreationContext dbCtx;
     private Model<MO, ?> model;
-    private ImmutableMap.Builder<String, Field<MO, ?, ?>> fields; // TODO: review usage of this; must be a better way
+    private ImmutableMap.Builder<String, Field<MO, ?>> fields; // TODO: review usage of this; must be a better way
 
     private String tableName;
 
@@ -39,38 +39,38 @@ public class ModelCreationContext<MO> implements AutoCloseable {
         return tableName;
     }
 
-    public ImmutableMap<String, Field<MO,?,?>> getFields() {
+    public ImmutableMap<String, Field<MO,?>> getFields() {
         return fields.build();
     }
 
     // MO = Modeled object
-    public <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader) {
-        Fallback<T, F> fallback = (Fallback<T, F>) getPossibleFallback(type, dbCtx);
+    public <T> Field<MO, T> createField(String name, DataType<T> type, Function<MO, T> objFieldReader) {
+        Fallback<T, ?> fallback = getPossibleFallback(type, dbCtx);
         return createField(name, type, objFieldReader, fallback);
     }
 
-    private <T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, T> objFieldReader, Fallback<T, F> fallback) {
-        Field<MO, T, F> field = new Field<>(name, type, model, objFieldReader, fallback);
+    private <T> Field<MO, T> createField(String name, DataType<T> type, Function<MO, T> objFieldReader, Fallback<T, ?> fallback) {
+        Field<MO, T> field = new Field<>(name, type, model, objFieldReader, fallback);
         fields.put(field.getName(), field);
         return field;
     }
 
-    public <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter) {
-        return createField(name, type, objFieldReader, adapter, (Fallback<T, F>) getPossibleFallback(type, dbCtx));
+    public <C, T> Field<MO, T> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter) {
+        return createField(name, type, objFieldReader, adapter, getPossibleFallback(type, dbCtx));
     }
 
-    private <C, T, F> Field<MO, T, F> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
-        Field.FieldWithAdapter<MO, C, T, F> field = new Field.FieldWithAdapter<>(name, type, model, objFieldReader, adapter, fallback);
+    private <C, T, F> Field<MO, T> createField(String name, DataType<T> type, Function<MO, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
+        Field.FieldWithAdapter<MO, C, T> field = new Field.FieldWithAdapter<>(name, type, model, objFieldReader, adapter, fallback);
         fields.put(field.getName(), field);
         return field;
     }
 
     // The adapter, if any, is copied over as well, so no adapter needs to be inputted. The object field reader must return T or the complex type to get T
-    public <C, T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, UnaryOperator<DataType<T>> addedFlags, Function<MO, ?> objFieldReader) {
-        Field<MO, T, F> result;
+    public <C, T> Field<MO, T> createForeignField(Field<?, T> parentField, UnaryOperator<DataType<T>> addedFlags, Function<MO, ?> objFieldReader) {
+        Field<MO, T> result;
         DataType<T> type = addedFlags == null ? parentField.requestedDataType : addedFlags.apply(parentField.requestedDataType);
         try {
-            Field.FieldWithAdapter<?, C, T, F> complexField = parentField.asComplexField();
+            Field.FieldWithAdapter<?, C, T> complexField = parentField.asComplexField();
             result = createField(parentField.getName(), type, (Function<MO, C>)objFieldReader, complexField.adapter, complexField.fallback);
         } catch (ClassCastException ex) {
             result = createField(parentField.getName(), type, (Function<MO, T>)objFieldReader, parentField.fallback);
@@ -83,7 +83,7 @@ public class ModelCreationContext<MO> implements AutoCloseable {
         return result;
     }
 
-    public <T, F> Field<MO, T, F> createForeignField(Field<?, T, F> parentField, Function<MO, ?> objFieldReader) {
+    public <T, F> Field<MO, T> createForeignField(Field<?, T> parentField, Function<MO, ?> objFieldReader) {
         return createForeignField(parentField, null, objFieldReader);
     }
 

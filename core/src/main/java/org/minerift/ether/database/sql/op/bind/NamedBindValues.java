@@ -10,7 +10,7 @@ import java.util.Map;
 
 public interface NamedBindValues<T> {
 
-    static SingleNamedBindValue<?> nulled(Field<?, ?, ?> field) {
+    static SingleNamedBindValue<?> nulled(Field<?, ?> field) {
         return new SingleNamedBindValue<>(field.getName(), null);
     }
 
@@ -24,7 +24,7 @@ public interface NamedBindValues<T> {
         return new SingleNamedBindValue<>(field, bindVal);
     }
 
-    static <T> SingleNamedBindValue<T> of(Field<?, T, ?> field, T bindVal) {
+    static <T> SingleNamedBindValue<T> of(Field<?, T> field, T bindVal) {
         return of(field.getName(), bindVal);
     }
 

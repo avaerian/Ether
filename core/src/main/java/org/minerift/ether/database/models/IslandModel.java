@@ -13,13 +13,13 @@ import java.util.UUID;
 
 public class IslandModel extends Model<Island, Integer> {
 
-    public Field<Island, Integer, ?> ISLAND_ID;
-    public Field<Island, Long,    ?> COORDS;
-    public Field<Island, UUID, ?> OWNER;
-    public Field<Island, UUID[],  ?> MEMBERS;
-    public Field<Island, long[], ?> PERM_SET;
-    public Field<Island, int[], ?> POWER_BY_BLOCK; // WORTH
-    public Field<Island, String[], ?> BLOCK_NAMES; // WORTH
+    public Field<Island, Integer>   ISLAND_ID;
+    public Field<Island, Long>      COORDS;
+    public Field<Island, UUID>      OWNER;
+    public Field<Island, UUID[]>    MEMBERS;
+    public Field<Island, long[]>    PERM_SET;
+    public Field<Island, int[]>     POWER_BY_BLOCK; // WORTH
+    public Field<Island, String[]>  BLOCK_NAMES; // WORTH
 
     public IslandModel(DatabaseCreationContext dbCtx) {
         super(dbCtx);
@@ -68,7 +68,7 @@ public class IslandModel extends Model<Island, Integer> {
     }
 
     @Override
-    public Field<Island, Integer, ?> getPrimaryKey() {
+    public Field<Island, Integer> getPrimaryKey() {
         return ISLAND_ID;
     }
 }

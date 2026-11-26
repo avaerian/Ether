@@ -1,31 +1,17 @@
 package org.minerift.ether.database;
 
-import com.google.common.collect.HashBiMap;
-import org.minerift.ether.util.Utils;
-
 import java.util.*;
+
+import static java.lang.String.format;
 
 // Provides access to the relationships between foreign fields and dependents for a model
 public class ForeignFields<MO> {
-
-    /**
-     *
-     * Re-evaluate what is needed for Foreign Fields:
-     * - For a model's field, get a list of fields from external models depending on this one
-     * - For a external field, get the field from this model that external field depends on
-     * 
-     *
-     */
-
-
-
-
     private static final int INIT_LOOKUP_CAPACITY = 4; // not expecting many foreign fields
 
     private final Model<MO, ?> parentModel;
 
-    private Map<Field<MO, ?, ?>, List<Field<?, ?, ?>>> parentToChildrenLookup;
-    private Map<Field<MO, ?, ?>, Field<?, ?, ?>> childToParentLookup;
+    private Map<Field<MO, ?>, List<Field<?, ?>>> parentToChildrenLookup;
+    private Map<Field<MO, ?>, Field<?, ?>> childToParentLookup;
 
     private Set<Model<?, ?>> dependingModels; // models that depend on this model
     private Set<Model<?, ?>> parentModels; // models that this model depends on
@@ -38,13 +24,13 @@ public class ForeignFields<MO> {
         this.parentModels = Collections.emptySet();
     }
 
-    public <DMO> void addDependent(Field<MO, ?, ?> parentField, Model<DMO, ?> dependentModel, Field<DMO, ?, ?> dependentField) {
+    public <DMO> void addDependent(Field<MO, ?> parentField, Model<DMO, ?> dependentModel, Field<DMO, ?> dependentField) {
         System.out.println(this.parentModel.getPrimaryKey());
         System.out.println(parentModel.getPrimaryKey());
         System.out.println(dependentField);
         System.out.println(parentField);
         if (this.parentModel.getPrimaryKey() != parentField) {
-            throw new IllegalArgumentException(String.format("%s from model %s is not a primary key", parentField.getName(), parentField.getOwner()));
+            throw new IllegalArgumentException(format("%s from model %s is not a primary key", parentField.getName(), parentField.getOwner()));
         }
 
         initializeIfNeeded();
@@ -61,12 +47,12 @@ public class ForeignFields<MO> {
 
     // NOTE: no need for dropRelationship() because these relationships should never be need to be updated after fields are instantiated
 
-    public List<Field<?, ?, ?>> getChildrenFields(Field<MO, ?, ?> parentField) {
+    public List<Field<?, ?>> getChildrenFields(Field<MO, ?> parentField) {
         var result = parentToChildrenLookup.get(parentField);
         return result == null ? Collections.emptyList() : result;
     }
 
-    public Field<?, ?, ?> getParentField(Field<MO, ?, ?> childField) {
+    public Field<?, ?> getParentField(Field<MO, ?> childField) {
         return childToParentLookup.get(childField);
     }
 
