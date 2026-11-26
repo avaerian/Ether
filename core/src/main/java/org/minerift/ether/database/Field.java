@@ -9,13 +9,13 @@ import java.util.function.Function;
 
 // MO is Model Object (class that is being modeled, not Model extended class itself)
 // T is SQL data type
-// F is fallback SQL data type
-public class Field<MO, T, F> {
-    protected final WeakReference<Model<MO, ?>> model; // NOTE: maybe switch WeakReference? don't want to hold models hostage
+public class Field<MO, T> {
+    protected final WeakReference<Model<MO, ?>> model;
     protected final String name;
     protected final DataType<T> requestedDataType; // original type that may need a fallback
     protected final Function<MO, ?> objFieldReader;
-    protected final Fallback<T, F> fallback; // safe data type supported across all dialects
+    protected final Fallback<T, ?> fallback; // safe data type supported across all dialects
+    protected Class<?> fallbackClazz;
 
 
     @Deprecated
@@ -28,7 +28,7 @@ public class Field<MO, T, F> {
         return (Class<? extends Model>) stackFrame.getDeclaringClass();
     }
 
-    protected Field(String name, DataType<T> type, Model<MO, ?> model, Function<MO, ?> objFieldReader, Fallback<T, F> fallback) {
+    protected Field(String name, DataType<T> type, Model<MO, ?> model, Function<MO, ?> objFieldReader, Fallback<T, ?> fallback) {
         this.name = name;
         this.requestedDataType = type;
         this.model = new WeakReference<>(model);
@@ -83,7 +83,7 @@ public class Field<MO, T, F> {
     // TODO: review
     public T readSQLAsJavaValue(Object sqlVal) {
         Object fixedSqlVal = sqlVal instanceof String sqlStr ? Utils.fixString(sqlStr) : sqlVal; // TODO: remove/refactor fix up
-        return fallback != null ? fallback.adaptFrom((F) fixedSqlVal) : (T) fixedSqlVal;
+        return fallback != null ? ((Fallback<T, Object>)fallback).adaptFrom(fixedSqlVal) : (T) fixedSqlVal;
     }
 
     // TODO: rename and create additional methods for getting field data type
@@ -96,24 +96,24 @@ public class Field<MO, T, F> {
         return "Field{" + getName() + ", model=" + model.get().getClass().getSimpleName() + "}";
     }
 
-    public <C> Field.FieldWithAdapter<MO, C, T, F> asComplexField() throws ClassCastException {
-        if(!(this instanceof Field.FieldWithAdapter<?,?,?,?> fieldWithAdapter)) { // TODO: test with new generics
+    public <C> Field.FieldWithAdapter<MO, C, T> asComplexField() throws ClassCastException {
+        if(!(this instanceof Field.FieldWithAdapter<?,?,?> fieldWithAdapter)) { // TODO: test with new generics
             throw new ClassCastException("Attempted to cast a db field as a complex (adapted) db field");
         }
-        return (FieldWithAdapter<MO, C, T, F>) fieldWithAdapter;
+        return (FieldWithAdapter<MO, C, T>) fieldWithAdapter;
     }
 
     @Deprecated
-    public <C> Field.FieldWithAdapter<MO, C, T, F> asComplexField(Class<C> complexTypeClazz) throws ClassCastException {
+    public <C> Field.FieldWithAdapter<MO, C, T> asComplexField(Class<C> complexTypeClazz) throws ClassCastException {
         return asComplexField();
     }
 
     // Fields with types that need to be adapted are handled here
     // R is Complex result
-    public static class FieldWithAdapter<M, C, T, F> extends Field<M, T, F> {
+    public static class FieldWithAdapter<M, C, T> extends Field<M, T> {
         public final Adapter<C, T> adapter;
 
-        protected FieldWithAdapter(String name, DataType<T> type, Model<M, ?> model, Function<M, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, F> fallback) {
+        protected FieldWithAdapter(String name, DataType<T> type, Model<M, ?> model, Function<M, C> objFieldReader, Adapter<C, T> adapter, Fallback<T, ?> fallback) {
             super(name, type, model, objFieldReader, fallback);
             this.adapter = adapter;
         }
