@@ -3,11 +3,9 @@ package org.minerift.ether.util.nbt.nunbt;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.ShortTag;
-import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.TagType;
 import org.minerift.ether.util.nbt.tags.array.ArrayTag;
 import org.minerift.ether.util.nbt.tags.container.ListTag;
@@ -25,11 +23,6 @@ public class ShortArrayNuTag extends ArrayTag<short[]> {
 
     public ShortArrayNuTag(String name, short[] value) {
         super(name, value);
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        // TODO
     }
 
     @Override

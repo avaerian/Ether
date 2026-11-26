@@ -1,5 +1,7 @@
 package org.minerift.ether.config;
 
+import org.minerift.ether.config.blocks.BlocksConfig;
+import org.minerift.ether.config.blocks.BlocksConfigCodec;
 import org.minerift.ether.config.islandspecs.IslandSpecsCodec;
 import org.minerift.ether.config.islandspecs.IslandSpecsConfig;
 import org.minerift.ether.config.main.MainConfig;
@@ -14,6 +16,7 @@ public final class ConfigType<T extends Config<T>, S extends Source> {
 
     public static final ConfigType<MainConfig, FileSource> MAIN;
     public static final ConfigType<IslandSpecsConfig, DirectorySource> ISLAND_SPECS_LIST;
+    public static final ConfigType<BlocksConfig, FileSource> BLOCKS;
 
     private static final AtomicInteger TYPE_ID_GEN = new AtomicInteger();
 
@@ -22,6 +25,7 @@ public final class ConfigType<T extends Config<T>, S extends Source> {
                 MainConfig.class, MainConfigCodec.INST, MainConfig::new);
         ISLAND_SPECS_LIST = new ConfigType<>("Island Specs List (island_specs.yml)",
                 IslandSpecsConfig.class, IslandSpecsCodec.INST, IslandSpecsConfig::new);
+        BLOCKS = new ConfigType<>("Blocks (blocks.yml)", BlocksConfig.class, BlocksConfigCodec.INST, BlocksConfig::new);
     }
 
     protected final int id;

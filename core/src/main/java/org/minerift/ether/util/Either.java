@@ -1,8 +1,10 @@
 package org.minerift.ether.util;
 
 import com.google.common.base.Preconditions;
+import org.minerift.ether.debug.NeedsReview;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Either<L, R> {
@@ -31,6 +33,12 @@ public class Either<L, R> {
         return !isLeft;
     }
 
+    public <U> U map(Function<L, U> lmapper, Function<R, U> rmapper) {
+        return isLeft
+                ? lmapper.apply(getLeft())
+                : rmapper.apply(getRight());
+    }
+
     public <E extends Exception> L getLeftOrThrow(Supplier<E> ex) throws E {
         if(!isLeft) {
             throw ex.get();
@@ -45,28 +53,31 @@ public class Either<L, R> {
         return (R) obj;
     }
 
-    // TODO: review
+    @NeedsReview
     public void runIfLeft(boolean b, Consumer<L> run) {
         if(b) {
             run.accept(getLeft());
         }
     }
 
+    @NeedsReview
     public void runIfLeft(Consumer<L> run) {
         runIfLeft(isLeft(), run);
     }
 
-    // TODO: review
+    @NeedsReview
     public void runIfRight(boolean b, Consumer<R> run) {
         if(b) {
             run.accept(getRight());
         }
     }
 
+    @NeedsReview
     public void runIfRight(Consumer<R> run) {
         runIfRight(isRight(), run);
     }
 
+    @NeedsReview
     public void runIfLeftOrElse(Consumer<L> con, Runnable run) {
         if(isLeft()) {
             con.accept(getLeft());
@@ -75,6 +86,7 @@ public class Either<L, R> {
         }
     }
 
+    @NeedsReview
     public void runIfRightOrElse(Consumer<R> con, Runnable run) {
         if(isRight()) {
             con.accept(getRight());

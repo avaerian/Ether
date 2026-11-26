@@ -16,15 +16,15 @@ public class SQLRecord<MO> extends Record<MO> {
     }
 
     @Override
-    public <T> T get(Field<?, T, ?> field) {
+    public <T> T get(Field<?, T> field) {
         Object sqlVal = jooqRecord.get(asJooqField(field));
         //System.out.println(this.getClass() + " : get() sqlVal: " + sqlVal); // debug
         return field.readSQLAsJavaValue(sqlVal);
     }
 
     @Override
-    public <C, T> C get(Field.FieldWithAdapter<?, C, T, ?> field) {
-        return field.adapter.adaptFrom(get((Field<?, T, ?>) field));
+    public <C, T> C get(Field.FieldWithAdapter<?, C, T> field) {
+        return field.adapter.adaptFrom(get((Field<?, T>) field));
     }
 
     @Override

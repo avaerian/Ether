@@ -1,71 +1,80 @@
 package org.minerift.ether.work;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.minerift.ether.Ether;
 import org.minerift.ether.EtherPlugin;
-import org.minerift.ether.work.deprecated.Task;
+import org.slf4j.Logger;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.BitSet;
+import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
-// A work queue that distributes work over multiple ticks synchronously
 public class WorkQueue {
 
-    public static final double MAX_MILLIS_PER_TICK = 15;
-    public static final int MAX_NANOS_PER_TICK = (int) (MAX_MILLIS_PER_TICK * 1E6);
+    public static long MAX_MS_PER_TICK = 15;
+    public static long MAX_NANOS_PER_TICK = TimeUnit.MILLISECONDS.toNanos(MAX_MS_PER_TICK);
 
-    private BukkitTask bukkitTask;
-    private final Deque<Task> workloadDeque;
 
-    public WorkQueue() {
-        this.workloadDeque = new ArrayDeque<>();
-        this.bukkitTask = null;
+    private final String name;
+    private final JavaPlugin plugin; // for spawning Bukkit tasks to complete work
+    protected final Logger logger;
+    private BukkitTask task;
+    private Queue<Work<?>> queue;
+    protected BitSet activeWork;
+
+
+    public WorkQueue(String name, JavaPlugin plugin, Logger logger) {
+        this.name = name;
+        this.queue = new ArrayDeque<>();
+        this.logger = logger;
+        this.task = null;
+        this.plugin = plugin;
     }
 
-    public void start(BukkitTask task) {
-        if(bukkitTask != null) {
-            throw new UnsupportedOperationException("Work queue has already been started");
+    public WorkQueue(String name, Logger logger) {
+        this(name, EtherPlugin.getInstance(), logger);
+    }
+
+    private void tick() {
+        final long endNanos = System.nanoTime() + MAX_NANOS_PER_TICK;
+        Work<?> work;
+        while(System.nanoTime() <= endNanos && (work = queue.peek()) != null) {
+            if(!work.runNextTask(this))
+                queue.poll();
         }
-        this.bukkitTask = task;
     }
 
-    public void start() {
-        start(Bukkit.getScheduler().runTaskTimer(EtherPlugin.getInstance(), this::tick, 1L, 1L));
+    public synchronized void enqueue(Work<?> work) {
+        work.activeTasks = new Task[work.tasks.size()];
+        queue.add(work);
     }
 
-    // Stops the work queue from completing work
-    public void stop() {
-        bukkitTask.cancel();
-        this.bukkitTask = null;
+    public boolean start() {
+        boolean isStopped = task == null;
+        if(!isStopped) {
+            this.task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1L, 1L);
+        }
+        return isStopped;
+    }
+
+    public boolean stop() {
+        boolean isRunning = task != null;
+        if(isRunning) {
+            task.cancel();
+        }
+        task = null;
+        return isRunning;
     }
 
     public void close() {
         stop();
-        workloadDeque.forEach(op -> op.fail(Task.Status.QUEUE_SHUTDOWN));
+        queue.forEach(work -> work.fail(new WorkQueueException("Work queue shutdown")));
     }
 
-    public synchronized void enqueue(Task operation) {
-        workloadDeque.add(operation);
+    public Work<?> getCurrentWork() {
+        return queue.peek();
     }
-
-    public Task getCurrentOperation() {
-        return workloadDeque.peek();
-    }
-
-    // Runs every tick
-    // Completes as much work as possible within each tick
-    private void tick() {
-        final long stopTime = System.nanoTime() + MAX_NANOS_PER_TICK;
-
-        Task nextWork;
-        while(System.nanoTime() <= stopTime && (nextWork = workloadDeque.peek()) != null) {
-            // complete tasks for operation and poll next
-            boolean finish = nextWork.completeNextTask();
-            if(finish) {
-                workloadDeque.poll();
-            }
-        }
-    }
-
 }

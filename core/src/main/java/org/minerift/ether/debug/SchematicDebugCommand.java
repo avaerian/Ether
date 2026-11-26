@@ -6,11 +6,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.schematic.SchematicReadException;
 import org.minerift.ether.schematic.SchematicPasteOptions;
 import org.minerift.ether.schematic.Schematic;
 import org.minerift.ether.util.BukkitUtils;
 import org.minerift.ether.math.Vec3i;
+import org.minerift.ether.work.Work;
 
 import java.io.File;
 
@@ -25,23 +27,24 @@ public class SchematicDebugCommand implements CommandExecutor {
             return false;
         }
 
+        final Ether ether = Ether.inst();
         final Player plr = (Player) sender;
         final Vec3i pos = BukkitUtils.asVec3i(plr.getLocation());
         final String worldName = plr.getWorld().getName();
 
         final String[] filePaths = {
-                "C:\\Users\\avaer\\Downloads\\testisland.schem",
-                "C:\\Users\\avaer\\Downloads\\testisland2.schem",
-                "C:\\Users\\avaer\\Downloads\\testisland3.schem"
+            "debug/testisland.schem",
+            "debug/testisland2.schem",
+            "debug/testisland3.schem",
         };
-
-        final File file = new File(filePaths[Integer.parseInt(args[0])]);
+        final String file = filePaths[Integer.parseInt(args[0])];
 
         // Attempt to paste
         try {
-            Schematic schem = Schematic.fromFile(file);
-            schem.paste(pos, worldName, SchematicPasteOptions.DEFAULT);
-            plr.sendMessage("Schematic pasted successfully!");
+            Schematic schem = Schematic.fromFile(ether.getPluginFile(file));
+            Work<Void> pasteTask = schem.paste(pos, worldName, SchematicPasteOptions.DEFAULT)
+                    .whenComplete((w) -> plr.sendMessage("Schematic pasted successfully!"));
+            ether.getWorkQueue().enqueue(pasteTask);
         } catch (SchematicReadException ex) {
             plr.sendMessage("Schematic failed to read! Check console for details");
             ex.printStackTrace();

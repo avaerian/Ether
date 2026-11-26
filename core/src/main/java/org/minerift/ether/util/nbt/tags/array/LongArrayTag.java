@@ -1,14 +1,11 @@
 package org.minerift.ether.util.nbt.tags.array;
 
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongIterators;
 import it.unimi.dsi.fastutil.longs.LongList;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.TagType;
@@ -17,11 +14,6 @@ import org.minerift.ether.util.nbt.tags.TagTypes;
 public final class LongArrayTag extends ArrayTag<long[]> {
     public LongArrayTag(String name, long[] value) {
         super(name, value);
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitLongArray(this);
     }
 
     @Override

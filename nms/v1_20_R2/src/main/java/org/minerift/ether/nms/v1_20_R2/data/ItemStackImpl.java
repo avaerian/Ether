@@ -65,6 +65,11 @@ public class ItemStackImpl implements ItemStack<net.minecraft.world.item.ItemSta
     }
 
     @Override
+    public org.bukkit.inventory.ItemStack asBukkitItem() {
+        return item.asBukkitCopy();
+    }
+
+    @Override
     public net.minecraft.world.item.ItemStack asNative() {
         return item;
     }

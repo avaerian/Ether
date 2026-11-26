@@ -16,8 +16,8 @@ public abstract class Record<MO> {
         return model;
     }
 
-    public abstract <T> T get(Field<?, T, ?> field);
-    public abstract <C, T> C get(Field.FieldWithAdapter<?, C, T, ?> complexField);
+    public abstract <T> T get(Field<?, T> field);
+    public abstract <C, T> C get(Field.FieldWithAdapter<?, C, T> complexField);
     public abstract Object get(String column);
     public abstract Object get(int idx);
 
@@ -43,5 +43,4 @@ public abstract class Record<MO> {
     public IBuilder<MO> readAsBuilder() {
         return model.readAsBuilder(this);
     }
-
 }

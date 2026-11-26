@@ -1,6 +1,5 @@
 package org.minerift.ether.schematic;
 
-import org.minerift.ether.Ether;
 import org.minerift.ether.EtherPlugin;
 import org.minerift.ether.schematic.sponge.SpongeSchematic;
 import org.minerift.ether.schematic.sponge.SpongeSchematicPaster;
@@ -16,21 +15,35 @@ public class SchematicType<S extends Schematic> {
     public final static SchematicType<WorldEditSchematic> WORLDEDIT;
 
     static {
-        UNSUPPORTED = new SchematicType(null, null);
-        SPONGE = new SchematicType<>(SpongeSchematicCodec.INST, new SpongeSchematicPaster());
+        UNSUPPORTED = new SchematicType("None", null, null);
+        SPONGE = new SchematicType<>("Sponge", SpongeSchematicCodec.INST, new SpongeSchematicPaster());
         // Initialize only if WorldEdit is supported
         WORLDEDIT = EtherPlugin.getInstance().getServer()
                 .getPluginManager()
                 .isPluginEnabled("WorldEdit")
-                ? new SchematicType<>(new WESchematicCodec(), new WESchematicPaster())
+                ? new SchematicType<>("WorldEdit", new WESchematicCodec(), new WESchematicPaster())
                 : UNSUPPORTED;
     }
 
+    private final String name;
     private final SchematicCodec<S> codec;
     private final SchematicPaster<S> paster;
-    private SchematicType(SchematicCodec<S> codec, SchematicPaster<S> paster) {
+    private SchematicType(String name, SchematicCodec<S> codec, SchematicPaster<S> paster) {
+        this.name = name;
         this.codec = codec;
         this.paster = paster;
+    }
+
+    public static SchematicType<?> from(String schemType) {
+        return switch (schemType.toUpperCase()) {
+            case "WORLDEDIT" -> WORLDEDIT;
+            case "DEFAULT", "SPONGE" -> SPONGE;
+            default -> throw new IllegalStateException("Unexpected value: " + schemType.toUpperCase());
+        };
+    }
+
+    public String getName() {
+        return name;
     }
 
     public SchematicCodec<S> codec() {

@@ -15,7 +15,7 @@ public class DMLSelectById extends DMLSelectOp {
 
     @Override
     protected <OBJ, PK> RawModelQuery createQueryForModel(SQLDatabaseCreationContext ctx, Model<OBJ, PK> model) {
-        Field<OBJ, PK, ?> primaryKey = model.getPrimaryKey();
+        Field<OBJ, PK> primaryKey = model.getPrimaryKey();
         String sql = ctx.dsl().select()
                 .from(asJooqTable(model))
                 .where(condition(getNullBindValue(primaryKey)))

@@ -3,6 +3,7 @@ package org.minerift.ether.math;
 import org.minerift.ether.Ether;
 import org.minerift.ether.config.ConfigType;
 import org.minerift.ether.config.main.MainConfig;
+import org.minerift.ether.dimension.Dimension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,22 +37,20 @@ public class Maths {
         System.out.println(Maths.strToVec2i("Z(420,b-69a)!"));
     }*/
 
-    public static Vec2i getTileAt(int blockX, int blockZ) {
-        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
-        int tileX = blockX / config.getTileLengthBlocks();
-        int tileZ = blockZ / config.getTileLengthBlocks();
+    public static Vec2i getTileAt(Dimension dim, int blockX, int blockZ) {
+        int tileX = blockX / dim.getTileLenBlocks();
+        int tileZ = blockZ / dim.getTileLenBlocks();
         if(blockX < 0) tileX--;
         if(blockZ < 0) tileZ--;
         return new Vec2i(tileX, tileZ);
     }
 
-    public static Vec2i getTileAt(Vec3i blockPos) {
-        return getTileAt(blockPos.getX(), blockPos.getZ());
+    public static Vec2i getTileAt(Dimension dim, Vec3i blockPos) {
+        return getTileAt(dim, blockPos.getX(), blockPos.getZ());
     }
 
-    public static Vec3i getVec3iAt(Vec2i tile) {
-        final MainConfig config = Ether.inst().getConfig(ConfigType.MAIN);
-        return new Vec3i(tile.getX() * config.getTileLengthBlocks(), config.getTileHeight(), tile.getZ() * config.getTileLengthBlocks());
+    public static Vec3i getVec3iAt(Dimension dim, Vec2i tile) {
+        return new Vec3i(tile.getX() * dim.getTileLenBlocks(), dim.getIslandSpawnY(), tile.getZ() * dim.getTileLenBlocks());
     }
 
     public static int clamp(int val, int min, int max) {

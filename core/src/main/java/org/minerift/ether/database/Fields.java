@@ -10,12 +10,12 @@ import static org.minerift.ether.util.Utils.enumerateMap;
 
 // MO -> Model Object
 // T  -> Common data type (if any)
-public class Fields<MO> implements Iterable<Field<MO, ?, ?>> {
+public class Fields<MO> implements Iterable<Field<MO, ?>> {
 
     private final Model<MO, ?> model;
-    private final Map<String, Field<MO, ?, ?>> fieldsByName;
+    private final Map<String, Field<MO, ?>> fieldsByName;
 
-    public Fields(Model<MO, ?> model, Map<String, Field<MO, ?, ?>> fieldsByName) {
+    public Fields(Model<MO, ?> model, Map<String, Field<MO, ?>> fieldsByName) {
         this.model = model;
         this.fieldsByName = fieldsByName;
     }
@@ -26,20 +26,20 @@ public class Fields<MO> implements Iterable<Field<MO, ?, ?>> {
      * @return new Fields set without excluded fields
      */
     @SafeVarargs
-    public final Fields<MO> exclude(Field<MO, ?, ?>... excludes) {
-        Map<String, Field<MO, ?, ?>> newFields = new LinkedHashMap<>(fieldsByName);
-        for(Field<MO, ?, ?> field : excludes) {
+    public final Fields<MO> exclude(Field<MO, ?>... excludes) {
+        Map<String, Field<MO, ?>> newFields = new LinkedHashMap<>(fieldsByName);
+        for(Field<MO, ?> field : excludes) {
             newFields.remove(field.getName());
         }
         return new Fields<>(model, newFields);
     }
 
-    public Field<MO, ?, ?> getField(String name) {
+    public Field<MO, ?> getField(String name) {
         return fieldsByName.get(name);
     }
 
     // NOTE: BE CAREFUL about using this method; not intended for modifying map
-    public Map<String, Field<MO, ?, ?>> getFieldsByNameMap() {
+    public Map<String, Field<MO, ?>> getFieldsByNameMap() {
         return fieldsByName;
     }
 
@@ -55,7 +55,7 @@ public class Fields<MO> implements Iterable<Field<MO, ?, ?>> {
 
     @NotNull
     @Override
-    public Iterator<Field<MO, ?, ?>> iterator() {
+    public Iterator<Field<MO, ?>> iterator() {
         return fieldsByName.values().iterator();
     }
 }

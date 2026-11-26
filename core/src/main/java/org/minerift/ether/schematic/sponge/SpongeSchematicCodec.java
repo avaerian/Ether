@@ -162,9 +162,9 @@ public class SpongeSchematicCodec implements SchematicCodec<SpongeSchematic> {
                 entity.addTag(new StringTag(NBT_ENTITIES_ID, entry.getId()));
 
                 ListTag<DoubleTag> pos = new ListTag<>(NBT_ENTITIES_POS, DOUBLE);
-                pos.addTag(DoubleTag.valueOf(entry.getPos().getXd()));
-                pos.addTag(DoubleTag.valueOf(entry.getPos().getYd()));
-                pos.addTag(DoubleTag.valueOf(entry.getPos().getZd()));
+                pos.addTag(DoubleTag.valueOf(entry.getLocation().getXd()));
+                pos.addTag(DoubleTag.valueOf(entry.getLocation().getYd()));
+                pos.addTag(DoubleTag.valueOf(entry.getLocation().getZd()));
                 entity.addTag(pos);
 
                 entities.addTag(entity);

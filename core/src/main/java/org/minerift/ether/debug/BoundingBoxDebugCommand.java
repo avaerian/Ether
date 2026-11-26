@@ -7,11 +7,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.minerift.ether.Ether;
 import org.minerift.ether.nms.world.ChunkGetter;
 import org.minerift.ether.schematic.data.*;
+import org.minerift.ether.schematic.sponge.Pasters;
+import org.minerift.ether.work.Work;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import static org.minerift.ether.util.BukkitUtils.asVec3i;
 
@@ -63,12 +65,14 @@ public class BoundingBoxDebugCommand implements CommandExecutor {
                     cg = ChunkGetter.SYNC;
                 }
 
-                // experiment with thread pooling / virtual threads
                 box.getBlocksMut(plr.getWorld(),
-                        Array3DOrder.YZX, cg, Executors.newFixedThreadPool(10 /*, Thread.ofVirtual().factory()*/))
+                        Array3DOrder.YZX, cg)
                         .thenApply(BlockVolume.Builder::build)
-                        .thenAccept((bv) -> Pasters.pasteBlockVolume(bv, plr.getWorld(), asVec3i(plr.getLocation()), cg))
-                        .thenAccept((__) -> plr.sendMessage("Pasted successfully?"));
+                        .thenAccept((bv) -> {
+                            Work<Void> pasteTask = Pasters.pasteBlockVolume(bv, plr.getWorld(), asVec3i(plr.getLocation()), cg)
+                                    .whenComplete((w) -> plr.sendMessage("Pasted successfully"));
+                            Ether.inst().getWorkQueue().enqueue(pasteTask);
+                        });
             }
             case "pop" -> {
                 sessions.pop(plr.getUniqueId());

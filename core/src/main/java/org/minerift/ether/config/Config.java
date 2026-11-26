@@ -1,6 +1,8 @@
 package org.minerift.ether.config;
 
 import org.minerift.ether.config.source.Source;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -9,6 +11,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 // NOTE: writing a good equality check is extremely useful for checking
 //  for modifications between saving configs
 public abstract class Config<T extends Config<T>> {
+
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
     public interface CreateConfigFn<T extends Config<T>, S extends Source> {
         T create(ConfigRegistry reg, S src);
@@ -50,6 +54,7 @@ public abstract class Config<T extends Config<T>> {
         } catch (ConfigNotFoundException ex) {
             //reload = (T) ((ConfigType)getType()).getDefaultConfig(reg, src);
             // failed to reload; don't change current settings
+            LOGGER.error("Failed to reload config; doesn't seem to exist", ex);
             return false;
         }
         copyFrom(reload);
@@ -66,5 +71,10 @@ public abstract class Config<T extends Config<T>> {
 
     public String getTypeName() {
         return getType().getName();
+    }
+
+    @Override
+    public String toString() {
+        return getTypeName();
     }
 }

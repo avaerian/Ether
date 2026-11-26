@@ -1,6 +1,6 @@
 package org.minerift.ether.island;
 
-import org.minerift.ether.debug.Review;
+import org.minerift.ether.debug.NeedsReview;
 
 public enum IslandPermission {
 
@@ -10,8 +10,13 @@ public enum IslandPermission {
     ENTITY_INTERACT,
     ENTITY_DAMAGE,
 
+    // administrative permissions
+    MODIFY_PERMISSIONS,
+    CREATE_WARPS,
+    DELETE_WARPS,
+
     ;
 
-    @Review
+    @NeedsReview
     public static final IslandPermission[] VALUES = IslandPermission.values();
 }

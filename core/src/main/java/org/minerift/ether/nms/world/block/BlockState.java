@@ -2,7 +2,9 @@ package org.minerift.ether.nms.world.block;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 import org.minerift.ether.Ether;
 import org.minerift.ether.debug.Experimental;
 import org.minerift.ether.nms.BlockStateNotFoundException;
@@ -28,6 +30,15 @@ public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
         return of(key.asString(), fallback.asString());
     }
 
+    static BlockState<?> of(Block block) {
+        return Ether.inst().getNms().getConverter().asBlockState(block);
+    }
+
+    static BlockState<?> of(org.bukkit.block.BlockState bukkitState) {
+        return Ether.inst().getNms().getConverter().asBlockState(bukkitState);
+    }
+
+    String getResourceLocation();
 
     boolean hasAttribute(Attribute<?> attr);
 
@@ -39,17 +50,22 @@ public interface BlockState<NBS> /*extends Copy<BlockState<NBS>>*/ {
     <T> BlockState<NBS> setAttribute(Attribute<T> attr, T val);
     <T> BlockState<NBS> trySetAttribute(Attribute<T> attr, T val);
 
-    CompoundTag propsAsNbt();
-    @Experimental String getAsString();
+    boolean is(String id);
+    boolean is(BlockState<NBS> state);
 
     boolean hasBlockEntity();
-
     boolean canBeReplaced();
     boolean isAir();
 
-    Material getBukkitMaterial();
+    @Range(from = 0, to = 15) int getLightEmission();
+
+    @Deprecated Material getBukkitMaterial();
 
     NBS asNative();
 
     NativeTypeConversions<NBS,?,?,?,?> getConverter();
+
+    CompoundTag propsAsNbt();
+    @Experimental String getAsString();
 }
+

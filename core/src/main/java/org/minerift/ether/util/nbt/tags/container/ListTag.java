@@ -2,14 +2,14 @@ package org.minerift.ether.util.nbt.tags.container;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import org.minerift.ether.util.Note;
+import org.minerift.ether.Ether;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.*;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.Function;
@@ -21,6 +21,8 @@ import static org.minerift.ether.util.nbt.tags.TagTypes.END;
 import static org.minerift.ether.util.nbt.tags.TagTypes.lookup;
 
 public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implements Iterable<T> {
+
+    private static final Logger LOGGER = Ether.inst().getLogger();
 
     public static ListTag<?> empty(String name) {
         return new ListTag<>(name, END, Collections.emptyList());
@@ -57,7 +59,6 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
         if(!tagList.isEmpty()) {
             throw new UnsupportedOperationException("Unable to transform tag list with " + tagList.size() + " elements (needs to be empty)");
         }
-        // TODO: review this code; may throw exception
         ListTag<U> transform = (ListTag<U>) this;
         transform.childType = type;
         return transform;
@@ -76,7 +77,7 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
             addTagOrThrow(tag);
             return true;
         } catch (IllegalArgumentException ex) {
-            // TODO: logger
+            LOGGER.warn("Failed to add tag ({})", tag, ex);
             return false;
         }
     }
@@ -105,11 +106,6 @@ public class ListTag<T extends Tag> extends AbstractContainerTag<List<T>> implem
 
     public T getTag(int i) {
         return tagList.get(i);
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitList(this);
     }
 
     @Override

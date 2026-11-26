@@ -39,7 +39,7 @@ public class DMLUpsert extends DMLOp {
             }
 
             case H2 -> {
-                Field<OBJ, PK, ?> primaryKey = model.getPrimaryKey();
+                Field<OBJ, PK> primaryKey = model.getPrimaryKey();
                 String sql = ctx.dsl().mergeInto(asJooqTable(model))
                         .using(ctx.dsl().selectOne())
                         .on(condition(getNullBindValue(primaryKey)))

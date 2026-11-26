@@ -1,12 +1,13 @@
 package org.minerift.ether.database;
 
-import com.google.common.net.HostAndPort;
 import org.minerift.ether.database.sql.SQLDialect;
 import org.minerift.ether.debug.Experimental;
 
 @Experimental // experiment with this class being a record
 public record DatabaseConnectionSettings(SQLDialect dialect, String url, String username, String password,
-                                         String dbName) {
+                                         String dbName, int timeout) {
+
+    public static final int DEFAULT_TIMEOUT_SECS = 10; //seconds
 
     public static Builder builder() {
         return new Builder();
@@ -18,6 +19,7 @@ public record DatabaseConnectionSettings(SQLDialect dialect, String url, String 
         private String username;
         private String password;
         private String dbName;
+        private int timeout;
 
         private Builder() {
             this.dialect = null;
@@ -25,6 +27,7 @@ public record DatabaseConnectionSettings(SQLDialect dialect, String url, String 
             this.username = "";
             this.password = "";
             this.dbName = "";
+            this.timeout = DEFAULT_TIMEOUT_SECS;
         }
 
         public Builder setDialect(SQLDialect dialect) {
@@ -34,12 +37,6 @@ public record DatabaseConnectionSettings(SQLDialect dialect, String url, String 
 
         public Builder setUrl(String url) {
             this.url = url;
-            return this;
-        }
-
-        @Deprecated
-        public Builder setUrl(HostAndPort addr) {
-            this.url = addr.toString();
             return this;
         }
 
@@ -58,8 +55,13 @@ public record DatabaseConnectionSettings(SQLDialect dialect, String url, String 
             return this;
         }
 
+        public Builder setTimeout(int timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
         public DatabaseConnectionSettings build() {
-            return new DatabaseConnectionSettings(dialect, url, username, password, dbName);
+            return new DatabaseConnectionSettings(dialect, url, username, password, dbName, timeout);
         }
     }
 

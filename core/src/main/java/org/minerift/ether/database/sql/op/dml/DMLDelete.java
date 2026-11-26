@@ -21,7 +21,7 @@ public class DMLDelete extends DMLOp {
 
     @Override
     protected <OBJ, PK> RawModelQuery createQueryForModel(SQLDatabaseCreationContext ctx, Model<OBJ, PK> model) {
-        Field<OBJ, PK, ?> primaryKey = model.getPrimaryKey();
+        Field<OBJ, PK> primaryKey = model.getPrimaryKey();
         String sql = ctx.dsl().delete(asJooqTable(model))
                 .where(condition(getNullBindValue(primaryKey)))
                 .getSQL();

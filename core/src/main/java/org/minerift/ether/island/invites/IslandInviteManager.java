@@ -70,18 +70,17 @@ public class IslandInviteManager {
                 plr.sendMessage("Sorry! The invite has already expired.");
                 return false;
             }
-
             return callback.apply(receiver);
         } finally {
             invites.remove(invite); // always consume invite
         }
     }
 
-    // Returns whether the invite was able to be accepted successfully
+    // Returns whether the invite was accepted successfully
     // Receiver accepts requested island invite
     protected boolean accept(IslandInvite invite) {
         return handleAndConsume(invite, (receiver) -> {
-            invite.getIsland().addTeamMember(receiver, IslandRole.MEMBER);
+            invite.getIsland().get().addTeamMember(receiver, IslandRole.MEMBER);
             return true;
         });
     }

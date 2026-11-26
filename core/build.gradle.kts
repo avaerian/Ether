@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("com.gradleup.shadow")
+    `java-library`
     id("me.champeau.jmh") version("0.7.2")
 }
 
@@ -9,36 +10,44 @@ plugins {
 //sourceSets["jmh"].runtimeClasspath += sourceSets["main"].runtimeClasspath
 
 repositories {
+    mavenCentral()
     maven("https://maven.enginehub.org/repo/")
     maven("https://repo.carm.cc/repository/maven-public/")
-    mavenCentral()
     mavenLocal()
-    //maven("https://libraries.minecraft.net")
 }
 
+val shade: Configuration = configurations.maybeCreate("shade")
+    //.extendsFrom(configurations.runtimeClasspath.get())
+
+
 dependencies {
+    api(libs.slf4j)
+    api(libs.log4j) {
+        exclude(group = "jakarta.platform", module = "jakartaee-api-parent")
+    }
 
     //implementation("org.jooq:joor-java-8:0.9.15")
     compileOnly(libs.paperApi)
 
-    implementation(libs.dataFixerUpper) // TODO: review; move to :build-logic build.gradle.kts for version constraint management; compileOnly / compile ??
+    compileOnly(libs.dataFixerUpper) // TODO: review; move to :build-logic build.gradle.kts for version constraint management; compileOnly / compile ??
     // should also review if this needs to be shaded
 
     // TODO: move these to :build-logic build.gradle.kts with version constraints for better Mojang lib conflict handling
+    // TODO: review compileOnly
     // General libraries
-    implementation(libs.guava)
-    implementation(libs.gson)
-    implementation(libs.fastutil)
-    implementation(libs.netty.buffer)
+    compileOnly(libs.guava)
+    compileOnly(libs.gson)
+    compileOnly(libs.fastutil)
+    compileOnly(libs.netty.buffer)
 
     // SQL libraries
     implementation(libs.jooq)
     implementation(libs.hikariCP)
 
-    implementation(libs.sql.driver.sqlite)
-    implementation(libs.sql.driver.postgresql)
-    implementation(libs.sql.driver.h2)
-    implementation(libs.sql.driver.mysql)
+    shade(libs.sql.driver.sqlite)
+    shade(libs.sql.driver.postgresql)
+    shade(libs.sql.driver.h2)
+    shade(libs.sql.driver.mysql)
 
     compileOnly(libs.worldeditBukkit)
 
@@ -50,16 +59,21 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+
+    // Lombok
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
 
 tasks.named<ShadowJar>("shadowJar") {
 
-    // TODO: use shadow configuration?
-    configurations = listOf() // shade none of the dependencies
+    configurations = listOf(shade)
 
-    // debug
-    logger.lifecycle("Dependencies:")
-    project.configurations.runtimeClasspath.get().resolvedConfiguration.firstLevelModuleDependencies.forEach {
+    logger.lifecycle("\nDependencies:")
+    shade.dependencies.forEach {
         logger.lifecycle(it.name)
     }
 }

@@ -8,8 +8,8 @@ import org.minerift.ether.util.fn.IBuilder;
 public class MetadataModel extends Model<Metadata, Integer> {
 
     // Id should always be 0 to ensure single-entry table
-    public Field<Metadata, Integer, ?> ID;
-    public Field<Metadata, Integer, ?> DB_VERSION;
+    public Field<Metadata, Integer> ID;
+    public Field<Metadata, Integer> DB_VERSION;
 
     public MetadataModel(DatabaseCreationContext dbCtx) {
         super(dbCtx);
@@ -36,7 +36,7 @@ public class MetadataModel extends Model<Metadata, Integer> {
     }
 
     @Override
-    public Field<Metadata, Integer, ?> getPrimaryKey() {
+    public Field<Metadata, Integer> getPrimaryKey() {
         return ID;
     }
 }

@@ -15,7 +15,7 @@ public class DMLUpdate extends DMLOp {
 
     @Override
     protected <MO, PK> RawModelQuery createQueryForModel(SQLDatabaseCreationContext ctx, Model<MO, PK> model) {
-        Field<MO, PK, ?> primaryKey = model.getPrimaryKey();
+        Field<MO, PK> primaryKey = model.getPrimaryKey();
         Fields<MO> fieldsNoKey = model.getFields().exclude(primaryKey);
         String sql = ctx.dsl().update(asJooqTable(model))
                 .set(getNullBindValues(fieldsNoKey))

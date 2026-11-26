@@ -17,7 +17,7 @@ public class GridAlgorithm {
      */
     public static int computeTileId(Vec2i tile) {
 
-        Preconditions.checkNotNull(tile, "Tile cannot be null!");
+        Preconditions.checkNotNull(tile, "Tile cannot be null");
 
         // Check if tile is a positive diagonal tile
         if(tile.getX() >= 0 && tile.getX() == tile.getZ()) {
@@ -38,31 +38,29 @@ public class GridAlgorithm {
         // Check if tile is in top row
         if(isInRow(tile, topLeft, topRight)) {
             // Start in top left
-            int startTileId = previousDiagonalId + 1;
-            startTileId += tile.getX() - topLeft.getX();
-            return startTileId;
+            return previousDiagonalId + 1
+                    + (tile.getX() - topLeft.getX());
         }
 
         // Check if tile is in bottom row
         if(isInRow(tile, bottomLeft, bottomRight)) {
             // Start in bottom right
-            int endTileId = diagonalId;
-            endTileId -= bottomRight.getX() - tile.getX();
-            return endTileId;
+            return diagonalId
+                    - (bottomRight.getX() - tile.getX());
         }
 
         // Tile is in a column
         int startTileId;
         if(tile.getX() > 0) {
             // Right
-            startTileId = previousDiagonalId + 1;
-            startTileId += tile.getX() - topLeft.getX();
-            startTileId += (tile.getZ() - topRight.getZ()) * 2;
+            startTileId = previousDiagonalId + 1
+                    + (tile.getX() - topLeft.getX())
+                    + ((tile.getZ() - topRight.getZ()) * 2);
         } else {
             // Left
-            startTileId = previousDiagonalId;
-            startTileId += topRight.getX() - topLeft.getX();
-            startTileId += (tile.getZ() - topLeft.getZ()) * 2;
+            startTileId = previousDiagonalId
+                    + (topRight.getX() - topLeft.getX())
+                    + ((tile.getZ() - topLeft.getZ()) * 2);
         }
 
         return startTileId;
@@ -75,7 +73,7 @@ public class GridAlgorithm {
      */
     public static Vec2i computeTile(int tileId) {
 
-        Preconditions.checkArgument(tileId >= 0, "tileId needs to be a positive number!");
+        Preconditions.checkArgument(tileId >= 0, "tileId needs to be a positive number");
 
         if(tileId == 0) {
             return Vec2i.ZERO;
@@ -111,7 +109,7 @@ public class GridAlgorithm {
         }
 
         // Tile is in a column
-        if(tileId % 2 != 0) {
+        if((tileId & 1) != 0) {
             // Odd -> right column
             int endColumn = endTopRow + (numColumns * 2);
             tile.subtract(0, 1 + ((endColumn - tileId) / 2));

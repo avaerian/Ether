@@ -152,11 +152,6 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
         tags.remove(name);
     }
 
-    @Override
-    public void accept(TagVisitor visit) {
-        visit.visitCompound(this);
-    }
-
     /*private <R, F extends Function<Tag, R>> R getTagValue(String name, TagType<> expectedType, F none, F some) {
         Tag tag = tags.get(name);
         if(tag == null) {
@@ -486,7 +481,7 @@ public class CompoundTag extends AbstractContainerTag<Map<String, Tag>> implemen
                 snbt.expect(":");
                 Snbt.Token valTok = snbt.peek();
                 Snbt.TagTypeParserResult result = snbt.getTagType(valTok);
-                System.out.println(result.token());
+                System.out.println(result.token() + ", type: " + result.type());
                 snbt.getTokens().setPos(result.token().getStreamPos());
 
                 Tag tag = result.type().codec().readTag(snbt, name);

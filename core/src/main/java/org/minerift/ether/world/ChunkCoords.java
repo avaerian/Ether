@@ -24,12 +24,12 @@ public class ChunkCoords {
         }
     }
 
-    public static Vec2i from(int blockX, int blockZ) {
+    public static Vec2i getChunkAt(int blockX, int blockZ) {
         return new Vec2i(blockX >> 4, blockZ >> 4);
     }
 
-    public static Vec2i from(Vec3 blockPos) {
-        return from(blockPos.getX(), blockPos.getZ());
+    public static Vec2i getChunkAt(Vec3 blockPos) {
+        return getChunkAt(blockPos.getX(), blockPos.getZ());
     }
 
     public static Vec3i getBlockAt(int chunkX, int chunkZ) {

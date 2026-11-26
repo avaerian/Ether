@@ -12,6 +12,11 @@ import java.sql.SQLTimeoutException;
 public class SQLiteConnector implements SQLConnector {
     @Override
     public HikariConfig createConfig(DatabaseConnectionSettings settings) {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         HikariConfig config = new HikariConfig();
 
         config.setJdbcUrl("jdbc:sqlite:" + settings.url() + File.separatorChar + settings.dbName() + ".db");

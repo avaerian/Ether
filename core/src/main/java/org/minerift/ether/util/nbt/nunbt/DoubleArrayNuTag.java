@@ -3,7 +3,6 @@ package org.minerift.ether.util.nbt.nunbt;
 import org.minerift.ether.util.nbt.NbtReadException;
 import org.minerift.ether.util.nbt.NbtTraverser;
 import org.minerift.ether.util.nbt.TagCodec;
-import org.minerift.ether.util.nbt.TagVisitor;
 import org.minerift.ether.util.nbt.snbt.Snbt;
 import org.minerift.ether.util.nbt.snbt.UnexpectedTokenException;
 import org.minerift.ether.util.nbt.tags.DoubleTag;
@@ -29,11 +28,6 @@ public class DoubleArrayNuTag extends ArrayTag<double[]> {
     @Override
     public Tag copy(boolean copyArray) {
         return new DoubleArrayNuTag(name, copyArray ? value.clone() : value);
-    }
-
-    @Override
-    public void accept(TagVisitor visit) {
-        // TODO: review
     }
 
     @Override

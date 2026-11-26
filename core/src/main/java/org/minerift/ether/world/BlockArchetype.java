@@ -50,7 +50,7 @@ public class BlockArchetype {
     }
 
     public Vec2i getChunk() {
-        return ChunkCoords.from(pos);
+        return ChunkCoords.getChunkAt(pos);
     }
 
     @Override

@@ -19,9 +19,9 @@ public class DDLCreateTable {
     public static <MO, PK> void createTableFromModel(SQLAccess access, Model<MO, PK> model) {
         List<Constraint> constraints = new ArrayList<>();
 
-        for(Field<MO, ?, ?> field : model.getFields()) {
+        for(Field<MO, ?> field : model.getFields()) {
             // Handle foreign field constraints
-            Field<?, ?, ?> parentField = model.getForeignFields().getParentField(field);
+            Field<?, ?> parentField = model.getForeignFields().getParentField(field);
             if(parentField != null) {
                 Model<?, ?> parentModel = parentField.getOwner();
                 constraints.add(foreignKey(field.getName()).references(name(parentModel.getTableName()), name(parentField.getName())));

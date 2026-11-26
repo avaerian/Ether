@@ -1,11 +1,12 @@
 package org.minerift.ether.island;
 
 import com.google.common.collect.ImmutableList;
-import org.minerift.ether.math.GridAlgorithm;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.minerift.ether.math.Vec2i;
-import org.minerift.ether.util.Note;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 // TODO: for async island management, Island's may not necessarily be locked, but their
 //  regions can/will be. different features may also come with different ways of accessing
@@ -13,60 +14,203 @@ import java.util.Optional;
 //  more on this soon
 public interface IslandGrid {
 
+    static Synchronized synchronize(IslandGrid grid, Object mutex) {
+        return new Synchronized(grid, mutex);
+    }
+
+    static Synchronized synchronize(IslandGrid grid) {
+        return new Synchronized(grid);
+    }
+
     // Registers an island onto the grid.
     // If the island id exists in the grid already and the island is deleted, the island will be replaced.
-    void registerIsland(Island island);
+    void registerIsland(Island island) throws IllegalStateException;
 
+    void unregisterIsland(int id);
     default void unregisterIsland(Island island) {
         unregisterIsland(island.getId());
     }
 
-    // Removes the island from the grid completely
-    void unregisterIsland(int id);
-
-    // Returns an island at a given tile, deleted or not
+    Optional<Island> getIslandAt(int id);
     default Optional<Island> getIslandAt(Vec2i tile) {
-        return getIslandAt(GridAlgorithm.computeTileId(tile), false);
+        return getIslandAt(tile.getTileId());
     }
 
-    default Optional<Island> getIslandAt(int id) {
-        return getIslandAt(id, false);
+    boolean isTileOccupied(int id);
+    default boolean isTileOccupied(Vec2i tile) {
+        return isTileOccupied(tile.getTileId());
     }
 
-    // Returns an island at a given tile
-    // If activeOnly, return the island only if active
+    boolean needsClearing(Vec2i tile);
+    default void queueForClearing(Island island) {
 
-    /* NOTE: If the island tile is write-locked, block until write-lock is freed.
-         If the island grid is write-locked, block until write-lock is freed.
-     */
-    default Optional<Island> getIslandAt(Vec2i tile, boolean activeOnly) {
-        return getIslandAt(GridAlgorithm.computeTileId(tile), activeOnly);
     }
+    void queueForClearing(DeletedTile tile);
+    DeletedTile getTileForClearing(Vec2i tile);
+    Collection<DeletedTile> getPurgeQueue();
 
-    Optional<Island> getIslandAt(int id, boolean activeOnly);
+    int getIslandCount();
 
-    // Returns whether a tile has an island, deleted or not, present
-    boolean isTileOccupied(Vec2i tile);
-
-    default boolean hasActiveIslandAt(Vec2i tile) {
-        return hasActiveIslandAt(GridAlgorithm.computeTileId(tile));
-    }
-
-    boolean hasActiveIslandAt(int id);
-
-    int getIslandCount(boolean activeOnly);
-
-
-    // Return view of all islands
     ImmutableList<Island> getIslandsView();
 
-    // Get a list of islands that can be reoccupied
-    ImmutableList<Island> getPurgedIslandsView();
+    ImmutableList<Vec2i> getAvailableTiles(); // tiles that should be occupied before appending to end of grid
 
-    ImmutableList<Vec2i> getAvailableTiles();
-
-    @Note("Returns the next available tile that can be occupied")
+    /**
+     * Return the next available tile in the grid.
+     *
+     * **NOTE:** If there is a deleted island on the grid ready to be reoccupied again,
+     * this method will return the next island in the purge queue before returning
+     * the next tile from the grid bounds.
+     *
+     * @return the next available tile in the grid to be occupied.
+     */
     Vec2i getNextTile();
 
+    IntSet getIslandIds();
+
+    Lock readLock();
+    Lock writeLock();
+
+    class Synchronized implements IslandGrid {
+
+        private final IslandGrid grid; // backing grid
+        private final Object mutex;
+
+        private Synchronized(IslandGrid grid, Object mutex) {
+            this.grid = grid;
+            this.mutex = mutex;
+        }
+
+        private Synchronized(IslandGrid grid) {
+            this.grid = grid;
+            this.mutex = this;
+        }
+
+        @Override
+        public void registerIsland(Island island) throws IllegalStateException {
+            synchronized (mutex) {
+                grid.registerIsland(island);
+            }
+        }
+
+        @Override
+        public void unregisterIsland(int id) {
+            synchronized (mutex) {
+                grid.unregisterIsland(id);
+            }
+        }
+
+        @Override
+        public void unregisterIsland(Island island) {
+            synchronized (mutex) {
+                grid.unregisterIsland(island);
+            }
+        }
+
+        @Override
+        public Optional<Island> getIslandAt(int id) {
+            synchronized (mutex) {
+                return grid.getIslandAt(id);
+            }
+        }
+
+        @Override
+        public Optional<Island> getIslandAt(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.getIslandAt(tile);
+            }
+        }
+
+        @Override
+        public boolean isTileOccupied(int id) {
+            synchronized (mutex) {
+                return grid.isTileOccupied(id);
+            }
+        }
+
+        @Override
+        public boolean isTileOccupied(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.isTileOccupied(tile);
+            }
+        }
+
+        @Override
+        public boolean needsClearing(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.needsClearing(tile);
+            }
+        }
+
+        @Override
+        public int getIslandCount() {
+            synchronized (mutex) {
+                return grid.getIslandCount();
+            }
+        }
+
+        @Override
+        public ImmutableList<Island> getIslandsView() {
+            synchronized (mutex) {
+                return grid.getIslandsView();
+            }
+        }
+
+        @Override
+        public ImmutableList<Vec2i> getAvailableTiles() {
+            synchronized (mutex) {
+                return grid.getAvailableTiles();
+            }
+        }
+
+        @Override
+        public Vec2i getNextTile() {
+            synchronized (mutex) {
+                return grid.getNextTile();
+            }
+        }
+
+        @Override
+        public IntSet getIslandIds() {
+            synchronized (mutex) {
+                return grid.getIslandIds();
+            }
+        }
+
+        @Override
+        public Lock readLock() {
+            synchronized (mutex) {
+                return grid.readLock();
+            }
+        }
+
+        @Override
+        public Lock writeLock() {
+            synchronized (mutex) {
+                return grid.writeLock();
+            }
+        }
+
+        @Override
+        public void queueForClearing(DeletedTile tile) {
+            synchronized (mutex) {
+                grid.queueForClearing(tile);
+            }
+        }
+
+        @Override
+        public DeletedTile getTileForClearing(Vec2i tile) {
+            synchronized (mutex) {
+                return grid.getTileForClearing(tile);
+            }
+        }
+
+        @Override
+        public Collection<DeletedTile> getPurgeQueue() {
+            synchronized (mutex) {
+                return grid.getPurgeQueue();
+            }
+        }
+    }
 
 }

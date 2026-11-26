@@ -2,6 +2,10 @@ package org.minerift.ether.nms.v1_20_R2.data;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.bukkit.Material;
 import org.minerift.ether.debug.NeedsTesting;
@@ -49,6 +53,21 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     }
 
     @Override
+    public String getResourceLocation() {
+        return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+    }
+
+    @Override
+    public boolean is(String id) {
+        return state.is(TagKey.create(Registries.BLOCK, new ResourceLocation(id)));
+    }
+
+    @Override
+    public boolean is(BlockState<net.minecraft.world.level.block.state.BlockState> other) {
+        return state.is(other.asNative().getBlockHolder());
+    }
+
+    @Override
     public boolean hasBlockEntity() {
         return state.hasBlockEntity();
     }
@@ -87,12 +106,10 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     @Override
     public CompoundTag propsAsNbt() {
         CompoundTag compound = new CompoundTag();
-
         for(Map.Entry<Property<?>, Comparable<?>> entry : state.getValues().entrySet()) {
             Property prop = entry.getKey();
             compound.addTag(new StringTag(prop.getName(), prop.getName(entry.getValue())));
         }
-
         return compound;
     }
 
@@ -109,6 +126,11 @@ public class BlockStateImpl implements BlockState<net.minecraft.world.level.bloc
     @Override
     public boolean isAir() {
         return state.isAir();
+    }
+
+    @Override
+    public int getLightEmission() {
+        return state.getLightEmission();
     }
 
     @Deprecated

@@ -8,9 +8,9 @@ import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.DefaultDataType;
 import org.minerift.ether.database.*;
-import org.minerift.ether.database.sql.fallback.EnumOrdinalFallback;
-import org.minerift.ether.database.sql.fallback.EnumStrFallback;
-import org.minerift.ether.database.sql.fallback.Fallback;
+import org.minerift.ether.database.fallback.EnumOrdinalFallback;
+import org.minerift.ether.database.fallback.EnumStrFallback;
+import org.minerift.ether.database.fallback.Fallback;
 import org.minerift.ether.database.sql.op.bind.NamedBindValues;
 
 import java.sql.Connection;
@@ -72,7 +72,7 @@ public class SQLUtils {
         return asJooqDataType(type, org.jooq.SQLDialect.DEFAULT);
     }
 
-    public static org.jooq.Field<?> asJooqField(Field<?, ?, ?> field) {
+    public static org.jooq.Field<?> asJooqField(Field<?, ?> field) {
         return field(field.getName(), asJooqDataType(field.getDataType()));
     }
 
@@ -90,7 +90,7 @@ public class SQLUtils {
         return table(tableName);
     }
 
-    public static Map<org.jooq.Field<?>, ?> getNullBindValue(Field<?, ?, ?> field) {
+    public static Map<org.jooq.Field<?>, ?> getNullBindValue(Field<?, ?> field) {
         return getNullBindValue(asJooqField(field));
     }
 

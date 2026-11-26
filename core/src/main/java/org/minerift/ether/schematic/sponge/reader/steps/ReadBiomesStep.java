@@ -9,14 +9,10 @@ import org.minerift.ether.schematic.data.BiomeVolume;
 import org.minerift.ether.schematic.data.BytePalette;
 import org.minerift.ether.schematic.sponge.reader.SchematicReaderContext;
 import org.minerift.ether.util.nbt.tags.IntTag;
-import org.minerift.ether.util.nbt.tags.Tag;
 import org.minerift.ether.util.nbt.tags.container.CompoundTag;
 import org.minerift.ether.util.nbt.tags.container.MismatchedTypeException;
 import org.minerift.ether.util.nbt.tags.container.NoTagFoundException;
 
-import java.util.Map;
-
-import static java.lang.String.format;
 import static org.minerift.ether.schematic.sponge.reader.SchematicNBTFields.*;
 import static org.minerift.ether.util.nbt.tags.TagTypes.INT;
 
@@ -25,7 +21,6 @@ public class ReadBiomesStep implements IReaderStep {
     @NeedsTesting
     @Override
     public void read(SchematicReaderContext ctx) throws SchematicReadException {
-
         final int width = ctx.builder.getWidth();
         final int height = ctx.builder.getHeight();
         final int length = ctx.builder.getLength();
@@ -38,9 +33,6 @@ public class ReadBiomesStep implements IReaderStep {
         try {
             biomePaletteTag = ctx.root.getCompound(NBT_BIOME_PALETTE);
         } catch(NoTagFoundException | MismatchedTypeException e) {
-            // TODO: fix up biome palette to have lazy variation;
-            //  assumption is schematics typically don't have biomes
-            //  saved, so why not optimize?
             BytePalette<String> biomePalette = BytePalette.of(1);
             biomePalette.add((byte) 0, "minecraft:plains");
             biomeVolume.setData(new byte[width * height * length]);
@@ -54,9 +46,9 @@ public class ReadBiomesStep implements IReaderStep {
         BytePalette<Biome<?>> biomePalette = BytePalette.of(biomePaletteTag.size());
 
         // Verify size
-        IntTag _expSize = ctx.root.tryGetTag(NBT_BIOME_PALETTE_MAX, INT);
+        IntTag _expSize = ctx.root.tryGetTag(NBT_BIOME_PALETTE_MAX, INT); // optional
         if(_expSize != null) {
-            int expSize = _expSize.getAsInt(); // optional
+            int expSize = _expSize.getAsInt();
             if(biomePaletteTag.size() != expSize) {
                 // TODO: proper logger
                 System.out.printf("Expected a palette size of %d, but actually got %d\n",

@@ -1,6 +1,7 @@
 package org.minerift.ether.nms;
 
 import com.google.common.base.Preconditions;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.Nullable;
 import org.minerift.ether.nms.world.*;
 import org.minerift.ether.nms.world.block.BlockState;
@@ -43,6 +44,8 @@ public interface NativeTypeConversions<NBS, NC, NCS, NB, NIS> {
 
 
     NBS asNativeBlockState(String id) throws BlockStateNotFoundException;
+    NBS asNativeBlockState(Block block);
+    NBS asNativeBlockState(org.bukkit.block.BlockState bukkitState);
 
     default BlockState<NBS> asBlockState(String id) throws BlockStateNotFoundException {
         return asBlockState(asNativeBlockState(id));
@@ -61,6 +64,14 @@ public interface NativeTypeConversions<NBS, NC, NCS, NB, NIS> {
                 throw new RuntimeException("Failed to load block state " + id + " and fallback state " + fallback, ex2);
             }
         }
+    }
+
+    default BlockState<NBS> asBlockState(Block block) {
+        return asBlockState(asNativeBlockState(block));
+    }
+
+    default BlockState<NBS> asBlockState(org.bukkit.block.BlockState bukkitState) {
+        return asBlockState(asNativeBlockState(bukkitState));
     }
 
     BlockState<NBS> asBlockState(NBS nativeState);
