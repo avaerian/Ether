@@ -1,6 +1,7 @@
 package org.minerift.ether.database.sql;
 
 import org.minerift.ether.database.DataType;
+import org.minerift.ether.database.nusql.connect.NuSQLConnector;
 import org.minerift.ether.database.sql.connectors.*;
 import org.minerift.ether.database.fallback.JsonFallback;
 import org.minerift.ether.util.Utils;
@@ -8,10 +9,10 @@ import org.minerift.ether.util.Utils;
 import java.util.function.Supplier;
 
 public enum SQLDialect {
-    MYSQL       (org.jooq.SQLDialect.MYSQL,     MySQLConnector::new),
-    POSTGRES    (org.jooq.SQLDialect.POSTGRES,  PostgreSQLConnector::new),
-    SQLITE      (org.jooq.SQLDialect.SQLITE,    SQLiteConnector::new),
-    H2          (org.jooq.SQLDialect.H2,        H2Connector::new)
+    MYSQL       (org.jooq.SQLDialect.MYSQL,     MySQLConnector::new, org.minerift.ether.database.nusql.connect.MySQLConnector::new),
+    POSTGRES    (org.jooq.SQLDialect.POSTGRES,  PostgreSQLConnector::new, org.minerift.ether.database.nusql.connect.PostgreSQLConnector::new),
+    SQLITE      (org.jooq.SQLDialect.SQLITE,    SQLiteConnector::new, org.minerift.ether.database.nusql.connect.SQLiteConnector::new),
+    H2          (org.jooq.SQLDialect.H2,        H2Connector::new, org.minerift.ether.database.nusql.connect.H2Connector::new)
 
     ;
 
@@ -31,10 +32,12 @@ public enum SQLDialect {
     }
 
     private final org.jooq.SQLDialect dialect;
-    private final Supplier<SQLConnector> dbConnector;
-    SQLDialect(org.jooq.SQLDialect dialect, Supplier<SQLConnector> dbConnector) {
+    @Deprecated private final Supplier<SQLConnector> dbConnector;
+    private final Supplier<NuSQLConnector> nuConnector;
+    SQLDialect(org.jooq.SQLDialect dialect, Supplier<SQLConnector> dbConnector, Supplier<NuSQLConnector> nuConnector) {
         this.dialect = dialect;
         this.dbConnector = dbConnector;
+        this.nuConnector = nuConnector;
     }
 
     public org.jooq.SQLDialect asJooqDialect() {
@@ -64,7 +67,12 @@ public enum SQLDialect {
         };
     }
 
+    @Deprecated
     public SQLConnector getDbConnector() {
         return dbConnector.get();
+    }
+
+    public NuSQLConnector getNuSQLConnector() {
+        return nuConnector.get();
     }
 }

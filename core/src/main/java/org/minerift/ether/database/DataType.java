@@ -76,7 +76,7 @@ public class DataType<T> {
     }
 
 
-    public static final int MAX = 8000; // TODO: review and see if improvements can be made for storing large binary data
+    public static final int MAX = 8000;
     protected static final int VALUE_NOT_SET = -1;
 
     protected final PrimitiveType primitiveType;
@@ -103,8 +103,8 @@ public class DataType<T> {
         this.typeClazz = clazz;
         this.baseTypeClazz = typeClazz.componentType();
         this.nullable = nullable;
-        this.length = length; // TODO: validate
-        this.arrayLength = arrayLength; // TODO: validate
+        this.length = length; //TODO: validate
+        this.arrayLength = arrayLength; //TODO: validate
     }
 
     public DataType<T> nullable(boolean newVal) {
@@ -121,7 +121,7 @@ public class DataType<T> {
 
     public DataType<T> length(int newVal) {
         if(newVal <= 0) {
-            throw new IllegalArgumentException("New length is invalid: " + newVal);
+            throw new IllegalArgumentException("New length of " + newVal + " is invalid");
         }
         return length == newVal ? this : new DataType<>(primitiveType, typeClazz, nullable, newVal, arrayLength);
     }
@@ -136,7 +136,7 @@ public class DataType<T> {
 
     public DataType<T> arrayLength(int newVal) {
         if(newVal <= 0) {
-            throw new IllegalArgumentException("New array length is invalid: " + newVal);
+            throw new IllegalArgumentException("New length of " + newVal + " is invalid");
         }
         return arrayLength == newVal ? this : new DataType<>(primitiveType, typeClazz, nullable, length, newVal);
     }
@@ -151,7 +151,7 @@ public class DataType<T> {
 
     public DataType<T[]> array(int arrayLength) {
         if(isArrayType()) {
-            throw new UnsupportedOperationException("Type is already an array!");
+            throw new UnsupportedOperationException("Type is already an array");
         }
         //System.out.println(typeClazz.arrayType().getTypeName()); // debug
         return new DataType<>(primitiveType, (Class<T[]>) typeClazz.arrayType(), nullable, length, arrayLength);
@@ -191,7 +191,7 @@ public class DataType<T> {
     /**
      * Identify whether the data type is an integer type.
      * This identifies any math integer type, not just an I32.
-     * @return if type is an math integer
+     * @return if type is a math integer
      */
     public boolean isIntegerType() {
         return primitiveType == PrimitiveType.BYTE
@@ -212,12 +212,10 @@ public class DataType<T> {
         return typeClazz.isArray();
     }
 
-    // TODO: documentation
     public boolean isDynamicallySizedType() {
         return primitiveType == PrimitiveType.VARCHAR || primitiveType == PrimitiveType.VARBINARY;
     }
 
-    // TODO: review this
     @Deprecated
     public int getByteSize(T data) {
         return switch (primitiveType) {
